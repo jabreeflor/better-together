@@ -1,0 +1,1505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Better Together — Stream Watcher</title>
+<style>
+  /* ---------- Tokens ---------- */
+  :root {
+    --bg-0: #0b0d12;
+    --bg-1: #11141b;
+    --bg-2: #161a23;
+    --bg-3: #1c2230;
+    --bg-stage: #181c27;
+    --line: #232a39;
+    --line-2: #2c3445;
+    --ink-0: #f3f5fa;
+    --ink-1: #c8cedd;
+    --ink-2: #8a93a8;
+    --ink-3: #5b657a;
+    --accent: #b48cff;     /* purple, twitchy */
+    --accent-2: #8a5cff;
+    --live: #ff3b3b;
+    --warn: #ff9b3b;
+    --tool: #4dd2ff;
+    --good: #5cf0a8;
+    --diff-bg: #0e1622;
+
+    --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", "SF Pro Text", sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+    --shadow-stage:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 30px 60px -20px rgba(0,0,0,0.6),
+      0 12px 30px -10px rgba(138, 92, 255, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--ink-1);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(138, 92, 255, 0.10), transparent 60%),
+      radial-gradient(1000px 500px at 0% 110%, rgba(77, 210, 255, 0.06), transparent 60%),
+      var(--bg-0);
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.005em;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: rgba(180, 140, 255, 0.35); color: #fff; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: relative;
+    z-index: 30;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 16px;
+    background: linear-gradient(180deg, #0e1118 0%, #0b0d12 100%);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--ink-0);
+  }
+  .brand .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(180,140,255,0.18);
+    transform: translateY(-1px);
+  }
+  .brand .sub {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 8px;
+    background: rgba(255, 59, 59, 0.10);
+    border: 1px solid rgba(255, 59, 59, 0.35);
+    color: #ffb3b3;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    font-size: 10.5px;
+    text-transform: uppercase;
+  }
+  .live-pill .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--live);
+    box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.6);
+    animation: live-pulse 1.6s ease-out infinite;
+  }
+  @keyframes live-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.55); }
+    70%  { box-shadow: 0 0 0 8px rgba(255, 59, 59, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); }
+  }
+
+  .url-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink-1);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    max-width: 420px;
+  }
+  .url-pill .icon {
+    color: var(--ink-3);
+    font-size: 11px;
+  }
+  .url-pill .copy {
+    margin-left: 6px;
+    color: var(--ink-3);
+    font-size: 11px;
+    border-left: 1px solid var(--line);
+    padding-left: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .url-pill .copy:hover { color: var(--ink-0); }
+
+  .age {
+    color: var(--ink-3);
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .age strong { color: var(--ink-1); font-weight: 600; }
+
+  .spacer { flex: 1; }
+
+  .watching {
+    position: relative;
+  }
+  .watching-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--ink-1);
+    font-size: 12px;
+  }
+  .watching-pill:hover { border-color: var(--line-2); }
+  .watching-pill .eye {
+    width: 14px; height: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--accent);
+  }
+  .watching-pill .count { font-weight: 700; color: var(--ink-0); }
+  .watching-pill .stack {
+    display: inline-flex;
+    margin-left: 4px;
+  }
+  .watching-pill .stack .av {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-1);
+    margin-left: -6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #0b0d12;
+  }
+  .watching-pill .stack .av:first-child { margin-left: 0; }
+
+  .watching-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 280px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 50;
+  }
+  .watching.open .watching-panel,
+  .watching:hover .watching-panel {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .watching-panel .hdr {
+    padding: 6px 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .presence-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 8px;
+  }
+  .presence-row + .presence-row { margin-top: 2px; }
+  .presence-row:hover { background: var(--bg-3); }
+  .presence-row .av-lg {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0b0d12;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .presence-row .av-lg.host::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+  }
+  .presence-row .meta { flex: 1; min-width: 0; }
+  .presence-row .name {
+    color: var(--ink-0);
+    font-weight: 600;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .presence-row .joined {
+    color: var(--ink-3);
+    font-size: 11px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    line-height: 1.2;
+  }
+  .badge.host { background: rgba(180,140,255,0.18); color: #d6c2ff; }
+  .badge.driving { background: rgba(255,59,59,0.14); color: #ffb3b3; }
+  .badge.browser { background: rgba(77,210,255,0.10); color: #9ee2ff; }
+  .badge.plugin  { background: rgba(92,240,168,0.10); color: #a8f3cb; }
+  .badge.attached{ background: rgba(255,155,59,0.10); color: #ffcb91; }
+
+  /* ---------- Permission banner ---------- */
+  .perm-banner {
+    position: relative;
+    z-index: 25;
+    overflow: hidden;
+    background: linear-gradient(90deg, rgba(255,59,59,0.18) 0%, rgba(255,155,59,0.18) 100%);
+    border-bottom: 1px solid rgba(255,59,59,0.35);
+    color: #ffe3d0;
+    animation: perm-drop 0.6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes perm-drop {
+    from { transform: translateY(-100%); }
+    to   { transform: translateY(0); }
+  }
+  .perm-banner .stripe {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        135deg,
+        rgba(255,255,255,0.045) 0 12px,
+        transparent 12px 24px
+      );
+    animation: stripe-march 9s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes stripe-march {
+    from { background-position: 0 0; }
+    to   { background-position: 200px 0; }
+  }
+  .perm-banner .inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+  }
+  .perm-banner .urgent-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--live);
+    box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7);
+    animation: live-pulse 0.9s ease-out infinite;
+    flex-shrink: 0;
+  }
+  .perm-banner .label {
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    color: #ffd9a8;
+  }
+  .perm-banner .msg {
+    color: #fff;
+    font-size: 13px;
+  }
+  .perm-banner .msg code {
+    font-family: var(--font-mono);
+    background: rgba(0,0,0,0.35);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #ffb6b6;
+  }
+  .perm-banner .ts {
+    margin-left: auto;
+    color: #ffd9a8;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+  }
+
+  /* ---------- Layout ---------- */
+  .app {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    height: calc(100vh - 52px);
+  }
+  .perm-banner ~ .app { height: calc(100vh - 52px - 41px); }
+
+  .stream-col {
+    position: relative;
+    display: grid;
+    grid-template-rows: 1fr;
+    overflow: hidden;
+    border-right: 1px solid var(--line);
+  }
+
+  .stream-inner {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ---------- Backlog (above stage) ---------- */
+  .backlog {
+    padding: 14px 24px 10px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(11,13,18,0.6) 0%, transparent 100%),
+      var(--bg-0);
+  }
+  .backlog::-webkit-scrollbar { height: 6px; }
+  .backlog::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+
+  .backlog-label {
+    align-self: center;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-right: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .turn-card {
+    flex-shrink: 0;
+    width: 268px;
+    max-width: 268px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+  }
+  .turn-card:hover { border-color: var(--line-2); transform: translateY(-1px); }
+  .turn-card.selected {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(180,140,255,0.08), rgba(180,140,255,0.02));
+    box-shadow: 0 0 0 1px var(--accent), 0 8px 24px -8px rgba(138,92,255,0.5);
+  }
+  .turn-card .tc-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .turn-card .tc-head .tag {
+    font-weight: 700;
+  }
+  .turn-card.user .tag { color: #d6c2ff; }
+  .turn-card.assistant .tag { color: var(--good); }
+  .turn-card.tool_call .tag { color: var(--tool); }
+  .turn-card .tc-id {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    color: var(--ink-3);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .turn-card .tc-body {
+    font-size: 12px;
+    color: var(--ink-1);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+  .turn-card .tc-body.mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .turn-card .tc-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    margin-top: auto;
+  }
+  .turn-card .anchor-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    background: var(--bg-3);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-size: 10px;
+  }
+
+  /* ---------- Stage (focal) ---------- */
+  .stage-wrap {
+    padding: 18px 24px 18px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .stage-wrap::-webkit-scrollbar { width: 8px; }
+  .stage-wrap::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+
+  .now-playing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-3);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .now-playing .bar {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line) 0%, transparent 100%);
+  }
+  .now-playing strong { color: var(--ink-1); font-weight: 700; }
+
+  .stage {
+    background:
+      radial-gradient(800px 300px at 100% 0%, rgba(180,140,255,0.06), transparent 60%),
+      linear-gradient(180deg, #1c2230 0%, #161a23 100%);
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    padding: 24px 28px 26px;
+    box-shadow: var(--shadow-stage);
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180,140,255,0.4), transparent);
+  }
+  .stage.selected {
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 1px var(--accent),
+      0 30px 60px -20px rgba(0,0,0,0.6),
+      0 12px 30px -10px rgba(138, 92, 255, 0.34);
+  }
+  .stage-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .stage-head .av {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #0b0d12;
+    font-size: 14px;
+    position: relative;
+  }
+  .stage-head .av.host::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+  .stage-head .who {
+    font-weight: 700;
+    color: var(--ink-0);
+    font-size: 14px;
+  }
+  .stage-head .role {
+    color: var(--ink-3);
+    font-size: 11.5px;
+  }
+  .stage-head .meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-3);
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  .stage-head .turn-id {
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .stage-body {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--ink-0);
+  }
+  .stage-body p + p { margin-top: 10px; }
+  .stage-body ol { padding-left: 20px; margin: 14px 0 0; }
+  .stage-body ol li { margin-top: 12px; }
+  .stage-body ol li strong {
+    color: var(--ink-0);
+    font-weight: 700;
+  }
+  .stage-body ol li p {
+    color: var(--ink-1);
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+
+  /* live-edge composing card */
+  .stage.composing {
+    border-color: rgba(255, 59, 59, 0.55);
+    background:
+      radial-gradient(800px 300px at 100% 0%, rgba(255,59,59,0.06), transparent 60%),
+      linear-gradient(180deg, #1f1820 0%, #1a151b 100%);
+  }
+  .stage.composing::before {
+    background: linear-gradient(90deg, transparent, rgba(255,59,59,0.55), transparent);
+  }
+  .stage.composing .live-edge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,59,59,0.12);
+    border: 1px solid rgba(255,59,59,0.4);
+    color: #ffb3b3;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+  .stage.composing .live-edge .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--live);
+    animation: live-pulse 1s ease-out infinite;
+  }
+  .composing-text {
+    font-size: 16px;
+    color: var(--ink-0);
+    line-height: 1.55;
+  }
+  .composing-text .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 1.1em;
+    background: var(--ink-0);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: caret 1.05s steps(1) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  /* tool strip */
+  .tool-strip {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .tool-strip:hover { border-color: var(--line-2); }
+  .tool-strip.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .tool-strip .ts-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: linear-gradient(180deg, rgba(77,210,255,0.05), transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .tool-strip .now {
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--tool);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tool-strip .now::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--tool);
+    box-shadow: 0 0 8px var(--tool);
+  }
+  .tool-strip .tool-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--ink-0);
+    font-size: 12.5px;
+  }
+  .tool-strip .ts-meta {
+    margin-left: auto;
+    color: var(--ink-3);
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  .tool-strip .ts-meta .turn-id { color: var(--accent); font-weight: 700; }
+  .tool-strip .ts-body {
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-1);
+    display: grid;
+    gap: 6px;
+  }
+  .tool-strip .kv {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    gap: 12px;
+    align-items: baseline;
+  }
+  .tool-strip .kv .k {
+    color: var(--ink-3);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .tool-strip .kv .v {
+    color: var(--ink-0);
+    word-break: break-all;
+  }
+  .tool-strip .result {
+    margin-top: 6px;
+    background: var(--diff-bg);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--tool);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--ink-1);
+    font-size: 12px;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .tool-strip .result .truncated {
+    color: var(--ink-3);
+  }
+
+  /* user-turn card (compact) */
+  .user-card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .user-card:hover { border-color: var(--line-2); }
+  .user-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .user-card .av {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #0b0d12; font-weight: 700;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .user-card .uc-body { flex: 1; min-width: 0; }
+  .user-card .uc-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .user-card .uc-head .who { color: var(--ink-0); font-weight: 700; font-size: 13px; }
+  .user-card .uc-head .role-tag {
+    font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #d6c2ff; background: rgba(180,140,255,0.16);
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .user-card .uc-head .meta {
+    margin-left: auto; color: var(--ink-3); font-size: 11px; font-family: var(--font-mono);
+  }
+  .user-card .uc-head .turn-id { color: var(--accent); font-weight: 700; }
+  .user-card .uc-text {
+    color: var(--ink-1);
+    font-size: 13.5px;
+  }
+
+  /* anchor pin on cards */
+  .anchor-pip {
+    position: absolute;
+    top: 8px; right: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+
+  /* ---------- Stream lower bar ---------- */
+  .stream-foot {
+    border-top: 1px solid var(--line);
+    background: var(--bg-1);
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--ink-3);
+    font-size: 11px;
+  }
+  .stream-foot .stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+  }
+  .stream-foot .stat .v { color: var(--ink-0); font-weight: 700; }
+  .stream-foot .sep { color: var(--line-2); }
+  .stream-foot .right { margin-left: auto; display: inline-flex; gap: 14px; }
+
+  /* ---------- Chat column ---------- */
+  .chat-col {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 100%);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .chat-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chat-head .title {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-1);
+    font-weight: 700;
+  }
+  .chat-head .count-pill {
+    margin-left: auto;
+    background: var(--bg-3);
+    color: var(--ink-2);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+  }
+
+  .chat-scroll {
+    overflow-y: auto;
+    padding: 12px 14px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chat-scroll::-webkit-scrollbar { width: 6px; }
+  .chat-scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 3px; }
+
+  .comment {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+    border: 1px solid transparent;
+  }
+  .comment:hover { background: rgba(255,255,255,0.02); }
+  .comment.highlighted {
+    background: rgba(180,140,255,0.06);
+    border-color: rgba(180,140,255,0.3);
+  }
+  .comment .anchor-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .comment .anchor-chip {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bg-3);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .comment .anchor-chip strong {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .comment .body {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-1);
+  }
+  .comment .body .author {
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .comment .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+  }
+  .comment .meta-row .mode {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 9.5px;
+  }
+
+  .new-msg-divider {
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 4px 0 2px;
+    position: relative;
+  }
+  .new-msg-divider::before, .new-msg-divider::after {
+    content: ""; position: absolute; top: 50%; height: 1px; width: 30%;
+    background: var(--line);
+  }
+  .new-msg-divider::before { left: 0; }
+  .new-msg-divider::after { right: 0; }
+
+  /* composer */
+  .composer {
+    border-top: 1px solid var(--line);
+    padding: 10px 12px 14px;
+    background: var(--bg-1);
+  }
+  .anchor-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+  }
+  .anchor-bar .pin {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+  .anchor-bar .preview {
+    flex: 1;
+    color: var(--ink-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .anchor-bar .clear {
+    color: var(--ink-3);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .anchor-bar .clear:hover { background: var(--bg-2); color: var(--ink-1); }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .input-box {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink-0);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s ease;
+    min-height: 40px;
+    max-height: 120px;
+  }
+  .input-box:focus { border-color: var(--accent); }
+  .input-box::placeholder { color: var(--ink-3); }
+  .send-btn {
+    background: var(--accent);
+    color: #0b0d12;
+    font-weight: 700;
+    font-size: 12px;
+    border: none;
+    border-radius: 8px;
+    padding: 0 14px;
+    height: 40px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .send-btn:hover { background: #c4a5ff; }
+  .send-btn:active { transform: scale(0.97); }
+
+  .composer .hint {
+    margin-top: 6px;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+  }
+  .composer .hint kbd {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-size: 10px;
+    color: var(--ink-1);
+  }
+
+  /* sub-cursor anchors */
+  [data-anchor] { position: relative; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    BETTER<span style="color: var(--ink-2)">·</span>TOGETHER
+    <span class="sub">stream</span>
+  </div>
+
+  <span class="live-pill">
+    <span class="live-dot"></span>
+    LIVE
+  </span>
+
+  <div class="url-pill" title="Room URL">
+    <span class="icon">↗</span>
+    https://misty-llama-9342.trycloudflare.com
+    <span class="copy" id="copyBtn">COPY</span>
+  </div>
+
+  <div class="age">started <strong>23m</strong> ago</div>
+
+  <div class="spacer"></div>
+
+  <div class="watching" id="watching">
+    <div class="watching-pill" id="watchingToggle">
+      <span class="eye">●</span>
+      watching: <span class="count">4</span>
+      <span class="stack" aria-hidden="true">
+        <span class="av" style="background:#b48cff">J</span>
+        <span class="av" style="background:#7adcff">L</span>
+        <span class="av" style="background:#5cf0a8">M</span>
+        <span class="av" style="background:#ffae5c">a</span>
+      </span>
+    </div>
+
+    <div class="watching-panel" role="dialog" aria-label="Presence">
+      <div class="hdr">In room · 4</div>
+
+      <div class="presence-row">
+        <span class="av-lg host" style="background:#b48cff">J</span>
+        <div class="meta">
+          <div class="name">Jabree
+            <span class="badge host">HOST</span>
+            <span class="badge driving">DRIVING</span>
+          </div>
+          <div class="joined">started the room</div>
+        </div>
+      </div>
+
+      <div class="presence-row">
+        <span class="av-lg" style="background:#7adcff">L</span>
+        <div class="meta">
+          <div class="name">Lin <span class="badge browser">BROWSER</span></div>
+          <div class="joined">joined 4m ago</div>
+        </div>
+      </div>
+
+      <div class="presence-row">
+        <span class="av-lg" style="background:#5cf0a8">M</span>
+        <div class="meta">
+          <div class="name">Marcus
+            <span class="badge plugin">PLUGIN</span>
+            <span class="badge attached">ANALYST CLAUDE</span>
+          </div>
+          <div class="joined">joined 12m ago</div>
+        </div>
+      </div>
+
+      <div class="presence-row">
+        <span class="av-lg" style="background:#ffae5c">🐈</span>
+        <div class="meta">
+          <div class="name">anonymous-cat <span class="badge browser">BROWSER</span></div>
+          <div class="joined">joined 1m ago</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PERMISSION BANNER -->
+<div class="perm-banner" id="permBanner">
+  <div class="stripe"></div>
+  <div class="inner">
+    <span class="urgent-dot"></span>
+    <span class="label">Permission · Awaiting host</span>
+    <span class="msg">Jabree is being asked to approve <code>Bash(rm -rf node_modules)</code></span>
+    <span class="ts">just now · t5</span>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <!-- LEFT: STREAM -->
+  <div class="stream-col">
+    <div class="stream-inner">
+
+      <!-- Backlog row -->
+      <div class="backlog" id="backlog">
+        <div class="backlog-label">earlier in stream →</div>
+
+        <!-- t1 user -->
+        <div class="turn-card user" data-anchor="t1" data-id="t1">
+          <div class="tc-head">
+            <span class="tag">USER</span>
+            <span style="color:var(--ink-3)">· Jabree</span>
+            <span class="tc-id">t1</span>
+          </div>
+          <div class="tc-body">"Read PRD.md and tell me what's missing from the privacy section"</div>
+          <div class="tc-foot">
+            <span>22m ago</span>
+            <span class="anchor-count">📌 1</span>
+          </div>
+        </div>
+
+        <!-- t2 tool -->
+        <div class="turn-card tool_call" data-anchor="t2" data-id="t2">
+          <div class="tc-head">
+            <span class="tag">TOOL · READ</span>
+            <span class="tc-id">t2</span>
+          </div>
+          <div class="tc-body mono">file_path: /Users/jabreeflor/better-together/PRD.md
+result: ## Privacy &amp; safety…</div>
+          <div class="tc-foot">
+            <span>21m ago</span>
+            <span class="anchor-count">📌 0</span>
+          </div>
+        </div>
+
+        <!-- t3 assistant -->
+        <div class="turn-card assistant" data-anchor="t3" data-id="t3">
+          <div class="tc-head">
+            <span class="tag">CLAUDE</span>
+            <span style="color:var(--ink-3)">· Jabree's</span>
+            <span class="tc-id">t3</span>
+          </div>
+          <div class="tc-body">"I've reviewed the privacy section. Three things stand out as missing: comment storage policy, redaction filter punted to v1.5, display name leakage…"</div>
+          <div class="tc-foot">
+            <span>20m ago</span>
+            <span class="anchor-count">📌 2</span>
+          </div>
+        </div>
+
+        <!-- t4 tool -->
+        <div class="turn-card tool_call" data-anchor="t4" data-id="t4">
+          <div class="tc-head">
+            <span class="tag">TOOL · BASH</span>
+            <span class="tc-id">t4</span>
+          </div>
+          <div class="tc-body mono">$ grep -n 'secret' PRD.md
+156:For URLs that might leak…</div>
+          <div class="tc-foot">
+            <span>20m ago</span>
+            <span class="anchor-count">📌 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage area -->
+      <div class="stage-wrap" id="stageWrap">
+
+        <div class="now-playing">
+          <span>Now on stage</span>
+          <span class="bar"></span>
+          <strong>t6 · live edge</strong>
+        </div>
+
+        <!-- Stage card: t6 (composing live edge) -->
+        <div class="stage composing selected" data-anchor="t6" data-id="t6" id="stageT6">
+          <div class="stage-head">
+            <span class="av host" style="background:#b48cff">J</span>
+            <div>
+              <div class="who">Jabree <span class="role" style="margin-left:4px;">· host, driving</span></div>
+              <div class="role">composing prompt to Claude</div>
+            </div>
+            <div class="meta">
+              <span class="live-edge"><span class="live-dot"></span>LIVE EDGE</span>
+              <span>just now</span>
+              <span class="turn-id">t6</span>
+            </div>
+          </div>
+
+          <div class="composing-text">
+            "Add a section under privacy about comment storage. Match the existing voice.<span class="cursor"></span>"
+          </div>
+        </div>
+
+        <!-- Tool strip t4 -->
+        <div class="now-playing" style="margin-top:6px;">
+          <span>Tool · Bash</span>
+          <span class="bar"></span>
+          <strong>t4</strong>
+        </div>
+        <div class="tool-strip" data-anchor="t4" data-id="t4-strip">
+          <div class="ts-head">
+            <span class="now">CALL</span>
+            <span class="tool-name">Bash</span>
+            <span class="ts-meta">20m ago · <span class="turn-id">t4</span></span>
+          </div>
+          <div class="ts-body">
+            <div class="kv"><div class="k">$</div><div class="v">grep -n 'secret' PRD.md</div></div>
+            <div class="kv"><div class="k">why</div><div class="v" style="color:var(--ink-2)">Search for existing mentions of secret handling</div></div>
+            <div class="result">156:For URLs that might leak, the host can optionally pass <span style="color:var(--good)">--secret</span> to <span style="color:var(--good)">/team:host</span>, which adds a join-secret param.</div>
+          </div>
+        </div>
+
+        <!-- Assistant: t3 below the live edge for context -->
+        <div class="now-playing" style="margin-top:6px;">
+          <span>Last assistant turn</span>
+          <span class="bar"></span>
+          <strong>t3</strong>
+        </div>
+
+        <div class="stage" data-anchor="t3" data-id="t3-stage">
+          <div class="stage-head">
+            <span class="av" style="background:#5cf0a8">C</span>
+            <div>
+              <div class="who">Jabree's Claude <span class="role" style="margin-left:4px;">· assistant</span></div>
+              <div class="role">replying to t1</div>
+            </div>
+            <div class="meta">
+              <span>20m ago</span>
+              <span class="turn-id">t3</span>
+            </div>
+          </div>
+          <div class="stage-body">
+            <p>"I've reviewed the privacy section. Three things stand out as missing:</p>
+            <ol>
+              <li>
+                <strong>Comment storage policy.</strong>
+                <p>Comments persist in transcript history once posted. If a watcher pastes a secret into a comment, it's there forever. The section should address this.</p>
+              </li>
+              <li>
+                <strong>Redaction filter punted to v1.5 without specifics.</strong>
+                <p>The section names common patterns (API_KEY=, AWS keys) but doesn't enumerate them. Without a v1 default list, 'defer to v1.5' can drift indefinitely.</p>
+              </li>
+              <li>
+                <strong>Display name leakage.</strong>
+                <p>Watchers pick display names that may include emails or real names. There's no policy on whether to allow plain usernames only, or how kicked users' names persist in the transcript."</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Compact user turn ref t1 (allow click-anchor) -->
+        <div class="now-playing" style="margin-top:6px;">
+          <span>Original prompt</span>
+          <span class="bar"></span>
+          <strong>t1</strong>
+        </div>
+        <div class="user-card" data-anchor="t1" data-id="t1-card">
+          <span class="av" style="background:#b48cff">J</span>
+          <div class="uc-body">
+            <div class="uc-head">
+              <span class="who">Jabree</span>
+              <span class="role-tag">USER</span>
+              <span class="meta">22m ago · <span class="turn-id">t1</span></span>
+            </div>
+            <div class="uc-text">"Read PRD.md and tell me what's missing from the privacy section"</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="stream-foot">
+        <span class="stat">turns <span class="v">6</span></span>
+        <span class="sep">|</span>
+        <span class="stat">tool calls <span class="v">2</span></span>
+        <span class="sep">|</span>
+        <span class="stat">comments <span class="v">4</span></span>
+        <div class="right">
+          <span class="stat">latency <span class="v">62ms</span></span>
+          <span class="stat">bitrate <span class="v" style="color:var(--good)">●●●●</span></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: CHAT -->
+  <div class="chat-col">
+    <div class="chat-head">
+      <span class="title">Stream Chat</span>
+      <span class="count-pill" id="chatCount">4 anchored</span>
+    </div>
+
+    <div class="chat-scroll" id="chatScroll">
+      <div class="new-msg-divider">earlier today</div>
+
+      <div class="comment" data-anchor="t1">
+        <div class="anchor-row">
+          replying to <span class="anchor-chip">→ <strong>t1</strong></span>
+          <span style="margin-left:auto;">3m ago</span>
+        </div>
+        <div class="body">
+          <span class="author" style="color:#7adcff;">Lin</span>
+          love this question — the redaction filter punt seems like a real risk if dogfooding stretches into months
+        </div>
+        <div class="meta-row">
+          <span class="mode" style="color:#7adcff;">browser</span>
+        </div>
+      </div>
+
+      <div class="comment" data-anchor="t3">
+        <div class="anchor-row">
+          replying to <span class="anchor-chip">→ <strong>t3</strong></span>
+          <span style="margin-left:auto;">2m ago</span>
+        </div>
+        <div class="body">
+          <span class="author" style="color:#5cf0a8;">Marcus</span>
+          agree on point 2. should we propose specific regex patterns? happy to draft.
+        </div>
+        <div class="meta-row">
+          <span class="mode" style="color:#5cf0a8;">plugin · analyst claude</span>
+        </div>
+      </div>
+
+      <div class="comment" data-anchor="t3">
+        <div class="anchor-row">
+          replying to <span class="anchor-chip">→ <strong>t3</strong></span>
+          <span style="margin-left:auto;">1m ago</span>
+        </div>
+        <div class="body">
+          <span class="author" style="color:#7adcff;">Lin</span>
+          what about display names that contain emails? minor but real
+        </div>
+        <div class="meta-row">
+          <span class="mode" style="color:#7adcff;">browser</span>
+        </div>
+      </div>
+
+      <div class="new-msg-divider">just now</div>
+
+      <div class="comment" data-anchor="t4">
+        <div class="anchor-row">
+          replying to <span class="anchor-chip">→ <strong>t4</strong></span>
+          <span style="margin-left:auto;">30s ago</span>
+        </div>
+        <div class="body">
+          <span class="author" style="color:#ffae5c;">anonymous-cat</span>
+          🐈
+        </div>
+        <div class="meta-row">
+          <span class="mode" style="color:#ffae5c;">browser</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- composer -->
+    <div class="composer">
+      <div class="anchor-bar" id="anchorBar">
+        <span class="pin" id="anchorPin">→ t6</span>
+        <span class="preview" id="anchorPreview">commenting on the live edge — Jabree composing</span>
+        <span class="clear" id="anchorClear" title="Clear anchor">esc</span>
+      </div>
+      <div class="input-row">
+        <textarea class="input-box" id="composerInput" rows="2" placeholder="Send a comment to the room…"></textarea>
+        <button class="send-btn" id="sendBtn">CHAT</button>
+      </div>
+      <div class="hint">
+        <span>posts as <span style="color:var(--accent); font-weight:700;">you</span> · visible to everyone in room</span>
+        <span><kbd>↵</kbd> send · <kbd>esc</kbd> unanchor</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // anchor previews keyed by turn id
+  const ANCHORS = {
+    t1: 'commenting on t1 — Jabree: "Read PRD.md and tell me what\'s missing…"',
+    t2: 'commenting on t2 — Read tool: PRD.md',
+    t3: 'commenting on t3 — Claude: "Three things stand out as missing…"',
+    t4: 'commenting on t4 — Bash: grep -n \'secret\' PRD.md',
+    t5: 'commenting on t5 — Permission: Bash(rm -rf node_modules)',
+    t6: 'commenting on the live edge — Jabree composing',
+  };
+
+  // Selectable areas (cards/strips/stages) — clicking selects their anchor
+  const selectables = document.querySelectorAll('[data-id]');
+  const stageEls = document.querySelectorAll('[data-anchor]');
+  const composerInput = document.getElementById('composerInput');
+  const anchorPin = document.getElementById('anchorPin');
+  const anchorPreview = document.getElementById('anchorPreview');
+  const anchorClear = document.getElementById('anchorClear');
+  const comments = document.querySelectorAll('.comment');
+
+  function clearSelection() {
+    selectables.forEach(el => el.classList.remove('selected'));
+    comments.forEach(c => c.classList.remove('highlighted'));
+  }
+
+  function setAnchor(turnId) {
+    clearSelection();
+    // mark every element with that anchor (so e.g. clicking t3 stage and t3 card both highlight t3-related stuff)
+    document.querySelectorAll('[data-anchor="' + turnId + '"][data-id]').forEach(el => el.classList.add('selected'));
+    // also highlight matching comments
+    document.querySelectorAll('.comment[data-anchor="' + turnId + '"]').forEach(c => c.classList.add('highlighted'));
+
+    anchorPin.textContent = '→ ' + turnId;
+    anchorPreview.textContent = ANCHORS[turnId] || ('commenting on ' + turnId);
+    composerInput.focus();
+  }
+
+  function clearAnchor() {
+    clearSelection();
+    anchorPin.textContent = '→ —';
+    anchorPreview.textContent = 'no anchor · click any turn above to attach a comment';
+  }
+
+  selectables.forEach(el => {
+    el.addEventListener('click', (e) => {
+      const id = el.getAttribute('data-anchor');
+      if (id) setAnchor(id);
+    });
+  });
+
+  // clicking a comment jumps anchor to its target
+  comments.forEach(c => {
+    c.addEventListener('click', () => {
+      const id = c.getAttribute('data-anchor');
+      if (id) setAnchor(id);
+    });
+  });
+
+  // initial selection: t6 live edge
+  setAnchor('t6');
+
+  // anchor clear
+  anchorClear.addEventListener('click', clearAnchor);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') clearAnchor();
+  });
+
+  // copy URL flash
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', () => {
+    const orig = copyBtn.textContent;
+    copyBtn.textContent = 'COPIED';
+    copyBtn.style.color = 'var(--good)';
+    setTimeout(() => {
+      copyBtn.textContent = orig;
+      copyBtn.style.color = '';
+    }, 1200);
+  });
+
+  // watching panel toggle (click — hover already works via CSS)
+  const watching = document.getElementById('watching');
+  const watchingToggle = document.getElementById('watchingToggle');
+  watchingToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    watching.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!watching.contains(e.target)) watching.classList.remove('open');
+  });
+
+  // send (no-op visual)
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.addEventListener('click', () => {
+    if (!composerInput.value.trim()) return;
+    composerInput.value = '';
+    sendBtn.textContent = 'SENT';
+    setTimeout(() => sendBtn.textContent = 'CHAT', 900);
+  });
+  composerInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+})();
+</script>
+</body>
+</html>

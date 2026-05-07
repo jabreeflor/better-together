@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>better-together · session/misty-llama-9342 · PR-style review</title>
+<style>
+  /* ------------------------------------------------------------------ */
+  /* GitHub-flavored color tokens                                        */
+  /* ------------------------------------------------------------------ */
+  :root {
+    --bg-canvas: #f6f8fa;
+    --bg-default: #ffffff;
+    --bg-subtle: #f6f8fa;
+    --bg-muted: #eaeef2;
+    --bg-emphasis: #ddf4ff;
+    --border-default: #d0d7de;
+    --border-muted: #d8dee4;
+    --border-subtle: #eaeef2;
+    --fg-default: #1f2328;
+    --fg-muted: #59636e;
+    --fg-subtle: #6e7781;
+    --fg-onEmphasis: #ffffff;
+    --accent-fg: #0969da;
+    --accent-emphasis: #0969da;
+    --accent-subtle: #ddf4ff;
+    --success-fg: #1a7f37;
+    --success-emphasis: #1f883d;
+    --success-subtle: #dafbe1;
+    --danger-fg: #cf222e;
+    --danger-emphasis: #cf222e;
+    --danger-subtle: #ffebe9;
+    --attention-fg: #9a6700;
+    --attention-emphasis: #bf8700;
+    --attention-subtle: #fff8c5;
+    --done-fg: #8250df;
+    --done-subtle: #fbefff;
+    --neutral-emphasis: #6e7781;
+    --neutral-subtle: #eaeef2;
+    --diff-add-bg: #dafbe1;
+    --diff-add-text: #1f2328;
+    --diff-add-gutter: #ccffd8;
+    --diff-del-bg: #ffebe9;
+    --diff-del-gutter: #ffd7d5;
+    --diff-context-bg: #ffffff;
+    --shadow-small: 0 1px 0 rgba(31,35,40,0.04);
+    --shadow-medium: 0 3px 6px rgba(140,149,159,0.15);
+    --radius: 6px;
+    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-canvas);
+    color: var(--fg-default);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: var(--accent-fg); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ------------------------------------------------------------------ */
+  /* Top bar (GitHub global header)                                     */
+  /* ------------------------------------------------------------------ */
+  .topbar {
+    background: #1f2328;
+    color: #ffffff;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    border-bottom: 1px solid #1f2328;
+  }
+  .topbar .mark {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    color: #fff;
+  }
+  .topbar .mark svg { width: 28px; height: 28px; }
+  .topbar .crumbs {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px;
+  }
+  .topbar .crumbs a { color: #ffffff; }
+  .topbar .crumbs .sep { color: #8b949e; }
+  .topbar .crumbs strong { font-weight: 600; }
+  .topbar .grow { flex: 1; }
+  .topbar .ghost-btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #ffffff;
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .topbar .avatar-me {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#ff7a00,#cf222e);
+    color: #fff;
+    display: grid; place-items: center;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Sub header — repo/PR metadata                                       */
+  /* ------------------------------------------------------------------ */
+  .subhead {
+    background: var(--bg-default);
+    border-bottom: 1px solid var(--border-default);
+    padding: 16px 32px 0;
+  }
+  .repo-line {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--fg-default);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .repo-line .repo-icon {
+    color: var(--fg-muted);
+  }
+  .repo-line .org { color: var(--accent-fg); font-weight: 600; }
+  .repo-line .repo { color: var(--accent-fg); font-weight: 600; }
+  .repo-line .visibility {
+    border: 1px solid var(--border-default);
+    border-radius: 2em;
+    padding: 0 7px;
+    font-size: 12px;
+    color: var(--fg-muted);
+    line-height: 18px;
+    margin-left: 4px;
+  }
+
+  .pr-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+  .pr-title {
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--fg-default);
+    line-height: 1.25;
+    letter-spacing: -0.2px;
+  }
+  .pr-title .pr-num { color: var(--fg-muted); font-weight: 300; }
+
+  .pr-actions {
+    display: flex; gap: 8px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg-default);
+    border: 1px solid rgba(31,35,40,0.15);
+    color: var(--fg-default);
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: var(--shadow-small);
+  }
+  .btn:hover { background: var(--bg-muted); }
+  .btn-primary {
+    background: var(--success-emphasis);
+    color: #fff;
+    border-color: rgba(31,35,40,0.15);
+  }
+  .btn-primary:hover { background: #1c8139; }
+
+  .pr-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 16px;
+    color: var(--fg-muted);
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+  .state-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--success-emphasis);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 2em;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .state-pill .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+    animation: livepulse 2s ease-in-out infinite;
+  }
+  @keyframes livepulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+    70%  { box-shadow: 0 0 0 6px rgba(255,255,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  }
+  .pr-meta-row .meta-text strong { color: var(--fg-default); font-weight: 600; }
+  .pr-meta-row .room-url {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--accent-fg);
+    background: var(--accent-subtle);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-top: 4px;
+    border-bottom: none;
+    list-style: none;
+    padding: 0;
+    align-items: center;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    margin-bottom: -1px;
+    border: 1px solid transparent;
+    border-radius: var(--radius) var(--radius) 0 0;
+    color: var(--fg-default);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active {
+    background: var(--bg-default);
+    border: 1px solid var(--border-default);
+    border-bottom-color: var(--bg-default);
+    font-weight: 600;
+    position: relative;
+  }
+  .tab .count {
+    background: var(--neutral-subtle);
+    color: var(--fg-default);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0 6px;
+    border-radius: 2em;
+    min-width: 20px;
+    text-align: center;
+    line-height: 18px;
+  }
+  .tab.active .count { background: var(--bg-muted); }
+
+  /* ------------------------------------------------------------------ */
+  /* Layout                                                              */
+  /* ------------------------------------------------------------------ */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 296px;
+    gap: 24px;
+    padding: 24px 32px 80px;
+    max-width: 1408px;
+    margin: 0 auto;
+  }
+
+  .timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* vertical rail behind avatars */
+  .timeline::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: 19px;
+    width: 2px;
+    background: var(--border-default);
+    z-index: 0;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Turn cards                                                         */
+  /* ------------------------------------------------------------------ */
+  .turn {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 16px;
+    z-index: 1;
+  }
+
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg-muted);
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--fg-default);
+    border: 2px solid var(--bg-canvas);
+    flex-shrink: 0;
+  }
+  .avatar.host    { background: linear-gradient(135deg,#ff7a00,#cf222e); color:#fff; }
+  .avatar.claude  { background: linear-gradient(135deg,#0969da,#054da7); color:#fff; }
+  .avatar.tool    { background: #1f2328; color:#fff; }
+  .avatar.lin     { background: linear-gradient(135deg,#1a7f37,#116329); color:#fff; }
+  .avatar.marcus  { background: linear-gradient(135deg,#8250df,#6639ba); color:#fff; }
+  .avatar.anon    { background: linear-gradient(135deg,#fbefff,#ffd8b5); color:#1f2328; }
+  .avatar.system  { background: var(--danger-emphasis); color:#fff; }
+
+  .card {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    background: var(--bg-default);
+    overflow: hidden;
+    box-shadow: var(--shadow-small);
+    position: relative;
+    cursor: pointer;
+    transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+  }
+  .card:hover { border-color: #b1bac4; }
+  .card.selected {
+    border-color: var(--accent-fg);
+    box-shadow: 0 0 0 1px var(--accent-fg), var(--shadow-medium);
+  }
+
+  /* speech-bubble notch pointing at avatar */
+  .card::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 13px;
+    width: 14px; height: 14px;
+    background: var(--bg-default);
+    border-left: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+    transform: rotate(45deg);
+    z-index: 1;
+  }
+  .card.selected::before {
+    border-left-color: var(--accent-fg);
+    border-bottom-color: var(--accent-fg);
+  }
+
+  .card-head {
+    background: var(--bg-subtle);
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--fg-muted);
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+  }
+  .card-head .who {
+    color: var(--fg-default);
+    font-weight: 600;
+  }
+  .card-head .turn-id {
+    font-family: var(--mono);
+    background: var(--neutral-subtle);
+    color: var(--fg-muted);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11.5px;
+  }
+  .card-head .head-spacer { flex: 1; }
+  .card-head .reactions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-default);
+    border-radius: 2em;
+    background: var(--bg-default);
+    color: var(--fg-muted);
+    font-size: 12px;
+  }
+  .card-head .reactions:hover { background: var(--accent-subtle); border-color: var(--accent-fg); color: var(--accent-fg); }
+
+  /* Kind badges (mimic +N/-N pills) */
+  .kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 2em;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+    border: 1px solid transparent;
+    font-family: var(--sans);
+  }
+  .kind .kdot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .kind-user      { background: var(--accent-subtle); color: var(--accent-fg); border-color: rgba(9,105,218,0.2);}
+  .kind-user      .kdot { background: var(--accent-fg); }
+  .kind-tool-read { background: #fbefff; color: var(--done-fg); border-color: rgba(130,80,223,0.2); }
+  .kind-tool-read .kdot { background: var(--done-fg); }
+  .kind-tool-bash { background: #1f2328; color: #ffffff; border-color: #1f2328; }
+  .kind-tool-bash .kdot { background: #1f883d; }
+  .kind-assistant { background: var(--success-subtle); color: var(--success-fg); border-color: rgba(31,136,61,0.2); }
+  .kind-assistant .kdot { background: var(--success-fg); }
+  .kind-perm      { background: var(--danger-subtle); color: var(--danger-fg); border-color: rgba(207,34,46,0.25); }
+  .kind-perm      .kdot { background: var(--danger-fg); animation: pulseRed 1.2s ease-in-out infinite; }
+  .kind-live      { background: var(--attention-subtle); color: var(--attention-fg); border-color: rgba(191,135,0,0.25); }
+  .kind-live      .kdot { background: var(--attention-fg); }
+
+  @keyframes pulseRed {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.4); box-shadow: 0 0 0 4px rgba(207,34,46,0.2); }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Body styles for each turn type                                     */
+  /* ------------------------------------------------------------------ */
+  .card-body { padding: 16px; font-size: 14px; color: var(--fg-default); }
+
+  .card-body p { margin: 0 0 8px 0; }
+  .card-body p:last-child { margin-bottom: 0; }
+  .card-body ol { margin: 8px 0 0 0; padding-left: 22px; }
+  .card-body ol li { margin-bottom: 8px; }
+  .card-body strong { font-weight: 600; }
+  .card-body code {
+    font-family: var(--mono);
+    background: var(--neutral-subtle);
+    color: var(--fg-default);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+  }
+
+  /* user prompt text */
+  .user-quote {
+    font-size: 15px;
+    color: var(--fg-default);
+  }
+  .user-quote::before { content: "“"; color: var(--fg-subtle); margin-right: 2px; font-size: 18px; }
+  .user-quote::after  { content: "”"; color: var(--fg-subtle); margin-left: 2px; font-size: 18px; }
+
+  /* live-edge composing indicator */
+  .composing {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 4px 10px;
+    background: var(--attention-subtle);
+    border: 1px dashed var(--attention-emphasis);
+    border-radius: 999px;
+    color: var(--attention-fg);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .composing .blink {
+    width: 7px; height: 14px;
+    background: var(--attention-fg);
+    animation: cursorBlink 1s steps(1) infinite;
+  }
+  @keyframes cursorBlink {
+    50% { opacity: 0; }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Tool-Read: file diff view                                          */
+  /* ------------------------------------------------------------------ */
+  .filebox {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 4px;
+    background: var(--bg-default);
+  }
+  .filebox-head {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-subtle);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-default);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--fg-default);
+  }
+  .filebox-head .filepath { color: var(--fg-default); flex: 1; }
+  .filebox-head .pill-add {
+    background: var(--success-subtle);
+    color: var(--success-fg);
+    border: 1px solid rgba(31,136,61,0.25);
+    border-radius: 2em;
+    font-size: 11px;
+    padding: 1px 7px;
+    font-family: var(--sans);
+    font-weight: 500;
+  }
+  .difftable {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 20px;
+  }
+  .difftable td {
+    padding: 0;
+    vertical-align: top;
+  }
+  .difftable .ln {
+    width: 1%;
+    min-width: 50px;
+    color: rgba(31,35,40,0.4);
+    text-align: right;
+    padding: 0 10px;
+    border-right: 1px solid var(--border-subtle);
+    background: var(--bg-subtle);
+    user-select: none;
+    white-space: nowrap;
+  }
+  .difftable .code {
+    padding: 0 10px;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .difftable tr.ctx { background: var(--diff-context-bg); }
+  .difftable tr.add { background: var(--diff-add-bg); }
+  .difftable tr.add .ln { background: var(--diff-add-gutter); color: rgba(31,35,40,0.55); }
+  .difftable tr.hunk { background: #ddf4ff; color: var(--accent-fg); }
+  .difftable tr.hunk .ln { background: #ddf4ff; color: var(--accent-fg); }
+  .difftable tr.hunk .code { color: var(--accent-fg); }
+  .difftable tr.elision { color: var(--fg-subtle); background: var(--bg-subtle); }
+  .difftable tr.elision .code { color: var(--fg-subtle); font-style: italic; }
+
+  /* ------------------------------------------------------------------ */
+  /* Tool-Bash: terminal block                                          */
+  /* ------------------------------------------------------------------ */
+  .term {
+    background: #0d1117;
+    color: #e6edf3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid #1f2328;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin-top: 4px;
+  }
+  .term-head {
+    background: #161b22;
+    padding: 6px 12px;
+    color: #8b949e;
+    font-size: 11.5px;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .term-head .dots { display: inline-flex; gap: 6px; }
+  .term-head .dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #30363d;
+  }
+  .term-head .dot.r { background: #ff5f57; }
+  .term-head .dot.y { background: #febc2e; }
+  .term-head .dot.g { background: #28c840; }
+  .term-body { padding: 12px 14px; white-space: pre-wrap; }
+  .term-body .prompt { color: #7ee787; }
+  .term-body .cmd { color: #e6edf3; }
+  .term-body .out { color: #8b949e; display: block; margin-top: 6px; }
+  .term-body .lineno { color: #6e7781; }
+  .term-body .hi { color: #d2a8ff; }
+  .bash-desc {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--fg-muted);
+    margin-bottom: 6px;
+  }
+  .bash-desc .label { color: var(--fg-default); font-weight: 600; }
+
+  /* ------------------------------------------------------------------ */
+  /* Permission prompt banner (CI-failure styled)                       */
+  /* ------------------------------------------------------------------ */
+  .ci-banner {
+    border: 1px solid var(--danger-emphasis);
+    border-radius: var(--radius);
+    background: var(--bg-default);
+    overflow: hidden;
+    margin-left: 56px;
+    margin-right: 0;
+    box-shadow: 0 0 0 4px rgba(207,34,46,0.08);
+    animation: bannerPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes bannerPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(207,34,46,0.08); }
+    50%      { box-shadow: 0 0 0 6px rgba(207,34,46,0.15); }
+  }
+  .ci-banner-head {
+    background: var(--danger-subtle);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--danger-emphasis);
+  }
+  .ci-banner-head .x-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--danger-emphasis);
+    color: #fff;
+    display: grid; place-items: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .ci-banner-head .ci-title {
+    font-weight: 600;
+    color: var(--danger-fg);
+    flex: 1;
+    font-size: 14px;
+  }
+  .ci-banner-head .ci-title small {
+    color: var(--fg-muted);
+    font-weight: 400;
+    margin-left: 8px;
+  }
+  .ci-banner-body {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .ci-banner-body .check-row {
+    display: flex; align-items: center; gap: 10px; flex: 1;
+  }
+  .ci-banner-body .x-fail {
+    color: var(--danger-fg);
+    font-weight: 600;
+  }
+  .ci-banner-body code {
+    font-family: var(--mono);
+    background: #1f2328;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12.5px;
+  }
+  .ci-banner-foot {
+    border-top: 1px solid var(--border-default);
+    padding: 8px 14px;
+    background: var(--bg-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--fg-muted);
+  }
+  .ci-banner-foot .approve {
+    background: var(--success-emphasis);
+    color: #fff;
+    border: 1px solid rgba(31,35,40,0.15);
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .ci-banner-foot .deny {
+    background: var(--bg-default);
+    color: var(--danger-fg);
+    border: 1px solid var(--border-default);
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Comments thread                                                    */
+  /* ------------------------------------------------------------------ */
+  .thread {
+    margin-top: 12px;
+    margin-left: 56px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    background: var(--bg-default);
+    overflow: hidden;
+  }
+  .thread-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border-default);
+    font-size: 12px;
+    color: var(--fg-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .thread-head .anchor-tag {
+    font-family: var(--mono);
+    color: var(--accent-fg);
+    background: var(--accent-subtle);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11.5px;
+  }
+  .thread-head .caret {
+    transition: transform 150ms ease;
+    color: var(--fg-muted);
+  }
+  .thread.collapsed .caret { transform: rotate(-90deg); }
+  .thread.collapsed .thread-list { display: none; }
+  .thread-head .count-pill {
+    background: var(--neutral-subtle);
+    color: var(--fg-default);
+    padding: 0 6px;
+    border-radius: 2em;
+    font-size: 11px;
+    line-height: 18px;
+    margin-left: auto;
+  }
+  .thread-list { padding: 4px 0; }
+  .comment {
+    display: grid;
+    grid-template-columns: 28px minmax(0,1fr);
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 13px;
+  }
+  .comment:last-child { border-bottom: none; }
+  .comment .c-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 600;
+    color: #fff;
+  }
+  .comment .c-avatar.lin    { background: linear-gradient(135deg,#1a7f37,#116329); }
+  .comment .c-avatar.marcus { background: linear-gradient(135deg,#8250df,#6639ba); }
+  .comment .c-avatar.anon   { background: linear-gradient(135deg,#fbefff,#ffd8b5); color:#1f2328; }
+  .comment .c-meta {
+    color: var(--fg-muted);
+    font-size: 12.5px;
+    margin-bottom: 2px;
+  }
+  .comment .c-meta .name { color: var(--fg-default); font-weight: 600; margin-right: 4px; }
+  .comment .c-meta .channel-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 6px;
+    background: var(--neutral-subtle);
+    color: var(--fg-muted);
+    border-radius: 2em;
+    font-size: 10.5px;
+    font-weight: 500;
+    margin-left: 4px;
+    line-height: 16px;
+  }
+  .comment .c-text { color: var(--fg-default); }
+  .comment .c-text.cat { font-size: 32px; line-height: 1.1; }
+
+  /* ------------------------------------------------------------------ */
+  /* Right sidebar                                                      */
+  /* ------------------------------------------------------------------ */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-self: start;
+    position: sticky;
+    top: 16px;
+  }
+
+  .side-group h3 {
+    font-size: 12px;
+    color: var(--fg-default);
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-default);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .side-group h3 .gear {
+    color: var(--fg-muted);
+    cursor: pointer;
+  }
+  .side-group h3 .gear:hover { color: var(--accent-fg); }
+
+  .reviewer-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .reviewer-row + .reviewer-row { border-top: 1px solid var(--border-subtle); }
+  .reviewer-row .r-avatar {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 10px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .reviewer-row .r-avatar.host    { background: linear-gradient(135deg,#ff7a00,#cf222e); }
+  .reviewer-row .r-avatar.lin     { background: linear-gradient(135deg,#1a7f37,#116329); }
+  .reviewer-row .r-avatar.marcus  { background: linear-gradient(135deg,#8250df,#6639ba); }
+  .reviewer-row .r-avatar.anon    { background: linear-gradient(135deg,#fbefff,#ffd8b5); color:#1f2328; }
+
+  .reviewer-row .name-line {
+    flex: 1;
+    display: flex; flex-direction: column;
+    min-width: 0;
+  }
+  .reviewer-row .name-line .name {
+    color: var(--fg-default);
+    font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .reviewer-row .name-line .sub {
+    color: var(--fg-muted);
+    font-size: 11.5px;
+  }
+
+  .channel-tag {
+    font-size: 10.5px;
+    padding: 0 6px;
+    border-radius: 2em;
+    line-height: 16px;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .channel-tag.browser { background: var(--accent-subtle); color: var(--accent-fg); border-color: rgba(9,105,218,0.2); }
+  .channel-tag.plugin  { background: var(--done-subtle); color: var(--done-fg); border-color: rgba(130,80,223,0.2); }
+  .channel-tag.host    { background: var(--success-subtle); color: var(--success-fg); border-color: rgba(31,136,61,0.2); }
+
+  .status-icon {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 10px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .status-icon.driving { background: var(--success-emphasis); }
+  .status-icon.viewing { background: var(--accent-fg); }
+  .status-icon.attached { background: var(--done-fg); }
+  .status-icon.peeking { background: var(--neutral-emphasis); }
+  .status-icon::before { content: ""; display: block; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+
+  .side-meta {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius);
+    background: var(--bg-default);
+    padding: 12px;
+    font-size: 12.5px;
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+  .side-meta .row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0;
+  }
+  .side-meta .row .k { color: var(--fg-muted); }
+  .side-meta .row .v { color: var(--fg-default); font-weight: 500; }
+  .side-meta .url-row {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--accent-fg);
+    word-break: break-all;
+  }
+
+  /* Activity heat-strip */
+  .heatstrip {
+    display: flex;
+    gap: 2px;
+    margin-top: 6px;
+    height: 22px;
+    align-items: stretch;
+  }
+  .heatstrip .cell {
+    flex: 1;
+    background: var(--neutral-subtle);
+    border-radius: 2px;
+  }
+  .heatstrip .cell.l1 { background: #aceebb; }
+  .heatstrip .cell.l2 { background: #4ac26b; }
+  .heatstrip .cell.l3 { background: var(--success-emphasis); }
+  .heatstrip .cell.l4 { background: #116329; }
+
+  .files-changed {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .file-link {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent-fg);
+    border-bottom: 1px dashed var(--border-subtle);
+  }
+  .file-link:last-child { border-bottom: none; }
+  .file-link .delta {
+    font-family: var(--sans);
+    font-size: 11px;
+    margin-left: auto;
+    color: var(--fg-muted);
+  }
+  .file-link .delta b { color: var(--success-fg); font-weight: 600; }
+
+  /* ------------------------------------------------------------------ */
+  /* Composer                                                            */
+  /* ------------------------------------------------------------------ */
+  .composer-wrap {
+    margin-top: 32px;
+    border-top: 1px solid var(--border-default);
+    padding-top: 16px;
+  }
+  .composer-anchor {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: var(--accent-subtle);
+    border: 1px solid rgba(9,105,218,0.3);
+    border-radius: var(--radius) var(--radius) 0 0;
+    font-size: 12.5px;
+    color: var(--accent-fg);
+    border-bottom: none;
+  }
+  .composer-anchor .reply-arrow { color: var(--accent-fg); }
+  .composer-anchor .anchor-id {
+    font-family: var(--mono);
+    background: #fff;
+    color: var(--accent-fg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(9,105,218,0.2);
+    margin: 0 4px;
+  }
+  .composer-anchor .anchor-preview {
+    color: var(--fg-default);
+    font-style: italic;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60%;
+  }
+  .composer-anchor .change-anchor {
+    margin-left: auto;
+    color: var(--accent-fg);
+    font-size: 11.5px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .composer {
+    border: 1px solid var(--border-default);
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--bg-default);
+    overflow: hidden;
+  }
+  .composer-tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-subtle);
+    padding: 4px 8px 0;
+    align-items: flex-end;
+  }
+  .composer-tab {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: var(--radius) var(--radius) 0 0;
+    color: var(--fg-muted);
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: -1px;
+  }
+  .composer-tab.active {
+    background: var(--bg-default);
+    border-color: var(--border-default);
+    color: var(--fg-default);
+    font-weight: 500;
+  }
+  .composer-toolbar {
+    display: flex;
+    gap: 0;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-default);
+    background: var(--bg-default);
+    color: var(--fg-muted);
+  }
+  .composer-toolbar button {
+    background: transparent;
+    border: none;
+    padding: 4px 7px;
+    color: var(--fg-muted);
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .composer-toolbar button:hover { background: var(--bg-muted); color: var(--fg-default); }
+  .composer-toolbar .sep {
+    width: 1px;
+    height: 16px;
+    background: var(--border-default);
+    margin: 4px 6px;
+  }
+  .composer-input {
+    width: 100%;
+    min-height: 96px;
+    padding: 12px 14px;
+    border: none;
+    background: var(--bg-default);
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--fg-default);
+    resize: vertical;
+    outline: none;
+  }
+  .composer-input::placeholder { color: var(--fg-subtle); }
+  .composer-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-default);
+    background: var(--bg-subtle);
+  }
+  .composer-foot .help {
+    font-size: 12px;
+    color: var(--fg-muted);
+  }
+  .composer-foot .help kbd {
+    background: var(--bg-default);
+    border: 1px solid var(--border-default);
+    border-bottom-width: 2px;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-default);
+  }
+  .composer-foot .composer-actions { display: flex; gap: 8px; }
+
+  /* small icon helpers */
+  .i {
+    display: inline-block;
+    vertical-align: text-bottom;
+    line-height: 1;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================== -->
+<!-- Top header                                                      -->
+<!-- ============================================================== -->
+<header class="topbar">
+  <div class="mark">
+    <!-- octocat-shaped mark, simplified -->
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/>
+    </svg>
+  </div>
+  <nav class="crumbs">
+    <a href="#">jabreeflor</a>
+    <span class="sep">/</span>
+    <a href="#"><strong>better-together</strong></a>
+    <span class="sep">/</span>
+    <a href="#">sessions</a>
+    <span class="sep">/</span>
+    <span style="color:#8b949e">misty-llama-9342</span>
+  </nav>
+  <div class="grow"></div>
+  <button class="ghost-btn">Watch <span style="opacity:.7">3</span></button>
+  <button class="ghost-btn">Fork session</button>
+  <button class="ghost-btn">Star <span style="opacity:.7">·</span> 7</button>
+  <div class="avatar-me" title="jabreeflor">J</div>
+</header>
+
+<!-- ============================================================== -->
+<!-- Sub header — repo / PR-style                                    -->
+<!-- ============================================================== -->
+<section class="subhead">
+  <div class="repo-line">
+    <svg class="repo-icon i" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5v-9Zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 0 1 1-1h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2v-3.25Z"/>
+    </svg>
+    <span class="org">jabreeflor</span>
+    <span style="color:var(--fg-muted)">/</span>
+    <span class="repo">better-together</span>
+    <span class="visibility">Live</span>
+  </div>
+
+  <div class="pr-title-row">
+    <div class="pr-title">
+      Session: <em style="font-style:normal">privacy section review &amp; patch proposal</em>
+      <span class="pr-num">#sessions/misty-llama-9342</span>
+    </div>
+    <div class="pr-actions">
+      <button class="btn">Subscribe</button>
+      <button class="btn-primary btn">Review changes</button>
+    </div>
+  </div>
+
+  <div class="pr-meta-row">
+    <span class="state-pill"><span class="live-dot"></span> Live</span>
+    <span class="meta-text"><strong>jabreeflor</strong> opened this session <strong>23 minutes ago</strong> · </span>
+    <span class="meta-text">3 watchers · 4 comments · </span>
+    <a class="room-url" href="#">https://misty-llama-9342.trycloudflare.com</a>
+  </div>
+
+  <ul class="tabs" role="tablist">
+    <li class="tab active">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 13.25 12H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 13.543V12H2.75A1.75 1.75 0 0 1 1 10.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h4.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+      Conversation <span class="count">6</span>
+    </li>
+    <li class="tab">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="m.879 7.172 6.293-6.293a1.75 1.75 0 0 1 2.475 0l6.293 6.293a1.75 1.75 0 0 1 0 2.475l-6.293 6.293a1.75 1.75 0 0 1-2.475 0L.879 9.647a1.75 1.75 0 0 1 0-2.475ZM7.06 1.94 1.94 7.06a.25.25 0 0 0 0 .354l5.12 5.12a.25.25 0 0 0 .353 0l5.12-5.12a.25.25 0 0 0 0-.354L7.414 1.94a.25.25 0 0 0-.353 0Z"/></svg>
+      Files changed <span class="count">2</span>
+    </li>
+    <li class="tab">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Zm-1.43-.75a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/></svg>
+      Tool calls <span class="count">2</span>
+    </li>
+    <li class="tab">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M10.561 8.073a6.005 6.005 0 0 1 3.432 5.142.75.75 0 1 1-1.498.07 4.5 4.5 0 0 0-8.99 0 .75.75 0 0 1-1.498-.07 6.004 6.004 0 0 1 3.431-5.142 3.999 3.999 0 1 1 5.123 0ZM10.5 5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/></svg>
+      Watchers <span class="count">4</span>
+    </li>
+    <li class="tab">
+      Audit
+    </li>
+  </ul>
+</section>
+
+<!-- ============================================================== -->
+<!-- Main grid                                                       -->
+<!-- ============================================================== -->
+<main class="layout">
+
+  <!-- ===================== Timeline ===================== -->
+  <section class="timeline" id="timeline">
+
+    <!-- ============== TURN 1 — user prompt =============== -->
+    <article class="turn" data-turn="t1">
+      <div class="avatar host">J</div>
+      <div class="card" data-turn-card="t1" data-anchor-preview="Read PRD.md and tell me what's missing from the privacy section">
+        <div class="card-head">
+          <span class="who">jabreeflor</span>
+          <span>opened this prompt</span>
+          <span class="turn-id">t1</span>
+          <span>·</span>
+          <span>22 minutes ago</span>
+          <span class="kind kind-user"><span class="kdot"></span>user prompt</span>
+          <span class="head-spacer"></span>
+          <span class="reactions" title="add reaction">＋ ⌣</span>
+        </div>
+        <div class="card-body">
+          <p class="user-quote">Read PRD.md and tell me what's missing from the privacy section</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- comments thread anchored to t1 -->
+    <div class="thread" data-thread-for="t1">
+      <div class="thread-head" onclick="toggleThread(this)">
+        <svg class="caret" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M12.78 6.22a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L8 9.94l3.72-3.72a.75.75 0 0 1 1.06 0Z"/></svg>
+        <span>1 comment on <span class="anchor-tag">t1</span></span>
+        <span class="count-pill">1</span>
+      </div>
+      <div class="thread-list">
+        <div class="comment">
+          <div class="c-avatar lin">L</div>
+          <div>
+            <div class="c-meta"><span class="name">Lin</span> commented 3 minutes ago <span class="channel-pill">browser</span></div>
+            <div class="c-text">love this question — the redaction filter punt seems like a real risk if dogfooding stretches into months</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== TURN 2 — tool: Read =============== -->
+    <article class="turn" data-turn="t2">
+      <div class="avatar tool">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"/>
+        </svg>
+      </div>
+      <div class="card" data-turn-card="t2" data-anchor-preview="Read PRD.md (lines 1-12)">
+        <div class="card-head">
+          <span class="who">claude-code</span>
+          <span>read a file</span>
+          <span class="turn-id">t2</span>
+          <span>·</span>
+          <span>21 minutes ago</span>
+          <span class="kind kind-tool-read"><span class="kdot"></span>tool: Read</span>
+          <span class="head-spacer"></span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--fg-muted)">SHA b4e9f1c</span>
+        </div>
+        <div class="card-body">
+          <div class="filebox">
+            <div class="filebox-head">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="color:var(--fg-muted)">
+                <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Z"/>
+              </svg>
+              <span class="filepath">/Users/jabreeflor/better-together/PRD.md</span>
+              <span class="pill-add">read · 12 lines viewed</span>
+            </div>
+            <table class="difftable">
+              <tbody>
+                <tr class="hunk"><td class="ln">@@</td><td class="code">@@ Privacy &amp; safety — section preview @@</td></tr>
+                <tr class="ctx"><td class="ln">141</td><td class="code">  </td></tr>
+                <tr class="add"><td class="ln">142</td><td class="code">  ## Privacy &amp; safety</td></tr>
+                <tr class="add"><td class="ln">143</td><td class="code">  </td></tr>
+                <tr class="add"><td class="ln">144</td><td class="code">  The host's session contains everything in their local context: code, file paths, error messages, half-formed thoughts to their Claude. Sharing a room means sharing all of that with whoever's in the room. This isn't a bug, it's the product, but the UX needs to make it obvious.</td></tr>
+                <tr class="elision"><td class="ln">…</td><td class="code">  [...]</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ============== TURN 3 — assistant =============== -->
+    <article class="turn" data-turn="t3">
+      <div class="avatar claude">C</div>
+      <div class="card" data-turn-card="t3" data-anchor-preview="Three things stand out as missing from the privacy section…">
+        <div class="card-head">
+          <span class="who">claude-code (jabreeflor's Claude)</span>
+          <span>responded</span>
+          <span class="turn-id">t3</span>
+          <span>·</span>
+          <span>20 minutes ago</span>
+          <span class="kind kind-assistant"><span class="kdot"></span>assistant</span>
+          <span class="head-spacer"></span>
+          <span class="reactions" title="add reaction">👍 2</span>
+          <span class="reactions" title="add reaction">＋ ⌣</span>
+        </div>
+        <div class="card-body">
+          <p>I've reviewed the privacy section. Three things stand out as missing:</p>
+          <ol>
+            <li><strong>Comment storage policy.</strong> Comments persist in transcript history once posted. If a watcher pastes a secret into a comment, it's there forever. The section should address this.</li>
+            <li><strong>Redaction filter punted to v1.5 without specifics.</strong> The section names common patterns (<code>API_KEY=</code>, AWS keys) but doesn't enumerate them. Without a v1 default list, "defer to v1.5" can drift indefinitely.</li>
+            <li><strong>Display name leakage.</strong> Watchers pick display names that may include emails or real names. There's no policy on whether to allow plain usernames only, or how kicked users' names persist in the transcript.</li>
+          </ol>
+        </div>
+      </div>
+    </article>
+
+    <!-- comments thread anchored to t3 -->
+    <div class="thread" data-thread-for="t3">
+      <div class="thread-head" onclick="toggleThread(this)">
+        <svg class="caret" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M12.78 6.22a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L8 9.94l3.72-3.72a.75.75 0 0 1 1.06 0Z"/></svg>
+        <span>2 comments on <span class="anchor-tag">t3</span></span>
+        <span class="count-pill">2</span>
+      </div>
+      <div class="thread-list">
+        <div class="comment">
+          <div class="c-avatar marcus">M</div>
+          <div>
+            <div class="c-meta"><span class="name">Marcus</span> commented 2 minutes ago <span class="channel-pill">plugin · analyst Claude</span></div>
+            <div class="c-text">agree on point 2. should we propose specific regex patterns? happy to draft.</div>
+          </div>
+        </div>
+        <div class="comment">
+          <div class="c-avatar lin">L</div>
+          <div>
+            <div class="c-meta"><span class="name">Lin</span> commented 1 minute ago <span class="channel-pill">browser</span></div>
+            <div class="c-text">what about display names that contain emails? minor but real</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== TURN 4 — tool: Bash =============== -->
+    <article class="turn" data-turn="t4">
+      <div class="avatar tool">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25Zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM7.25 8a.749.749 0 0 1-.22.53l-2.25 2.25a.749.749 0 1 1-1.06-1.06L5.44 8 3.72 6.28a.749.749 0 1 1 1.06-1.06l2.25 2.25c.141.14.22.331.22.53Zm1.5 1.5h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1 0-1.5Z"/>
+        </svg>
+      </div>
+      <div class="card" data-turn-card="t4" data-anchor-preview="grep -n 'secret' PRD.md">
+        <div class="card-head">
+          <span class="who">claude-code</span>
+          <span>ran a bash command</span>
+          <span class="turn-id">t4</span>
+          <span>·</span>
+          <span>20 minutes ago</span>
+          <span class="kind kind-tool-bash"><span class="kdot"></span>tool: Bash</span>
+          <span class="head-spacer"></span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--fg-muted)">exit 0 · 12ms</span>
+        </div>
+        <div class="card-body">
+          <div class="bash-desc"><span class="label">description:</span> Search for existing mentions of secret handling</div>
+          <div class="term">
+            <div class="term-head">
+              <span class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></span>
+              <span style="margin-left:8px">jabreeflor@local — bash — 80×24</span>
+            </div>
+            <div class="term-body"><span class="prompt">$</span> <span class="cmd">grep -n 'secret' PRD.md</span><span class="out"><span class="lineno">156</span>:For URLs that might leak, the host can optionally pass <span class="hi">--secret</span> to <span class="hi">/team:host</span>, which adds a join-secret param.</span></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- comments thread anchored to t4 -->
+    <div class="thread" data-thread-for="t4">
+      <div class="thread-head" onclick="toggleThread(this)">
+        <svg class="caret" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M12.78 6.22a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L8 9.94l3.72-3.72a.75.75 0 0 1 1.06 0Z"/></svg>
+        <span>1 comment on <span class="anchor-tag">t4</span></span>
+        <span class="count-pill">1</span>
+      </div>
+      <div class="thread-list">
+        <div class="comment">
+          <div class="c-avatar anon">🐈</div>
+          <div>
+            <div class="c-meta"><span class="name">anonymous-cat</span> commented 30 seconds ago <span class="channel-pill">browser</span></div>
+            <div class="c-text cat">🐈</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== TURN 5 — permission prompt (CI banner) =============== -->
+    <article class="turn" data-turn="t5">
+      <div class="avatar system">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/>
+        </svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="ci-banner" data-turn-card="t5" data-anchor-preview="Bash(rm -rf node_modules) — awaiting approval">
+          <div class="ci-banner-head">
+            <span class="x-icon">×</span>
+            <span class="ci-title">
+              Action required — host approval pending
+              <small>· 1 of 1 check halted on permission prompt</small>
+            </span>
+            <span class="kind kind-perm" style="margin-left:auto"><span class="kdot"></span>blocking</span>
+          </div>
+          <div class="ci-banner-body">
+            <div class="check-row">
+              <span class="x-fail">✕  permission-gate</span>
+              <span style="color:var(--fg-muted)">— Jabree is being asked to approve</span>
+              <code>Bash(rm -rf node_modules)</code>
+            </div>
+          </div>
+          <div class="ci-banner-foot">
+            <span><span class="turn-id" style="font-family:var(--mono);background:var(--neutral-subtle);color:var(--fg-muted);padding:1px 6px;border-radius:4px;font-size:11.5px">t5</span> · ephemeral · just now · resolves on host decision</span>
+            <span>
+              <button class="deny" disabled style="opacity:.6;cursor:not-allowed">Deny</button>
+              <button class="approve" disabled style="opacity:.6;cursor:not-allowed">Approve (host only)</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ============== TURN 6 — live edge =============== -->
+    <article class="turn" data-turn="t6">
+      <div class="avatar host">J</div>
+      <div class="card" data-turn-card="t6" data-anchor-preview="Add a section under privacy about comment storage…">
+        <div class="card-head">
+          <span class="who">jabreeflor</span>
+          <span>is composing a prompt</span>
+          <span class="turn-id">t6</span>
+          <span>·</span>
+          <span>just now</span>
+          <span class="kind kind-live"><span class="kdot"></span>live edge</span>
+          <span class="head-spacer"></span>
+          <span style="color:var(--attention-fg);font-size:12px;font-weight:500">▮ typing…</span>
+        </div>
+        <div class="card-body">
+          <p class="user-quote">Add a section under privacy about comment storage. Match the existing voice.</p>
+          <div class="composing"><span class="blink"></span>jabreeflor is still typing</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ============== Composer ============== -->
+    <div class="composer-wrap" id="composer">
+      <div class="composer-anchor" id="composer-anchor">
+        <svg class="reply-arrow" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6.78 1.97a.75.75 0 0 1 0 1.06L3.81 6h6.44A4.75 4.75 0 0 1 15 10.75v2.5a.75.75 0 0 1-1.5 0v-2.5a3.25 3.25 0 0 0-3.25-3.25H3.81l2.97 2.97a.749.749 0 1 1-1.06 1.06L1.47 7.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"/></svg>
+        <span>Reply to</span>
+        <span class="anchor-id" id="composer-anchor-id">t3</span>
+        <span class="anchor-preview" id="composer-anchor-preview">Three things stand out as missing from the privacy section…</span>
+        <button class="change-anchor" onclick="clearAnchor()">change anchor</button>
+      </div>
+      <div class="composer">
+        <div class="composer-tabs">
+          <button class="composer-tab active">Write</button>
+          <button class="composer-tab">Preview</button>
+        </div>
+        <div class="composer-toolbar">
+          <button title="Heading">H</button>
+          <button title="Bold"><b>B</b></button>
+          <button title="Italic"><i>I</i></button>
+          <span class="sep"></span>
+          <button title="Quote">❝</button>
+          <button title="Code">&lt;/&gt;</button>
+          <button title="Link">🔗</button>
+          <span class="sep"></span>
+          <button title="Bulleted list">•</button>
+          <button title="Numbered list">1.</button>
+          <button title="Task list">☐</button>
+          <span class="sep"></span>
+          <button title="Mention">@</button>
+          <button title="Reference">#</button>
+          <button title="Emoji">😀</button>
+        </div>
+        <textarea class="composer-input" placeholder="Leave a comment anchored to this turn. Markdown supported. Comments persist in transcript history — don't paste secrets."></textarea>
+        <div class="composer-foot">
+          <div class="help">
+            <kbd>⌘</kbd> + <kbd>Enter</kbd> to post · attached to <strong id="composer-foot-anchor">t3</strong>
+          </div>
+          <div class="composer-actions">
+            <button class="btn">Cancel</button>
+            <button class="btn btn-primary">Comment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- /timeline -->
+
+  <!-- ===================== Sidebar ===================== -->
+  <aside class="sidebar">
+
+    <!-- Reviewers (presence) -->
+    <div class="side-group">
+      <h3>Watchers <span class="gear">⚙</span></h3>
+
+      <div class="reviewer-row">
+        <span class="status-icon driving" title="driving"></span>
+        <div class="r-avatar host">J</div>
+        <div class="name-line">
+          <span class="name">Jabree</span>
+          <span class="sub">driving · host process</span>
+        </div>
+        <span class="channel-tag host">host</span>
+      </div>
+
+      <div class="reviewer-row">
+        <span class="status-icon viewing" title="watching"></span>
+        <div class="r-avatar lin">L</div>
+        <div class="name-line">
+          <span class="name">Lin</span>
+          <span class="sub">joined 4m ago</span>
+        </div>
+        <span class="channel-tag browser">browser</span>
+      </div>
+
+      <div class="reviewer-row">
+        <span class="status-icon attached" title="analyst Claude attached"></span>
+        <div class="r-avatar marcus">M</div>
+        <div class="name-line">
+          <span class="name">Marcus</span>
+          <span class="sub">joined 12m · analyst Claude attached</span>
+        </div>
+        <span class="channel-tag plugin">plugin</span>
+      </div>
+
+      <div class="reviewer-row">
+        <span class="status-icon peeking" title="just joined"></span>
+        <div class="r-avatar anon">🐈</div>
+        <div class="name-line">
+          <span class="name">anonymous-cat</span>
+          <span class="sub">joined 1m ago</span>
+        </div>
+        <span class="channel-tag browser">browser</span>
+      </div>
+    </div>
+
+    <!-- Session metadata -->
+    <div class="side-group">
+      <h3>Session</h3>
+      <div class="side-meta">
+        <div class="row"><span class="k">Status</span><span class="v" style="color:var(--success-fg)">● Live</span></div>
+        <div class="row"><span class="k">Started</span><span class="v">23m ago</span></div>
+        <div class="row"><span class="k">Turns</span><span class="v">6</span></div>
+        <div class="row"><span class="k">Tool calls</span><span class="v">2</span></div>
+        <div class="row"><span class="k">Comments</span><span class="v">4</span></div>
+        <div class="row"><span class="k">Permission gates</span><span class="v" style="color:var(--danger-fg)">1 pending</span></div>
+        <div class="url-row">https://misty-llama-9342.trycloudflare.com</div>
+      </div>
+    </div>
+
+    <!-- Activity heatstrip -->
+    <div class="side-group">
+      <h3>Activity (last 23m)</h3>
+      <div class="heatstrip" aria-hidden="true">
+        <div class="cell"></div>
+        <div class="cell l1"></div>
+        <div class="cell l2"></div>
+        <div class="cell l3"></div>
+        <div class="cell l2"></div>
+        <div class="cell l1"></div>
+        <div class="cell"></div>
+        <div class="cell l1"></div>
+        <div class="cell l2"></div>
+        <div class="cell l3"></div>
+        <div class="cell l4"></div>
+        <div class="cell l4"></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--fg-muted);margin-top:6px;">
+        peaks correlate with assistant turns. Live edge active now.
+      </div>
+    </div>
+
+    <!-- Files referenced -->
+    <div class="side-group">
+      <h3>Files referenced <span class="gear">2</span></h3>
+      <div class="files-changed">
+        <a href="#" class="file-link">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="color:var(--fg-muted)"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Z"/></svg>
+          PRD.md <span class="delta"><b>read</b> · 2x</span>
+        </a>
+        <a href="#" class="file-link">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="color:var(--fg-muted)"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Z"/></svg>
+          node_modules/ <span class="delta" style="color:var(--danger-fg)">! pending</span>
+        </a>
+      </div>
+    </div>
+
+  </aside>
+
+</main>
+
+<script>
+  // ----------------------------------------------------------------
+  // ONE interaction: clicking a turn highlights it and updates the
+  // composer's anchor.
+  // ----------------------------------------------------------------
+  const cards = document.querySelectorAll('[data-turn-card]');
+  const composerAnchorId = document.getElementById('composer-anchor-id');
+  const composerAnchorPreview = document.getElementById('composer-anchor-preview');
+  const composerFootAnchor = document.getElementById('composer-foot-anchor');
+
+  function selectTurn(turnId, preview) {
+    cards.forEach(c => c.classList.remove('selected'));
+    const target = document.querySelector('[data-turn-card="' + turnId + '"]');
+    if (target) target.classList.add('selected');
+    composerAnchorId.textContent = turnId;
+    composerFootAnchor.textContent = turnId;
+    composerAnchorPreview.textContent = preview || '';
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      // ignore clicks on links, buttons, reactions
+      const tag = e.target.tagName;
+      if (tag === 'A' || tag === 'BUTTON') return;
+      if (e.target.closest('button')) return;
+      const turnId = card.getAttribute('data-turn-card');
+      const preview = card.getAttribute('data-anchor-preview') || '';
+      selectTurn(turnId, preview);
+    });
+  });
+
+  function clearAnchor() {
+    cards.forEach(c => c.classList.remove('selected'));
+    composerAnchorId.textContent = '— none —';
+    composerFootAnchor.textContent = '(no anchor)';
+    composerAnchorPreview.textContent = 'click any turn to anchor your comment';
+  }
+
+  function toggleThread(headEl) {
+    const thread = headEl.parentElement;
+    thread.classList.toggle('collapsed');
+  }
+
+  // initialize default selection (t3, the assistant turn)
+  selectTurn('t3', "Three things stand out as missing from the privacy section…");
+</script>
+
+</body>
+</html>
