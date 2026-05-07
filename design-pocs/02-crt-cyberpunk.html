@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1512, initial-scale=1" />
+<title>BETTER//TOGETHER ▸ ROOM://misty-llama-9342</title>
+<style>
+  /* ============================================================
+     CRT CYBERPUNK — Better Together lobby
+     palette: neon green base / magenta host / cyan watcher / amber alert
+     vibe: demoscene meets dev tool
+     ============================================================ */
+  :root {
+    --bg:           #050807;
+    --bg-deep:      #02050a;
+    --grid:         rgba(57, 255, 20, 0.04);
+    --ink:          #c8ffd2;       /* default text — slightly desat green */
+    --ink-dim:      #6fbf86;
+    --ink-faint:    #2f6b45;
+    --neon:         #39ff14;       /* primary green */
+    --neon-soft:    #1bc94d;
+    --host:         #ff2bd6;       /* magenta — Jabree the host */
+    --host-soft:    #b21a8e;
+    --watch:        #00f0ff;       /* cyan — watchers */
+    --watch-soft:   #088b94;
+    --alert:        #ffcc00;       /* amber — permission prompt */
+    --alert-hot:    #ffae00;
+    --tool:         #b8ff7a;
+    --danger:       #ff3a3a;
+    --line:         rgba(57,255,20,0.22);
+    --line-strong:  rgba(57,255,20,0.55);
+    --panel:        rgba(8, 18, 12, 0.78);
+    --panel-deep:   rgba(2, 6, 4, 0.92);
+  }
+
+  /* hard reset */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  @font-face {
+    /* nothing external — system mono only */
+    font-family: 'crt';
+    src: local('JetBrains Mono'), local('Fira Code'), local('SF Mono'),
+         local('Menlo'), local('Consolas'), local('Courier New');
+  }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--ink);
+    font-family: 'crt', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    /* layered atmosphere: vignette + neon haze */
+    background:
+      radial-gradient(ellipse 120% 80% at 50% 50%, #061410 0%, #02060a 60%, #000 100%);
+  }
+
+  /* ---- global CRT overlays (scanlines, flicker, vignette, grain) ---- */
+  .crt-scanlines, .crt-flicker, .crt-vignette, .crt-grain, .crt-glow {
+    position: fixed; inset: 0; pointer-events: none; z-index: 9000;
+  }
+  .crt-scanlines {
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0)        0px,
+      rgba(0,0,0,0)        2px,
+      rgba(0,0,0,0.22)     3px,
+      rgba(0,0,0,0)        4px
+    );
+    mix-blend-mode: multiply;
+  }
+  .crt-glow {
+    background:
+      radial-gradient(ellipse 60% 40% at 22% 18%, rgba(57,255,20,0.06), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 80% 85%, rgba(255,43,214,0.05), transparent 65%),
+      radial-gradient(ellipse 45% 30% at 95% 12%, rgba(0,240,255,0.04), transparent 60%);
+  }
+  .crt-vignette {
+    background: radial-gradient(ellipse 90% 80% at 50% 50%,
+                  transparent 55%, rgba(0,0,0,0.55) 90%, rgba(0,0,0,0.85) 100%);
+  }
+  .crt-grain {
+    opacity: 0.06;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.7' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.22  0 0 0 0 1  0 0 0 0 0.4  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: screen;
+  }
+  .crt-flicker { animation: flicker 6.7s infinite steps(1,end); background: rgba(57,255,20,0.012); }
+  @keyframes flicker {
+    0%,97%,100% { opacity: 1; }
+    97.4% { opacity: .55; }
+    97.7% { opacity: 1; }
+    98.1% { opacity: .35; }
+    98.5% { opacity: 1; }
+  }
+
+  /* ---- outer frame: CRT bezel feel ---- */
+  .bezel {
+    position: relative;
+    width: 100vw; height: 100vh;
+    padding: 14px 16px 14px 16px;
+    /* fake CRT curvature via inner shadow */
+    box-shadow:
+      inset 0 0 120px rgba(0,0,0,0.85),
+      inset 0 0 40px  rgba(57,255,20,0.05),
+      inset 0 0 6px   rgba(57,255,20,0.10);
+    overflow: hidden;
+  }
+  .bezel::before {
+    /* faint grid in the background, like an oscilloscope */
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, #000 30%, transparent 80%);
+    pointer-events: none;
+  }
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  .app {
+    position: relative; z-index: 1;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 12px;
+  }
+
+  /* ---- HEADER ---- */
+  header.bar {
+    border: 1px solid var(--line-strong);
+    background: linear-gradient(180deg, rgba(57,255,20,0.04), transparent 60%), var(--panel-deep);
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    gap: 18px;
+    align-items: center;
+    position: relative;
+  }
+  header.bar::before, header.bar::after {
+    content: ""; position: absolute; left: -1px; right: -1px;
+    height: 1px; background: var(--neon); opacity: .35;
+  }
+  header.bar::before { top: -3px; }
+  header.bar::after  { bottom: -3px; }
+
+  .brand {
+    display: flex; align-items: baseline; gap: 10px;
+    color: var(--neon);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 6px rgba(57,255,20,0.55), 0 0 14px rgba(57,255,20,0.25);
+  }
+  .brand .slash { color: var(--host); }
+  .brand .meta  { color: var(--ink-dim); font-weight: 400; letter-spacing: .12em; font-size: 10px; }
+
+  .url-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px;
+    border: 1px dashed var(--line);
+    background: rgba(0,0,0,0.45);
+    color: var(--ink);
+    font-size: 12px;
+    overflow: hidden;
+  }
+  .url-bar .lock { color: var(--neon); }
+  .url-bar .url  { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .url-bar .copy {
+    margin-left: auto;
+    color: var(--ink-dim); font-size: 10px;
+    border: 1px solid var(--line); padding: 2px 6px;
+    cursor: pointer;
+    background: transparent;
+    font-family: inherit;
+  }
+  .url-bar .copy:hover { color: var(--neon); border-color: var(--neon); }
+
+  .stat {
+    display: flex; flex-direction: column; align-items: flex-end;
+    line-height: 1.1;
+  }
+  .stat .label { font-size: 9px; color: var(--ink-faint); letter-spacing: .22em; }
+  .stat .value { font-size: 13px; color: var(--ink); letter-spacing: .08em; }
+
+  .live-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 10px 5px 8px;
+    border: 1px solid var(--neon);
+    color: var(--neon);
+    background: rgba(57,255,20,0.06);
+    font-size: 10px; letter-spacing: .25em; font-weight: 700;
+    box-shadow: 0 0 12px rgba(57,255,20,0.15), inset 0 0 8px rgba(57,255,20,0.08);
+  }
+  .live-pill .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neon);
+    box-shadow: 0 0 8px var(--neon), 0 0 18px var(--neon);
+    animation: pulseDot 1.6s infinite;
+  }
+  @keyframes pulseDot {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: .35; transform: scale(0.7); }
+  }
+
+  /* ---- MAIN GRID ---- */
+  main.grid {
+    display: grid;
+    grid-template-columns: 232px 1fr 332px;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  /* generic neon panel */
+  .panel {
+    position: relative;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    display: flex; flex-direction: column;
+    min-height: 0;
+    box-shadow: inset 0 0 30px rgba(57,255,20,0.04);
+  }
+  .panel.host  { border-color: var(--host); box-shadow: inset 0 0 30px rgba(255,43,214,0.05); }
+  .panel.watch { border-color: var(--watch); box-shadow: inset 0 0 30px rgba(0,240,255,0.05); }
+  .panel.alert { border-color: var(--alert); box-shadow: inset 0 0 30px rgba(255,204,0,0.06); }
+
+  .panel-head {
+    padding: 8px 10px 8px 10px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; letter-spacing: .25em; font-weight: 700;
+    color: var(--neon);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(57,255,20,0.05), transparent);
+    text-transform: uppercase;
+  }
+  .panel-head .tag {
+    color: var(--ink-faint); font-weight: 400; letter-spacing: .15em;
+  }
+  .panel-head .corners {
+    margin-left: auto; color: var(--ink-faint); font-size: 10px;
+  }
+  .panel.host  .panel-head { color: var(--host);  border-bottom-color: rgba(255,43,214,.4); }
+  .panel.watch .panel-head { color: var(--watch); border-bottom-color: rgba(0,240,255,.4); }
+  .panel.alert .panel-head { color: var(--alert); border-bottom-color: rgba(255,204,0,.5); }
+
+  /* corner ticks for that "schematic" feel */
+  .panel::before, .panel::after,
+  .panel .tick-bl, .panel .tick-br {
+    content: "";
+    position: absolute; width: 8px; height: 8px;
+    border-color: currentColor;
+    color: var(--neon);
+  }
+  .panel.host  { color: var(--host); }
+  .panel.watch { color: var(--watch); }
+  .panel.alert { color: var(--alert); }
+  .panel { color: var(--neon); }
+  .panel::before {
+    top: -1px; left: -1px;
+    border-top: 1px solid currentColor; border-left: 1px solid currentColor;
+  }
+  .panel::after {
+    top: -1px; right: -1px;
+    border-top: 1px solid currentColor; border-right: 1px solid currentColor;
+  }
+  .panel .tick-bl, .panel .tick-br {
+    bottom: -1px;
+  }
+  .panel .tick-bl { left: -1px;  border-bottom: 1px solid currentColor; border-left: 1px solid currentColor; }
+  .panel .tick-br { right: -1px; border-bottom: 1px solid currentColor; border-right: 1px solid currentColor; }
+
+  /* ============================================================
+     PRESENCE (left)
+     ============================================================ */
+  .presence-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+
+  .presence {
+    position: relative;
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,0.4);
+    padding: 8px 9px;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 9px;
+    align-items: center;
+  }
+  .presence.host  { border-color: rgba(255,43,214,.55); background: rgba(255,43,214,.05); }
+  .presence.watch { border-color: rgba(0,240,255,.45); }
+  .presence .av {
+    width: 28px; height: 28px;
+    border: 1px solid currentColor;
+    color: var(--neon);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .04em;
+    text-shadow: 0 0 6px currentColor;
+    background: rgba(0,0,0,0.7);
+  }
+  .presence.host  .av { color: var(--host); }
+  .presence.watch .av { color: var(--watch); }
+  .presence .body { min-width: 0; }
+  .presence .name {
+    font-size: 12px; color: var(--ink);
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .presence.host .name  { color: #ffd1f1; }
+  .presence.watch .name { color: #cff7ff; }
+  .presence .name .pin {
+    color: var(--neon); opacity: .6; font-size: 10px;
+  }
+  .presence .row2 {
+    margin-top: 3px;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 9.5px; letter-spacing: .12em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .badge {
+    display: inline-block;
+    padding: 1px 5px;
+    border: 1px solid currentColor;
+    font-size: 9px;
+    letter-spacing: .2em;
+    line-height: 1.4;
+    color: var(--neon);
+  }
+  .badge.host    { color: var(--host); }
+  .badge.browser { color: var(--watch); }
+  .badge.plugin  { color: var(--neon); }
+  .badge.live {
+    background: rgba(255,43,214,0.1);
+    box-shadow: 0 0 8px rgba(255,43,214,0.3);
+    animation: hostPulse 2.4s infinite;
+  }
+  @keyframes hostPulse {
+    0%,100% { box-shadow: 0 0 6px rgba(255,43,214,0.3); }
+    50%     { box-shadow: 0 0 14px rgba(255,43,214,0.7); }
+  }
+
+  .presence .joined {
+    color: var(--ink-faint);
+    font-size: 9.5px;
+    letter-spacing: .1em;
+  }
+  .presence .attach {
+    margin-top: 5px;
+    font-size: 10px; color: var(--ink-dim);
+    border-top: 1px dashed var(--line);
+    padding-top: 5px;
+    grid-column: 1 / -1;
+  }
+  .presence .attach b { color: var(--neon); font-weight: 400; }
+
+  /* presence sub-stats */
+  .presence-stats {
+    margin-top: auto;
+    padding: 8px 10px;
+    border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px;
+    font-size: 10px;
+    color: var(--ink-faint);
+  }
+  .presence-stats b { color: var(--neon); font-weight: 400; }
+
+  /* ============================================================
+     TRANSCRIPT (center)
+     ============================================================ */
+  .transcript-wrap { display: flex; flex-direction: column; min-height: 0; }
+  .transcript {
+    padding: 10px 14px 14px 14px;
+    overflow: auto;
+    flex: 1;
+    scroll-behavior: smooth;
+  }
+  .transcript::-webkit-scrollbar { width: 8px; }
+  .transcript::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+  .transcript::-webkit-scrollbar-thumb { background: var(--neon-soft); }
+
+  .turn {
+    --c: var(--neon);
+    position: relative;
+    margin: 12px 0 12px 60px;
+    padding: 8px 12px 10px 12px;
+    border-left: 1px solid var(--c);
+    background: rgba(0,0,0,0.35);
+    cursor: pointer;
+    transition: background 120ms linear, box-shadow 120ms linear;
+  }
+  .turn[data-role="user"]    { --c: var(--host); }
+  .turn[data-role="tool"]    { --c: var(--tool); }
+  .turn[data-role="assist"]  { --c: var(--neon); }
+  .turn[data-role="alert"]   { --c: var(--alert); }
+  .turn[data-role="live"]    { --c: var(--host); }
+
+  .turn:hover { background: rgba(57,255,20,0.04); }
+  .turn.selected {
+    background: rgba(57,255,20,0.06);
+    box-shadow: -2px 0 0 var(--c), 0 0 18px rgba(57,255,20,.08);
+    outline: 1px dashed var(--c);
+    outline-offset: 1px;
+  }
+  .turn[data-role="user"].selected { background: rgba(255,43,214,0.06); box-shadow: -2px 0 0 var(--host), 0 0 18px rgba(255,43,214,.10); }
+  .turn[data-role="tool"].selected { background: rgba(184,255,122,0.05); }
+
+  /* turn label gutter */
+  .turn .gutter {
+    position: absolute; left: -60px; top: 0;
+    width: 56px;
+    text-align: right;
+    color: var(--ink-faint);
+    font-size: 10px;
+    letter-spacing: .1em;
+    padding-top: 9px;
+    user-select: none;
+  }
+  .turn .gutter .id {
+    color: var(--c);
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-shadow: 0 0 4px var(--c);
+  }
+  .turn .gutter .ts { display: block; margin-top: 2px; }
+
+  .turn .head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--c);
+  }
+  .turn .head .who { color: var(--ink); letter-spacing: .08em; }
+  .turn .head .who .role-tag { color: var(--c); }
+  .turn .head .meta { margin-left: auto; color: var(--ink-faint); letter-spacing: .12em; font-size: 9.5px; }
+
+  .turn .body { color: var(--ink); font-size: 12.5px; }
+  .turn .body p + p { margin-top: 6px; }
+  .turn[data-role="assist"] .body { color: #d4ffe0; }
+  .turn[data-role="user"]   .body { color: #ffd5f1; }
+
+  /* recent-turn glow ring */
+  .turn.recent::after {
+    content: "";
+    position: absolute; inset: -2px;
+    pointer-events: none;
+    box-shadow: 0 0 16px rgba(57,255,20,0.10) inset;
+  }
+  .turn.recent .body { text-shadow: 0 0 8px rgba(57,255,20,0.35); }
+  .turn[data-role="user"].recent .body { text-shadow: 0 0 8px rgba(255,43,214,0.55); }
+  .turn[data-role="live"]  .body { text-shadow: 0 0 10px rgba(255,43,214,0.6); }
+
+  /* tool-call render: read like a code block */
+  .codeblock {
+    margin-top: 4px;
+    border: 1px dashed rgba(184,255,122,.35);
+    background: rgba(0,0,0,0.6);
+    color: #d8ffc2;
+    padding: 6px 8px;
+    font-size: 11.5px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .codeblock .k { color: var(--tool); }
+  .codeblock .s { color: #ffe680; }
+  .codeblock .c { color: var(--ink-faint); }
+  .codeblock .h { color: var(--neon); }
+  .codeblock .d { color: var(--ink-dim); }
+  .codeblock .truncated { color: var(--ink-faint); font-style: italic; }
+
+  /* assistant numbered list */
+  .answer ol { padding-left: 18px; margin-top: 4px; }
+  .answer ol li { margin: 4px 0; }
+  .answer strong { color: var(--neon); font-weight: 700; }
+
+  /* PERMISSION PROMPT — klaxon */
+  .turn.alert {
+    border: 1px solid var(--alert);
+    border-left: 3px solid var(--alert);
+    background:
+      repeating-linear-gradient(
+        45deg,
+        rgba(255,204,0,0.05) 0px, rgba(255,204,0,0.05) 8px,
+        rgba(255,170,0,0.10) 8px, rgba(255,170,0,0.10) 16px
+      ),
+      rgba(20,12,0,0.6);
+    box-shadow: 0 0 0 1px rgba(255,204,0,0.4), 0 0 20px rgba(255,204,0,0.18);
+    animation: klaxon 1.2s infinite;
+  }
+  @keyframes klaxon {
+    0%,100% { box-shadow: 0 0 0 1px rgba(255,204,0,0.45), 0 0 18px rgba(255,204,0,0.18); }
+    50%     { box-shadow: 0 0 0 1px rgba(255,170,0,0.85), 0 0 38px rgba(255,170,0,0.45); }
+  }
+  .turn.alert .head { color: var(--alert); }
+  .turn.alert .body {
+    color: #fff1b0;
+    font-size: 13.5px;
+    letter-spacing: .02em;
+  }
+  .turn.alert .body code {
+    color: var(--danger);
+    background: rgba(255,58,58,0.08);
+    padding: 1px 5px;
+    border: 1px solid rgba(255,58,58,0.4);
+  }
+  .alert-actions {
+    margin-top: 8px;
+    display: flex; gap: 6px;
+    font-size: 10px; letter-spacing: .2em;
+  }
+  .alert-actions span {
+    padding: 3px 8px;
+    border: 1px solid var(--alert);
+    color: var(--alert);
+    background: rgba(0,0,0,0.45);
+  }
+  .alert-actions span.deny {
+    color: var(--danger); border-color: var(--danger);
+  }
+  .alert-tag {
+    margin-left: 6px;
+    padding: 1px 5px;
+    border: 1px solid var(--alert);
+    color: var(--alert);
+    font-size: 9px; letter-spacing: .25em;
+    animation: blink 0.9s steps(2,end) infinite;
+  }
+  @keyframes blink { 50% { opacity: .25; } }
+
+  /* live edge */
+  .turn.live {
+    border: 1px solid var(--host);
+    background: rgba(255,43,214,0.05);
+    box-shadow: 0 0 0 1px rgba(255,43,214,0.45), 0 0 22px rgba(255,43,214,.18);
+  }
+  .turn.live .head { color: var(--host); }
+  .turn.live .body {
+    color: #ffe1f5;
+    font-size: 13.5px;
+    display: flex; align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .turn.live .body::after {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 16px;
+    background: var(--host);
+    margin-left: 4px;
+    vertical-align: -3px;
+    animation: caret 0.9s steps(2,end) infinite;
+    box-shadow: 0 0 6px var(--host);
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  .live-banner {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(255,43,214,.4);
+    font-size: 10px; letter-spacing: .2em;
+    color: var(--host);
+    text-transform: uppercase;
+  }
+  .live-banner .typing-dots {
+    display: inline-flex; gap: 3px;
+  }
+  .live-banner .typing-dots i {
+    width: 4px; height: 4px; background: var(--host); display: inline-block;
+    animation: typing 1.2s infinite;
+  }
+  .live-banner .typing-dots i:nth-child(2) { animation-delay: .15s; }
+  .live-banner .typing-dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes typing {
+    0%,60%,100% { opacity: .15; }
+    30% { opacity: 1; }
+  }
+
+  /* transcript footer / status strip */
+  .transcript-foot {
+    border-top: 1px solid var(--line);
+    padding: 7px 12px;
+    display: flex; align-items: center; gap: 14px;
+    font-size: 10px; letter-spacing: .15em;
+    color: var(--ink-faint);
+    background: rgba(0,0,0,0.6);
+  }
+  .transcript-foot .ok { color: var(--neon); }
+  .transcript-foot .h  { color: var(--host); }
+  .transcript-foot .w  { color: var(--watch); }
+  .transcript-foot .a  { color: var(--alert); }
+  .transcript-foot .sep { opacity: .4; }
+  .scrub-tag { margin-left: auto; color: var(--ink-faint); }
+
+  /* ============================================================
+     COMMENTS (right column)
+     ============================================================ */
+  .comments-wrap { display: flex; flex-direction: column; min-height: 0; }
+  .comments {
+    padding: 10px;
+    display: flex; flex-direction: column; gap: 10px;
+    overflow: auto;
+    flex: 1;
+  }
+  .comments::-webkit-scrollbar { width: 6px; }
+  .comments::-webkit-scrollbar-thumb { background: var(--watch-soft); }
+
+  .comment {
+    --cc: var(--watch);
+    position: relative;
+    border: 1px solid var(--cc);
+    background: rgba(0,12,16,0.7);
+    padding: 8px 10px 10px 10px;
+    box-shadow: inset 0 0 18px rgba(0,240,255,0.06);
+  }
+  .comment.plugin { --cc: var(--neon); background: rgba(0,12,4,0.7); box-shadow: inset 0 0 18px rgba(57,255,20,0.06); }
+  .comment .corner-tl, .comment .corner-tr,
+  .comment .corner-bl, .comment .corner-br {
+    position: absolute; width: 6px; height: 6px;
+    border: 1px solid var(--cc);
+  }
+  .comment .corner-tl { top: -3px; left: -3px; border-right: 0; border-bottom: 0; background: var(--bg-deep); }
+  .comment .corner-tr { top: -3px; right: -3px; border-left: 0; border-bottom: 0; background: var(--bg-deep); }
+  .comment .corner-bl { bottom: -3px; left: -3px; border-right: 0; border-top: 0; background: var(--bg-deep); }
+  .comment .corner-br { bottom: -3px; right: -3px; border-left: 0; border-top: 0; background: var(--bg-deep); }
+
+  .comment .head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; letter-spacing: .15em;
+    color: var(--cc);
+    text-transform: uppercase;
+  }
+  .comment .head .author { color: var(--cc); font-weight: 700; }
+  .comment .head .role   { color: var(--ink-faint); letter-spacing: .2em; }
+  .comment .head .ago    { margin-left: auto; color: var(--ink-faint); letter-spacing: .12em; }
+
+  .comment .anchor {
+    margin-top: 6px;
+    font-size: 9.5px; letter-spacing: .18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .comment .anchor .arrow { color: var(--cc); }
+  .comment .anchor .tid {
+    color: var(--cc); font-weight: 700; letter-spacing: .25em;
+    border: 1px solid var(--cc);
+    padding: 1px 5px;
+    background: rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  .comment .anchor .tid:hover { background: rgba(0,240,255,.1); }
+  .comment.plugin .anchor .tid:hover { background: rgba(57,255,20,.1); }
+
+  .comment .body {
+    margin-top: 8px;
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  /* connector to anchor — only for currently selected anchor's comments */
+  .comment.linked::before {
+    content: "◀";
+    position: absolute; left: -16px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--cc);
+    text-shadow: 0 0 8px var(--cc);
+    animation: blink 1.2s steps(2,end) infinite;
+    font-size: 10px;
+  }
+
+  /* composer */
+  .composer {
+    border-top: 1px solid var(--line);
+    background: rgba(0,0,0,0.6);
+    padding: 8px 10px 10px 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .composer .anchor-line {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; letter-spacing: .15em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .composer .anchor-chip {
+    color: var(--neon);
+    border: 1px solid var(--neon);
+    padding: 1px 6px;
+    background: rgba(57,255,20,0.06);
+    text-shadow: 0 0 4px var(--neon);
+  }
+  .composer textarea {
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 6px 8px;
+    resize: none;
+    height: 56px;
+    outline: none;
+  }
+  .composer textarea:focus {
+    border-color: var(--neon);
+    box-shadow: 0 0 0 1px var(--neon), 0 0 16px rgba(57,255,20,.2);
+  }
+  .composer textarea::placeholder { color: var(--ink-faint); }
+  .composer .row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; letter-spacing: .15em;
+  }
+  .composer .hint { color: var(--ink-faint); }
+  .composer .send {
+    margin-left: auto;
+    background: transparent;
+    color: var(--neon);
+    border: 1px solid var(--neon);
+    padding: 4px 10px;
+    font-family: inherit;
+    font-size: 10px; letter-spacing: .25em;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .composer .send:hover {
+    background: rgba(57,255,20,0.1);
+    box-shadow: 0 0 14px rgba(57,255,20,.35);
+  }
+  .composer .send:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* selection-state global accent for matching comments */
+  .anchor-highlight .comment[data-anchor]:not(.linked) { opacity: 0.45; filter: saturate(0.6); }
+
+  /* helper: small text */
+  .mono-tiny { font-size: 10px; letter-spacing: .1em; color: var(--ink-faint); }
+
+  /* selection helpers */
+  ::selection { background: var(--neon); color: var(--bg-deep); }
+</style>
+</head>
+<body>
+  <!-- CRT overlays -->
+  <div class="crt-glow"></div>
+  <div class="crt-grain"></div>
+  <div class="crt-scanlines"></div>
+  <div class="crt-flicker"></div>
+  <div class="crt-vignette"></div>
+
+  <div class="bezel">
+    <div class="app">
+
+      <!-- ============ HEADER ============ -->
+      <header class="bar">
+        <div class="brand">
+          <span>BETTER</span><span class="slash">//</span><span>TOGETHER</span>
+          <span class="meta">v0.2 · LOBBY/CRT</span>
+        </div>
+
+        <div class="url-bar" title="Click to copy">
+          <span class="lock">▣</span>
+          <span class="mono-tiny" style="color:var(--ink-faint);letter-spacing:.18em;">ROOM://</span>
+          <span class="url">https://misty-llama-9342.trycloudflare.com</span>
+          <button class="copy" type="button" id="copyUrl">COPY</button>
+        </div>
+
+        <div class="stat">
+          <span class="label">UPTIME</span>
+          <span class="value">23m 04s</span>
+        </div>
+
+        <div class="stat">
+          <span class="label">PEERS</span>
+          <span class="value">4</span>
+        </div>
+
+        <div class="live-pill">
+          <span class="dot"></span>
+          <span>LIVE</span>
+        </div>
+      </header>
+
+      <!-- ============ MAIN GRID ============ -->
+      <main class="grid">
+
+        <!-- ====== PRESENCE (LEFT) ====== -->
+        <aside class="panel" aria-label="Presence">
+          <div class="tick-bl"></div><div class="tick-br"></div>
+          <div class="panel-head">
+            <span>▸ PRESENCE</span>
+            <span class="tag">// 4 in room</span>
+            <span class="corners">[01:01]</span>
+          </div>
+          <div class="presence-list">
+
+            <div class="presence host">
+              <div class="av">JB</div>
+              <div class="body">
+                <div class="name">
+                  Jabree
+                  <span class="pin">◆</span>
+                </div>
+                <div class="row2">
+                  <span class="badge host live">HOST</span>
+                  <span class="joined">DRIVING</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="presence watch">
+              <div class="av">LN</div>
+              <div class="body">
+                <div class="name">Lin</div>
+                <div class="row2">
+                  <span class="badge browser">BROWSER</span>
+                  <span class="joined">+4m</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="presence">
+              <div class="av" style="color:var(--neon)">MR</div>
+              <div class="body">
+                <div class="name" style="color:#d4ffe0;">Marcus</div>
+                <div class="row2">
+                  <span class="badge plugin">PLUGIN</span>
+                  <span class="joined">+12m</span>
+                </div>
+                <div class="attach">
+                  <b>↳ analyst-claude</b> attached
+                </div>
+              </div>
+            </div>
+
+            <div class="presence watch">
+              <div class="av">??</div>
+              <div class="body">
+                <div class="name">anonymous-cat</div>
+                <div class="row2">
+                  <span class="badge browser">BROWSER</span>
+                  <span class="joined">+1m</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="presence-stats">
+            <div>SIG <b>OK</b></div>
+            <div>LAT <b>43ms</b></div>
+            <div>RX <b>1.2k</b></div>
+            <div>TX <b>0.3k</b></div>
+          </div>
+        </aside>
+
+        <!-- ====== TRANSCRIPT (CENTER) ====== -->
+        <section class="panel transcript-wrap" aria-label="Transcript">
+          <div class="tick-bl"></div><div class="tick-br"></div>
+          <div class="panel-head">
+            <span>▸ TRANSCRIPT</span>
+            <span class="tag">// session.live</span>
+            <span class="corners">CH:01 ▮▮▮▯▯</span>
+          </div>
+
+          <div class="transcript" id="transcript">
+
+            <!-- t1 -->
+            <article class="turn" data-turn="t1" data-role="user" tabindex="0">
+              <div class="gutter">
+                <span class="id">T1</span>
+                <span class="ts">22m</span>
+              </div>
+              <div class="head">
+                <span class="who"><span class="role-tag">[USER]</span> JABREE · HOST</span>
+                <span class="meta">▸ keystroke#01 · 22m ago</span>
+              </div>
+              <div class="body">
+                "Read PRD.md and tell me what's missing from the privacy section"
+              </div>
+            </article>
+
+            <!-- t2 -->
+            <article class="turn" data-turn="t2" data-role="tool" tabindex="0">
+              <div class="gutter">
+                <span class="id">T2</span>
+                <span class="ts">21m</span>
+              </div>
+              <div class="head">
+                <span class="who"><span class="role-tag">[TOOL_CALL]</span> READ</span>
+                <span class="meta">▸ fs.read · 21m ago</span>
+              </div>
+              <div class="body">
+<div class="codeblock"><span class="k">file_path</span> = <span class="s">"/Users/jabreeflor/better-together/PRD.md"</span>
+<span class="c">// result (truncated)</span>
+<span class="h">## Privacy &amp; safety</span>
+
+The host's session contains everything in their local context: code,
+file paths, error messages, half-formed thoughts to their Claude.
+Sharing a room means sharing all of that with whoever's in the room.
+This isn't a bug, it's the product, but the UX needs to make it
+obvious.
+<span class="truncated">[...]</span></div>
+              </div>
+            </article>
+
+            <!-- t3 -->
+            <article class="turn" data-turn="t3" data-role="assist" tabindex="0">
+              <div class="gutter">
+                <span class="id">T3</span>
+                <span class="ts">20m</span>
+              </div>
+              <div class="head">
+                <span class="who"><span class="role-tag">[ASSISTANT]</span> JABREE'S CLAUDE</span>
+                <span class="meta">▸ stream.complete · 20m ago</span>
+              </div>
+              <div class="body answer">
+                <p>"I've reviewed the privacy section. Three things stand out as missing:</p>
+                <ol>
+                  <li><strong>Comment storage policy.</strong> Comments persist in transcript history once posted. If a watcher pastes a secret into a comment, it's there forever. The section should address this.</li>
+                  <li><strong>Redaction filter punted to v1.5 without specifics.</strong> The section names common patterns (API_KEY=, AWS keys) but doesn't enumerate them. Without a v1 default list, 'defer to v1.5' can drift indefinitely.</li>
+                  <li><strong>Display name leakage.</strong> Watchers pick display names that may include emails or real names. There's no policy on whether to allow plain usernames only, or how kicked users' names persist in the transcript."</li>
+                </ol>
+              </div>
+            </article>
+
+            <!-- t4 -->
+            <article class="turn" data-turn="t4" data-role="tool" tabindex="0">
+              <div class="gutter">
+                <span class="id">T4</span>
+                <span class="ts">20m</span>
+              </div>
+              <div class="head">
+                <span class="who"><span class="role-tag">[TOOL_CALL]</span> BASH</span>
+                <span class="meta">▸ shell.exec · 20m ago</span>
+              </div>
+              <div class="body">
+<div class="codeblock"><span class="k">$</span> <span class="d">grep -n 'secret' PRD.md</span>
+<span class="c">// description: Search for existing mentions of secret handling</span>
+<span class="c">// result:</span>
+<span class="h">156:</span>For URLs that might leak, the host can optionally pass <span class="s">`--secret`</span> to <span class="s">`/team:host`</span>, which adds a join-secret param.</div>
+              </div>
+            </article>
+
+            <!-- t5 — KLAXON -->
+            <article class="turn alert recent" data-turn="t5" data-role="alert" tabindex="0">
+              <div class="gutter">
+                <span class="id">T5</span>
+                <span class="ts">now</span>
+              </div>
+              <div class="head">
+                <span class="who"><span class="role-tag">[PERMISSION_PROMPT]</span> AWAITING HOST</span>
+                <span class="alert-tag">EPHEMERAL</span>
+                <span class="meta">▸ tool.guard · just now</span>
+              </div>
+              <div class="body">
+                "Jabree is being asked to approve <code>Bash(rm -rf node_modules)</code>"
+                <div class="alert-actions">
+                  <span>[ Y ] APPROVE ONCE</span>
+                  <span>[ A ] ALWAYS</span>
+                  <span class="deny">[ N ] DENY</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- t6 — LIVE EDGE -->
+            <article class="turn live recent" data-turn="t6" data-role="live" tabindex="0">
+              <div class="gutter">
+                <span class="id">T6</span>
+                <span class="ts">live</span>
+              </div>
+              <div class="head">
+                <span class="who"><span class="role-tag">[USER]</span> JABREE · HOST</span>
+                <span class="meta">▸ composing… · just now</span>
+              </div>
+              <div class="body">
+                "Add a section under privacy about comment storage. Match the existing voice.
+              </div>
+              <div class="live-banner">
+                <span>JABREE IS COMPOSING</span>
+                <span class="typing-dots"><i></i><i></i><i></i></span>
+                <span style="margin-left:auto;color:var(--ink-faint);letter-spacing:.2em;">▮ INPUT OPEN ▮</span>
+              </div>
+            </article>
+
+          </div>
+
+          <div class="transcript-foot">
+            <span class="ok">●</span><span>STREAM OK</span>
+            <span class="sep">│</span>
+            <span class="h">▮</span><span>HOST=JABREE</span>
+            <span class="sep">│</span>
+            <span class="w">◇</span><span>3 WATCHERS</span>
+            <span class="sep">│</span>
+            <span class="a">⚠</span><span>1 PROMPT PENDING</span>
+            <span class="scrub-tag">REC ▮ T1▸T6 · 6 turns · scrub disabled (live)</span>
+          </div>
+        </section>
+
+        <!-- ====== COMMENTS (RIGHT) ====== -->
+        <aside class="panel comments-wrap" aria-label="Comments" style="border-color: var(--watch); box-shadow: inset 0 0 30px rgba(0,240,255,0.05); color: var(--watch);">
+          <div class="tick-bl"></div><div class="tick-br"></div>
+          <div class="panel-head" style="color:var(--watch); border-bottom-color: rgba(0,240,255,.4);">
+            <span>▸ ANCHORED.COMMENTS</span>
+            <span class="tag">// 4</span>
+            <span class="corners">FEED ▮▮▯</span>
+          </div>
+
+          <div class="comments" id="comments">
+
+            <article class="comment" data-anchor="t1">
+              <span class="corner-tl"></span><span class="corner-tr"></span><span class="corner-bl"></span><span class="corner-br"></span>
+              <div class="head">
+                <span class="author">LIN</span>
+                <span class="role">· browser</span>
+                <span class="ago">3m</span>
+              </div>
+              <div class="anchor">
+                <span class="arrow">↳ ANCHOR</span>
+                <span class="tid" data-jump="t1">T1</span>
+                <span style="color:var(--ink-faint)">// "Read PRD.md…"</span>
+              </div>
+              <div class="body">
+                love this question — the redaction filter punt seems like a real risk if dogfooding stretches into months
+              </div>
+            </article>
+
+            <article class="comment plugin" data-anchor="t3">
+              <span class="corner-tl"></span><span class="corner-tr"></span><span class="corner-bl"></span><span class="corner-br"></span>
+              <div class="head">
+                <span class="author">MARCUS</span>
+                <span class="role">· plugin · analyst-claude</span>
+                <span class="ago">2m</span>
+              </div>
+              <div class="anchor">
+                <span class="arrow">↳ ANCHOR</span>
+                <span class="tid" data-jump="t3">T3</span>
+                <span style="color:var(--ink-faint)">// "I've reviewed the privacy section…"</span>
+              </div>
+              <div class="body">
+                agree on point 2. should we propose specific regex patterns? happy to draft.
+              </div>
+            </article>
+
+            <article class="comment" data-anchor="t3">
+              <span class="corner-tl"></span><span class="corner-tr"></span><span class="corner-bl"></span><span class="corner-br"></span>
+              <div class="head">
+                <span class="author">LIN</span>
+                <span class="role">· browser</span>
+                <span class="ago">1m</span>
+              </div>
+              <div class="anchor">
+                <span class="arrow">↳ ANCHOR</span>
+                <span class="tid" data-jump="t3">T3</span>
+                <span style="color:var(--ink-faint)">// "I've reviewed the privacy section…"</span>
+              </div>
+              <div class="body">
+                what about display names that contain emails? minor but real
+              </div>
+            </article>
+
+            <article class="comment" data-anchor="t4">
+              <span class="corner-tl"></span><span class="corner-tr"></span><span class="corner-bl"></span><span class="corner-br"></span>
+              <div class="head">
+                <span class="author">ANONYMOUS-CAT</span>
+                <span class="role">· browser</span>
+                <span class="ago">30s</span>
+              </div>
+              <div class="anchor">
+                <span class="arrow">↳ ANCHOR</span>
+                <span class="tid" data-jump="t4">T4</span>
+                <span style="color:var(--ink-faint)">// "grep -n 'secret' PRD.md"</span>
+              </div>
+              <div class="body" style="font-size:18px; letter-spacing:.04em;">
+                🐈
+              </div>
+            </article>
+
+          </div>
+
+          <!-- ====== COMPOSER ====== -->
+          <div class="composer">
+            <div class="anchor-line">
+              <span>▸ POST →</span>
+              <span class="anchor-chip" id="anchorChip">T6</span>
+              <span style="color:var(--ink-faint)" id="anchorPreview">// "Add a section under privacy about comment storage…"</span>
+            </div>
+            <textarea id="composerInput" placeholder="// type a comment anchored to selected turn — markdown ok, secrets persist forever"></textarea>
+            <div class="row">
+              <span class="hint">[ ⏎ SEND · ⇧⏎ NEWLINE · ESC DESELECT ]</span>
+              <button class="send" id="sendBtn" type="button">⏎ POST</button>
+            </div>
+          </div>
+        </aside>
+
+      </main>
+    </div>
+  </div>
+
+<script>
+  // ---------------- Selection state ----------------
+  const transcript = document.getElementById('transcript');
+  const turns = Array.from(document.querySelectorAll('.turn'));
+  const comments = Array.from(document.querySelectorAll('.comment'));
+  const anchorChip = document.getElementById('anchorChip');
+  const anchorPreview = document.getElementById('anchorPreview');
+  const composerInput = document.getElementById('composerInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const commentsRoot = document.getElementById('comments');
+
+  // sample preview text per turn
+  const previews = {
+    t1: '// "Read PRD.md and tell me what\'s missing…"',
+    t2: '// tool: Read · /Users/jabreeflor/better-together/PRD.md',
+    t3: '// "I\'ve reviewed the privacy section…"',
+    t4: '// tool: Bash · grep -n \'secret\' PRD.md',
+    t5: '// PERMISSION: Bash(rm -rf node_modules)',
+    t6: '// "Add a section under privacy about comment storage…"'
+  };
+
+  let selected = 't6'; // default to live edge
+
+  function applySelection(tid) {
+    selected = tid;
+    turns.forEach(t => t.classList.toggle('selected', t.dataset.turn === tid));
+    // anchor chip
+    anchorChip.textContent = tid.toUpperCase();
+    anchorPreview.textContent = previews[tid] || '';
+
+    // dim non-matching comments
+    commentsRoot.classList.add('anchor-highlight');
+    comments.forEach(c => {
+      c.classList.toggle('linked', c.dataset.anchor === tid);
+    });
+
+    // update composer placeholder mood
+    const cnt = comments.filter(c => c.dataset.anchor === tid).length;
+    composerInput.setAttribute(
+      'placeholder',
+      `// reply on ${tid.toUpperCase()} — ${cnt} existing comment${cnt===1?'':'s'} · be kind, secrets persist`
+    );
+  }
+
+  // turn click → select
+  turns.forEach(t => {
+    t.addEventListener('click', () => applySelection(t.dataset.turn));
+    t.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        applySelection(t.dataset.turn);
+      }
+    });
+  });
+
+  // jump-to-anchor links inside comments
+  document.querySelectorAll('[data-jump]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tid = el.dataset.jump;
+      const turn = document.querySelector(`.turn[data-turn="${tid}"]`);
+      if (turn) {
+        applySelection(tid);
+        turn.scrollIntoView({behavior:'smooth', block:'center'});
+        // brief flash
+        turn.animate(
+          [{boxShadow:'0 0 0 0 rgba(57,255,20,.0)'},
+           {boxShadow:'0 0 0 2px rgba(57,255,20,.7), 0 0 30px rgba(57,255,20,.4)'},
+           {boxShadow:'0 0 0 0 rgba(57,255,20,0)'}],
+          {duration: 700}
+        );
+      }
+    });
+  });
+
+  // ESC clears selection (drops back to live edge)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      applySelection('t6');
+    }
+  });
+
+  // copy URL
+  const copyBtn = document.getElementById('copyUrl');
+  copyBtn.addEventListener('click', () => {
+    const url = 'https://misty-llama-9342.trycloudflare.com';
+    if (navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+    const orig = copyBtn.textContent;
+    copyBtn.textContent = 'OK ✓';
+    copyBtn.style.color = 'var(--neon)';
+    copyBtn.style.borderColor = 'var(--neon)';
+    setTimeout(()=> { copyBtn.textContent = orig; copyBtn.style.color=''; copyBtn.style.borderColor=''; }, 1100);
+  });
+
+  // composer send (no-op visual)
+  sendBtn.addEventListener('click', () => {
+    const v = composerInput.value.trim();
+    if (!v) {
+      composerInput.focus();
+      composerInput.animate(
+        [{borderColor:'var(--danger)'},{borderColor:'var(--line)'}],
+        {duration: 500}
+      );
+      return;
+    }
+    sendBtn.textContent = '✓ POSTED';
+    sendBtn.disabled = true;
+    composerInput.value = '';
+    setTimeout(()=> { sendBtn.textContent = '⏎ POST'; sendBtn.disabled = false; }, 1400);
+  });
+
+  composerInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+
+  // initial selection
+  applySelection('t6');
+
+  // gentle live-edge "typing" simulation: make the live banner dots feel real
+  // (purely cosmetic — no data mutation)
+</script>
+</body>
+</html>

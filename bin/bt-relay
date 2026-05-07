@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+// bt-relay — invoked by Claude Code hooks. Reads JSON from stdin and:
+//   - in host mode: posts the event to the local server
+//   - in watch mode (UserPromptSubmit only): emits hookSpecificOutput
+//     with the host's transcript snapshot as additionalContext
+//   - SessionEnd in host mode: triggers a teardown via `bt end`
+// Always exits 0; errors go to a log file so they don't break the hook.
+
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const { spawn } = require('child_process');
+const state = require(path.join(__dirname, '..', 'server', 'state.js'));
+
+const event = process.argv[2] || 'unknown';
+
+let raw = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', c => raw += c);
+process.stdin.on('end', main);
+process.stdin.on('error', () => process.exit(0));
+
+// Safety: don't hang the hook
+setTimeout(() => process.exit(0), 4000);
+
+async function main() {
+  try {
+    const payload = raw ? safeParse(raw) : {};
+    let s;
+    try { s = state.read(); } catch (e) { s = { host: null, watch: null }; }
+
+    // Stop event has no assistant text in its payload — pull it from the transcript file.
+    if (event === 'stop' && payload.transcript_path) {
+      try {
+        const text = extractLastAssistantText(payload.transcript_path);
+        if (text) payload.assistant_text = text;
+      } catch (e) { logErr(e); }
+    }
+
+    // Watch mode: inject host context on UserPromptSubmit
+    if (event === 'user_prompt' && s.watch && s.watch.context_file) {
+      try {
+        const txt = fs.readFileSync(s.watch.context_file, 'utf8');
+        if (txt.trim()) {
+          const slice = txt.length > 9500 ? txt.slice(-9500) : txt;
+          process.stdout.write(JSON.stringify({
+            hookSpecificOutput: {
+              hookEventName: 'UserPromptSubmit',
+              additionalContext: slice,
+            },
+          }));
+        }
+      } catch (e) { logErr(e); }
+    }
+
+    // Host mode: relay event to local server (fire-and-forget)
+    if (s.host && s.host.port) {
+      await relayToServer(s.host.port, event, payload);
+    }
+
+    // SessionEnd: tear down host if active
+    if (event === 'session_end' && s.host) {
+      try {
+        const btPath = path.join(__dirname, 'bt');
+        spawn(process.execPath, [btPath, 'end'], {
+          detached: true,
+          stdio: 'ignore',
+        }).unref();
+      } catch (e) { logErr(e); }
+    }
+
+    process.exit(0);
+  } catch (e) {
+    logErr(e);
+    process.exit(0);
+  }
+}
+
+function safeParse(s) {
+  try { return JSON.parse(s); } catch (e) { return { _raw: s }; }
+}
+
+function extractLastAssistantText(transcriptPath) {
+  // Claude Code's transcript JSONL — walk backwards for the most recent
+  // assistant message and concatenate its text blocks.
+  const data = fs.readFileSync(transcriptPath, 'utf8');
+  const lines = data.split('\n').filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    let entry;
+    try { entry = JSON.parse(lines[i]); } catch (e) { continue; }
+    const role = entry.type || (entry.message && entry.message.role) || '';
+    if (role !== 'assistant') continue;
+    const msg = entry.message || entry;
+    let content = msg.content;
+    if (typeof content === 'string') return content.slice(0, 8000);
+    if (Array.isArray(content)) {
+      let text = '';
+      for (const block of content) {
+        if (block && block.type === 'text' && typeof block.text === 'string') {
+          text += block.text;
+        }
+      }
+      if (text) return text.slice(0, 8000);
+    }
+  }
+  return '';
+}
+
+function relayToServer(port, kind, payload) {
+  return new Promise((resolve) => {
+    const body = JSON.stringify({ kind, payload });
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port,
+      path: '/events',
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(body),
+      },
+      timeout: 1500,
+    }, res => { res.resume(); res.on('end', resolve); });
+    req.on('error', () => resolve());
+    req.on('timeout', () => { try { req.destroy(); } catch (e) {} resolve(); });
+    req.write(body);
+    req.end();
+  });
+}
+
+function logErr(e) {
+  try {
+    fs.mkdirSync(state.dataDir(), { recursive: true });
+    fs.appendFileSync(
+      path.join(state.dataDir(), 'relay-errors.log'),
+      `${new Date().toISOString()} [${event}] ${e && (e.stack || e.message || e)}\n`,
+    );
+  } catch (_) { /* nothing more to do */ }
+}

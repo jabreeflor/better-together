@@ -1,0 +1,511 @@
+#!/usr/bin/env node
+// bt — Better Together CLI. Invoked by slash commands.
+
+const { spawn, spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const http = require('http');
+const https = require('https');
+const os = require('os');
+const state = require(path.join(__dirname, '..', 'server', 'state.js'));
+
+const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
+const SERVER_JS = path.join(PLUGIN_ROOT, 'server', 'server.js');
+const WATCH_DAEMON_JS = path.join(PLUGIN_ROOT, 'server', 'watch-daemon.js');
+
+const DISCLOSURE_TEXT = `Better Together — first-time disclosure
+
+When you start a hosting session, everyone with the room URL will see, in real time:
+  • your prompts to Claude
+  • Claude's responses
+  • every tool call (Read, Edit, Write, Bash) and its arguments
+  • file diffs from edits
+  • command output
+  • permission prompts you receive
+
+Comments left by watchers persist in the room transcript. Treat the room URL like
+a Zoom link: anyone with it is in. Run /better-together:end to close the room.
+
+To accept and start hosting now, re-run:
+
+    /better-together:host --accept
+
+This disclosure will be remembered for future sessions.`;
+
+// ---------- main ----------
+
+const cmd = process.argv[2];
+const args = process.argv.slice(3);
+
+const handlers = {
+  host: cmdHost,
+  end: cmdEnd,
+  watch: cmdWatch,
+  unwatch: cmdUnwatch,
+  comment: cmdComment,
+  'comment-on': cmdCommentOn,
+  comments: cmdComments,
+  who: cmdWho,
+  kick: cmdKick,
+  pulse: cmdPulse,
+};
+
+if (!cmd || !handlers[cmd]) {
+  console.error(`Usage: bt <${Object.keys(handlers).join('|')}>`);
+  process.exit(2);
+}
+
+(async () => {
+  try {
+    await handlers[cmd](args);
+  } catch (e) {
+    console.error(`bt: ${e.message}`);
+    process.exit(1);
+  }
+})();
+
+// ---------- helpers ----------
+
+function isAlive(pid) {
+  if (!pid) return false;
+  try { process.kill(pid, 0); return true; } catch (e) { return false; }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function poll(fn, { tries = 50, interval = 100 } = {}) {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fn();
+      if (r) return r;
+    } catch (e) { /* retry */ }
+    await sleep(interval);
+  }
+  return null;
+}
+
+function fetchUrl(url, { method = 'GET', body = null, timeout = 10000 } = {}) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const lib = u.protocol === 'https:' ? https : http;
+    const headers = { 'accept': 'application/json' };
+    let bodyStr = null;
+    if (body != null) {
+      bodyStr = typeof body === 'string' ? body : JSON.stringify(body);
+      headers['content-type'] = 'application/json';
+      headers['content-length'] = Buffer.byteLength(bodyStr);
+    }
+    const req = lib.request({
+      hostname: u.hostname,
+      port: u.port || (u.protocol === 'https:' ? 443 : 80),
+      path: u.pathname + u.search,
+      method,
+      headers,
+    }, res => {
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        let parsed = text;
+        try { parsed = JSON.parse(text); } catch (e) { /* keep raw */ }
+        resolve({ status: res.statusCode, body: parsed, raw: text });
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(timeout, () => { req.destroy(new Error('request timeout')); });
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+function which(bin) {
+  const r = spawnSync('which', [bin]);
+  return r.status === 0 ? r.stdout.toString().trim() : null;
+}
+
+// Ensure cloudflared is available. If missing, attempt an automatic install:
+//   1. macOS + Homebrew → `brew install cloudflared`
+//   2. Linux + apt-get  → `sudo apt-get install -y cloudflared` (only if user has cached sudo)
+// On any failure, returns null so the host flow can fall back to local-only.
+async function ensureCloudflared() {
+  const existing = which('cloudflared');
+  if (existing) return existing;
+
+  console.log('  cloudflared isn’t installed yet. Installing now so the room can');
+  console.log('  be reached over the internet.');
+  console.log('');
+
+  if (process.platform === 'darwin' && which('brew')) {
+    console.log('  $ brew install cloudflared');
+    console.log('  (typically 15–30 seconds; output below)');
+    console.log('');
+    const ok = await runInherit('brew', ['install', 'cloudflared']);
+    if (ok) {
+      const installed = which('cloudflared');
+      if (installed) {
+        console.log('');
+        console.log('  cloudflared installed at: ' + installed);
+        return installed;
+      }
+    }
+    console.error('');
+    console.error('  brew install cloudflared failed. Continuing in local-only mode.');
+    return null;
+  }
+
+  if (process.platform === 'linux' && which('apt-get')) {
+    console.log('  Detected apt-get. Run this manually, then re-run /better-together:host:');
+    console.log('  $ sudo apt-get install -y cloudflared');
+    console.log('');
+    return null;
+  }
+
+  console.error('  Couldn’t auto-install cloudflared on this platform. Install it manually:');
+  console.error('    https://developers.cloudflare.com/cloudflared/');
+  return null;
+}
+
+function runInherit(bin, args) {
+  return new Promise((resolve) => {
+    const proc = spawn(bin, args, { stdio: ['ignore', 'inherit', 'inherit'] });
+    proc.on('error', () => resolve(false));
+    proc.on('exit', (code) => resolve(code === 0));
+  });
+}
+
+function copyToClipboard(text) {
+  if (!which('pbcopy')) return false;
+  try { spawnSync('pbcopy', [], { input: text }); return true; }
+  catch (e) { return false; }
+}
+
+function relativeTime(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
+}
+
+// ---------- commands ----------
+
+async function cmdHost(args) {
+  const accept = args.includes('--accept');
+  const s = state.read();
+
+  // Stale state cleanup
+  if (s.host && !isAlive(s.host.server_pid)) {
+    state.setHost(null);
+  }
+  const fresh = state.read();
+  if (fresh.host) {
+    const u = fresh.host.tunnel_url || `http://127.0.0.1:${fresh.host.port}`;
+    console.log(`Already hosting at ${u}.`);
+    console.log(`Run /better-together:end to close.`);
+    return;
+  }
+
+  // Disclosure
+  state.write(state.read()); // ensure data dir exists
+  const discFile = path.join(state.dataDir(), '.disclosure-accepted');
+  if (!fs.existsSync(discFile) && !accept) {
+    console.log(DISCLOSURE_TEXT);
+    return;
+  }
+  if (accept && !fs.existsSync(discFile)) {
+    fs.writeFileSync(discFile, new Date().toISOString());
+  }
+
+  // Spawn server
+  const serverLog = path.join(state.dataDir(), 'server.log');
+  // Truncate prior log
+  fs.writeFileSync(serverLog, '');
+  const out = fs.openSync(serverLog, 'a');
+  const child = spawn(process.execPath, [SERVER_JS], {
+    detached: true,
+    stdio: ['ignore', out, out],
+    env: { ...process.env, BT_PORT: '0', CLAUDE_PLUGIN_DATA: state.dataDir() },
+  });
+  child.unref();
+
+  // Poll log for listening port
+  const port = await poll(async () => {
+    if (!fs.existsSync(serverLog)) return null;
+    const log = fs.readFileSync(serverLog, 'utf8');
+    const m = log.match(/"event":"listening","port":(\d+)/);
+    return m ? parseInt(m[1], 10) : null;
+  }, { tries: 80, interval: 100 });
+
+  if (!port) {
+    try { process.kill(child.pid, 'SIGKILL'); } catch (e) {}
+    throw new Error('Server failed to start within 8s. See ' + serverLog);
+  }
+
+  // Verify reachable
+  await poll(async () => {
+    try {
+      const r = await fetchUrl(`http://127.0.0.1:${port}/health`);
+      return r.status === 200;
+    } catch (e) { return false; }
+  }, { tries: 30, interval: 100 });
+
+  // Tunnel (auto-install cloudflared if missing)
+  let tunnel_url = null;
+  let tunnel_pid = null;
+  const cloudflaredPath = await ensureCloudflared();
+  if (cloudflaredPath) {
+    const tunnelLog = path.join(state.dataDir(), 'cloudflared.log');
+    fs.writeFileSync(tunnelLog, '');
+    const tlog = fs.openSync(tunnelLog, 'a');
+    const tunnel = spawn(cloudflaredPath, [
+      'tunnel', '--url', `http://127.0.0.1:${port}`,
+      '--no-autoupdate',
+    ], {
+      detached: true,
+      stdio: ['ignore', tlog, tlog],
+    });
+    tunnel.unref();
+    tunnel_pid = tunnel.pid;
+
+    tunnel_url = await poll(async () => {
+      const log = fs.readFileSync(tunnelLog, 'utf8');
+      const m = log.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+      return m ? m[0] : null;
+    }, { tries: 100, interval: 200 });
+
+    if (!tunnel_url) {
+      console.error('  ⚠ cloudflared started but no URL appeared in 20s. Local URL only.');
+    }
+  }
+
+  state.setHost({
+    server_pid: child.pid,
+    tunnel_pid,
+    port,
+    tunnel_url,
+    started_at: new Date().toISOString(),
+    have_cloudflared: !!cloudflaredPath,
+  });
+
+  const url = tunnel_url || `http://127.0.0.1:${port}`;
+  console.log(``);
+  console.log(`  Better Together — room is live`);
+  console.log(``);
+  console.log(`  ${url}`);
+  console.log(``);
+  if (tunnel_url) {
+    if (copyToClipboard(url)) console.log(`  (copied to clipboard)`);
+    console.log(`  Share this URL with anyone you want in the room.`);
+  } else if (cloudflaredPath) {
+    console.log(`  ⚠ Tunnel didn’t come up; URL is local-only for now.`);
+  } else {
+    console.log(`  ⚠ cloudflared couldn’t be installed automatically.`);
+    console.log(`    Room is local-only — only this machine can reach it.`);
+  }
+  console.log(``);
+  console.log(`  Run /better-together:end when you're done. Quitting Claude Code`);
+  console.log(`  also tears the room down via the SessionEnd hook.`);
+  console.log(``);
+}
+
+async function cmdEnd() {
+  const s = state.read();
+  if (!s.host) { console.log('Not hosting.'); return; }
+  const pids = [s.host.tunnel_pid, s.host.server_pid].filter(Boolean);
+  for (const pid of pids) {
+    if (isAlive(pid)) { try { process.kill(pid, 'SIGTERM'); } catch (e) {} }
+  }
+  await sleep(400);
+  for (const pid of pids) {
+    if (isAlive(pid)) { try { process.kill(pid, 'SIGKILL'); } catch (e) {} }
+  }
+  state.setHost(null);
+  console.log('Room ended.');
+}
+
+async function cmdWatch(args) {
+  const url = (args[0] || '').trim();
+  if (!url) { console.error('Usage: /better-together:watch <url>'); process.exit(2); }
+  if (!/^https?:\/\//.test(url)) {
+    console.error('URL must start with http:// or https://');
+    process.exit(2);
+  }
+  const s = state.read();
+  if (s.watch && isAlive(s.watch.daemon_pid)) {
+    console.log(`Already watching ${s.watch.host_url}.`);
+    console.log(`Run /better-together:unwatch first if you want to switch rooms.`);
+    return;
+  }
+
+  // Probe the host first to give a fast, friendly error
+  try {
+    const probe = await fetchUrl(new URL('/health', url).href, { timeout: 5000 });
+    if (probe.status !== 200) throw new Error(`host returned HTTP ${probe.status}`);
+  } catch (e) {
+    console.error(`Couldn't reach ${url}: ${e.message}`);
+    console.error(`Check the URL with the host. The room may have closed.`);
+    process.exit(1);
+  }
+
+  state.write(state.read()); // ensure data dir
+  const ctx = path.join(state.dataDir(), 'watch-context.md');
+  const watchLog = path.join(state.dataDir(), 'watch.log');
+  fs.writeFileSync(watchLog, '');
+  const out = fs.openSync(watchLog, 'a');
+  const daemon = spawn(process.execPath, [WATCH_DAEMON_JS], {
+    detached: true,
+    stdio: ['ignore', out, out],
+    env: { ...process.env, BT_HOST_URL: url, BT_CONTEXT_FILE: ctx, CLAUDE_PLUGIN_DATA: state.dataDir() },
+  });
+  daemon.unref();
+
+  state.setWatch({
+    daemon_pid: daemon.pid,
+    host_url: url,
+    context_file: ctx,
+    started_at: new Date().toISOString(),
+  });
+
+  console.log(``);
+  console.log(`  Watching ${url}`);
+  console.log(``);
+  console.log(`  Each time you submit a prompt, your local Claude will see the host's`);
+  console.log(`  recent transcript as additional context. Ask things like "what is`);
+  console.log(`  the host trying to do?" or "is that approach likely to work?"`);
+  console.log(``);
+  console.log(`  Leave anchored comments with /better-together:comment <message>`);
+  console.log(`  or /better-together:comment-on <turn-id> <message>`);
+  console.log(``);
+  console.log(`  Run /better-together:unwatch to disconnect.`);
+  console.log(``);
+}
+
+async function cmdUnwatch() {
+  const s = state.read();
+  if (!s.watch) { console.log('Not watching.'); return; }
+  if (s.watch.daemon_pid && isAlive(s.watch.daemon_pid)) {
+    try { process.kill(s.watch.daemon_pid, 'SIGTERM'); } catch (e) {}
+  }
+  if (s.watch.context_file) {
+    try { fs.unlinkSync(s.watch.context_file); } catch (e) {}
+  }
+  state.setWatch(null);
+  console.log('Unwatched.');
+}
+
+async function cmdComment(args) {
+  const text = args.join(' ').trim();
+  if (!text) { console.error('Usage: /better-together:comment <message>'); process.exit(2); }
+  await postComment(text, null);
+}
+
+async function cmdCommentOn(args) {
+  const turnId = (args[0] || '').trim();
+  const text = args.slice(1).join(' ').trim();
+  if (!turnId || !text) {
+    console.error('Usage: /better-together:comment-on <turn-id> <message>');
+    process.exit(2);
+  }
+  await postComment(text, turnId);
+}
+
+async function postComment(text, anchor) {
+  const s = state.read();
+  if (!s.watch) {
+    console.error('Not watching a room. Run /better-together:watch <url> first.');
+    process.exit(2);
+  }
+  const author = process.env.BT_DISPLAY_NAME || process.env.USER || 'plugin-watcher';
+  const url = new URL('/comments', s.watch.host_url).href;
+  const r = await fetchUrl(url, {
+    method: 'POST',
+    body: { author, author_mode: 'plugin', text, anchor },
+  });
+  if (r.status >= 400) {
+    console.error(`Comment failed (${r.status}): ${r.raw}`);
+    process.exit(1);
+  }
+  const c = r.body;
+  console.log(`Comment posted (${c.id}, anchored to ${c.anchor || 'latest'}).`);
+}
+
+async function cmdComments() {
+  const s = state.read();
+  if (s.host) {
+    const r = await fetchUrl(`http://127.0.0.1:${s.host.port}/admin/comments`);
+    return printComments(r.body, 'host');
+  }
+  if (s.watch) {
+    const r = await fetchUrl(new URL('/comments', s.watch.host_url).href);
+    return printComments(r.body, 'watch');
+  }
+  console.log('No active room. Run /better-together:host or /better-together:watch <url>.');
+}
+
+function printComments(items, mode) {
+  if (!Array.isArray(items) || !items.length) {
+    console.log(mode === 'host' ? 'No comments yet.' : 'No comments in this room yet.');
+    return;
+  }
+  console.log(`${items.length} comment${items.length === 1 ? '' : 's'}:`);
+  console.log('');
+  for (const c of items) {
+    const author = c.author + (c.author_mode === 'plugin' ? ' (plugin)' : ' (browser)');
+    const anchor = c.anchor || '(unanchored)';
+    console.log(`  [${c.id}] ${author} → ${anchor}  ·  ${relativeTime(c.ts)} ago`);
+    for (const line of String(c.text).split('\n')) console.log(`    ${line}`);
+    console.log('');
+  }
+}
+
+async function cmdWho() {
+  const s = state.read();
+  if (!s.host) { console.log('Not hosting. (Use /better-together:pulse to see status.)'); return; }
+  const r = await fetchUrl(`http://127.0.0.1:${s.host.port}/admin/who`);
+  const list = (r.body && r.body.presence) || [];
+  if (!list.length) { console.log('No watchers connected.'); return; }
+  console.log(`${list.length} watcher${list.length === 1 ? '' : 's'}:`);
+  for (const p of list) {
+    console.log(`  ${p.display_name}  (${p.mode})  ·  joined ${relativeTime(p.joined_at)} ago`);
+  }
+}
+
+async function cmdKick(args) {
+  const name = args.join(' ').trim();
+  if (!name) { console.error('Usage: /better-together:kick <display-name>'); process.exit(2); }
+  const s = state.read();
+  if (!s.host) { console.error('Not hosting.'); process.exit(2); }
+  const r = await fetchUrl(`http://127.0.0.1:${s.host.port}/admin/kick`, {
+    method: 'POST',
+    body: { name },
+  });
+  const n = (r.body && r.body.kicked) || 0;
+  console.log(n ? `Kicked ${n} watcher(s) named "${name}".` : `No watcher named "${name}".`);
+}
+
+async function cmdPulse() {
+  const s = state.read();
+  let any = false;
+  if (s.host && isAlive(s.host.server_pid)) {
+    any = true;
+    const url = s.host.tunnel_url || `http://127.0.0.1:${s.host.port}`;
+    let watchers = '?';
+    try {
+      const r = await fetchUrl(`http://127.0.0.1:${s.host.port}/admin/who`);
+      watchers = String((r.body && r.body.count) || 0);
+    } catch (e) {}
+    console.log(`HOST   ${url}  ·  started ${relativeTime(s.host.started_at)} ago  ·  ${watchers} watcher(s)`);
+  } else if (s.host) {
+    console.log(`HOST   stale state (server PID ${s.host.server_pid} not alive). Run /better-together:end to clear.`);
+    any = true;
+  }
+  if (s.watch && isAlive(s.watch.daemon_pid)) {
+    any = true;
+    console.log(`WATCH  ${s.watch.host_url}  ·  started ${relativeTime(s.watch.started_at)} ago`);
+  } else if (s.watch) {
+    console.log(`WATCH  stale state (daemon PID ${s.watch.daemon_pid} not alive). Run /better-together:unwatch to clear.`);
+    any = true;
+  }
+  if (!any) console.log('Idle. /better-together:host to start a room, or /better-together:watch <url> to join one.');
+}

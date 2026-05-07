@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1512" />
+<title>better-together :: misty-llama-9342</title>
+<style>
+  /* ==========================================================
+     TERMINAL PURE — Better Together lobby
+     Aesthetic: tmux/vim. Pure mono. No icons. No emoji.
+     Hierarchy through case, weight, and color only.
+     ========================================================== */
+
+  :root {
+    /* Base palette — phosphor-on-coal, calibrated for a 14" panel */
+    --bg:        #0b0d0c;
+    --bg-1:     #0f1211;
+    --bg-2:     #14181a;
+    --bg-3:     #1a1f22;
+    --rule:     #1f2628;
+    --rule-2:   #2a3236;
+    --fg:        #c9d1cf;
+    --fg-dim:   #8a948f;
+    --fg-mute: #5a6360;
+    --fg-faint: #3a4244;
+
+    /* Accents — kept narrow and meaningful */
+    --acc-host:  #d6e08a;   /* host / driving */
+    --acc-tool:  #7ec8b8;   /* tool calls */
+    --acc-asst:  #b8c5e6;   /* assistant */
+    --acc-user:  #e8d59a;   /* user prompts */
+    --acc-perm:  #f25b3a;   /* permission prompt — urgent */
+    --acc-perm-bg: #2a0f0a;
+    --acc-live:  #5cd66b;   /* live indicator */
+    --acc-sel:   #f4c95d;   /* vim visual-mode selection */
+    --acc-sel-bg: #2a2410;
+    --acc-anchor: #c08bd8;  /* comment anchor color */
+
+    /* Typography — system mono only, no network fonts */
+    --mono: ui-monospace, "SF Mono", "Menlo", "Consolas", "DejaVu Sans Mono", monospace;
+
+    /* Grid: a single canonical character cell. Everything aligns to this. */
+    --ch: 7.2px;       /* approximate width of one mono char at 12px */
+    --line: 18px;      /* line height, the vertical grid unit */
+    --fs: 12.5px;      /* base font size */
+    --fs-sm: 11px;
+    --fs-xs: 10.5px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: var(--fs);
+    line-height: var(--line);
+    font-variant-ligatures: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    overflow: hidden;
+  }
+
+  /* Subtle scanline + grain. Restraint: no animation, no glow. */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.012) 0px,
+        rgba(255,255,255,0.012) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    z-index: 9999;
+    mix-blend-mode: overlay;
+  }
+
+  /* ====================== APP SHELL — tmux frame ====================== */
+
+  .app {
+    display: grid;
+    grid-template-rows: 22px 1fr 22px;   /* tmux top bar / body / status bar */
+    height: 100vh;
+    width: 100vw;
+    background: var(--bg);
+  }
+
+  /* tmux-style top bar */
+  .topbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 10px;
+    font-size: var(--fs-xs);
+    color: var(--fg-mute);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  .topbar .session {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .topbar .session::before {
+    content: "[0] ";
+    color: var(--fg-faint);
+    font-weight: 400;
+  }
+  .topbar .windows {
+    display: flex;
+    gap: 0;
+    justify-content: center;
+    color: var(--fg-mute);
+  }
+  .topbar .win {
+    padding: 0 12px;
+    border-left: 1px solid var(--rule);
+  }
+  .topbar .win:last-child { border-right: 1px solid var(--rule); }
+  .topbar .win.active {
+    color: var(--bg);
+    background: var(--fg);
+    font-weight: 700;
+  }
+  .topbar .clock {
+    color: var(--fg-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* tmux-style status bar (bottom) */
+  .statusbar {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto auto;
+    align-items: center;
+    gap: 0;
+    background: var(--bg-2);
+    border-top: 1px solid var(--rule);
+    padding: 0;
+    font-size: var(--fs-xs);
+    color: var(--fg-mute);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  .statusbar > * {
+    padding: 0 10px;
+    height: 100%;
+    display: flex; align-items: center;
+    border-right: 1px solid var(--rule);
+  }
+  .statusbar > *:last-child { border-right: 0; }
+  .statusbar .mode {
+    background: var(--acc-host);
+    color: var(--bg);
+    font-weight: 700;
+  }
+  .statusbar .room {
+    color: var(--fg);
+  }
+  .statusbar .filler {
+    border-right: 0;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 6px,
+        var(--rule) 6px,
+        var(--rule) 7px
+      );
+  }
+  .statusbar .perm {
+    background: var(--acc-perm-bg);
+    color: var(--acc-perm);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    animation: blink 1.1s steps(2, end) infinite;
+  }
+  .statusbar .perm::before {
+    content: "ESC[";
+    color: var(--acc-perm);
+    opacity: 0.55;
+    margin-right: 6px;
+  }
+  .statusbar .perm::after {
+    content: "m";
+    color: var(--acc-perm);
+    opacity: 0.55;
+    margin-left: 6px;
+  }
+  @keyframes blink {
+    0%, 60% { opacity: 1; }
+    61%, 100% { opacity: 0.55; }
+  }
+
+  .statusbar .latency {
+    color: var(--acc-live);
+    font-variant-numeric: tabular-nums;
+  }
+  .statusbar .latency::before {
+    content: "● ";
+    font-size: 8px;
+    vertical-align: 2px;
+    margin-right: 2px;
+  }
+
+  /* ====================== BODY — three panes ====================== */
+
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: 1fr 240px;
+    grid-template-areas:
+      "transcript presence"
+      "comments   presence";
+    min-height: 0;
+  }
+
+  .pane {
+    min-height: 0;
+    min-width: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pane.transcript { grid-area: transcript; border-right: 1px solid var(--rule); }
+  .pane.presence   { grid-area: presence; }
+  .pane.comments   { grid-area: comments; border-top: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+
+  .pane-head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-1);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg-mute);
+    user-select: none;
+    height: 28px;
+    flex: 0 0 28px;
+  }
+  .pane-head .label {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  .pane-head .label::before {
+    content: "── ";
+    color: var(--fg-faint);
+    font-weight: 400;
+  }
+  .pane-head .label::after {
+    content: " ──";
+    color: var(--fg-faint);
+    font-weight: 400;
+  }
+  .pane-head .meta {
+    color: var(--fg-mute);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .pane-head .meta b { color: var(--fg-dim); font-weight: 400; }
+
+  .pane-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-2) transparent;
+  }
+  .pane-body::-webkit-scrollbar { width: 8px; height: 8px; }
+  .pane-body::-webkit-scrollbar-track { background: transparent; }
+  .pane-body::-webkit-scrollbar-thumb {
+    background: var(--rule-2);
+    border-radius: 0;
+  }
+  .pane-body::-webkit-scrollbar-thumb:hover { background: var(--fg-faint); }
+
+  /* ====================== TRANSCRIPT ====================== */
+
+  .transcript-room {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: baseline;
+    gap: 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    background:
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg) 100%);
+  }
+  .transcript-room .key {
+    color: var(--fg-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: var(--fs-xs);
+  }
+  .transcript-room .url {
+    color: var(--fg);
+    font-weight: 600;
+    word-break: break-all;
+  }
+  .transcript-room .url .scheme { color: var(--fg-faint); font-weight: 400; }
+  .transcript-room .url .host   { color: var(--fg); }
+  .transcript-room .stats {
+    display: flex;
+    gap: 14px;
+    font-size: var(--fs-xs);
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
+  .transcript-room .stats span b {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  .transcript-room .live {
+    color: var(--acc-live);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+  .transcript-room .live::before {
+    content: "● ";
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+  }
+
+  /* turns list */
+  .turns {
+    padding: 8px 0 80px 0;
+  }
+  .turn {
+    display: grid;
+    grid-template-columns: 14px 56px 76px 1fr;
+    gap: 0 12px;
+    padding: 6px 14px 6px 14px;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+  .turn:hover {
+    background: var(--bg-1);
+  }
+  .turn .gutter {
+    color: var(--fg-faint);
+    user-select: none;
+    font-weight: 400;
+    text-align: right;
+    grid-row: 1 / span 999;
+  }
+  .turn .id {
+    color: var(--fg-mute);
+    text-transform: uppercase;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+    padding-top: 1px;
+  }
+  .turn .role {
+    text-transform: uppercase;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    padding-top: 1px;
+    user-select: none;
+  }
+  .turn .role[data-role="user"]      { color: var(--acc-user); }
+  .turn .role[data-role="assistant"] { color: var(--acc-asst); }
+  .turn .role[data-role="tool"]      { color: var(--acc-tool); }
+  .turn .role[data-role="perm"]      { color: var(--acc-perm); }
+
+  .turn .body {
+    color: var(--fg);
+    min-width: 0;
+  }
+  .turn .body .actor {
+    color: var(--fg-dim);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+  }
+  .turn .body .actor b { color: var(--fg); font-weight: 600; }
+  .turn .body .actor .ts { color: var(--fg-mute); font-variant-numeric: tabular-nums; margin-left: 8px; }
+
+  /* User prompt block */
+  .turn .body .quote {
+    color: var(--fg);
+    padding-left: 12px;
+    border-left: 1px solid var(--rule-2);
+    margin-top: 2px;
+    white-space: pre-wrap;
+  }
+  .turn .body .quote::before {
+    content: "> ";
+    color: var(--acc-user);
+    font-weight: 700;
+  }
+
+  /* Assistant response: paragraph layout, but mono */
+  .turn .body .response {
+    color: var(--fg);
+    margin-top: 2px;
+    white-space: pre-wrap;
+  }
+  .turn .body .response p { margin: 0 0 6px 0; }
+  .turn .body .response p:last-child { margin-bottom: 0; }
+  .turn .body .response b {
+    color: var(--acc-asst);
+    font-weight: 700;
+  }
+  .turn .body .response .ol { display: grid; gap: 4px; }
+  .turn .body .response .li {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 0;
+  }
+  .turn .body .response .li .num {
+    color: var(--fg-mute);
+    font-weight: 700;
+  }
+
+  /* Tool call: tree characters */
+  .toolcall {
+    color: var(--fg-dim);
+    margin-top: 2px;
+    font-size: var(--fs);
+  }
+  .toolcall .head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .toolcall .tool-name {
+    color: var(--acc-tool);
+    font-weight: 700;
+    text-transform: lowercase;
+  }
+  .toolcall .tool-name::before {
+    content: "$ ";
+    color: var(--fg-faint);
+    font-weight: 400;
+  }
+  .toolcall .params {
+    color: var(--fg-dim);
+    margin-top: 2px;
+  }
+  .toolcall .params .row {
+    display: grid;
+    grid-template-columns: 14px auto 1fr;
+    gap: 0 6px;
+  }
+  .toolcall .params .branch { color: var(--fg-faint); user-select: none; }
+  .toolcall .params .k { color: var(--fg-mute); }
+  .toolcall .params .v { color: var(--fg); word-break: break-all; }
+
+  .toolcall .result {
+    margin-top: 4px;
+    border-left: 1px solid var(--rule-2);
+    padding: 4px 0 4px 0;
+    background: var(--bg-1);
+  }
+  .toolcall .result .rline {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 0;
+    padding: 0 0 0 0;
+  }
+  .toolcall .result .rline .lno {
+    color: var(--fg-faint);
+    text-align: right;
+    padding-right: 12px;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+    border-right: 1px solid var(--rule);
+  }
+  .toolcall .result .rline .ltext {
+    padding-left: 12px;
+    color: var(--fg);
+    white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .toolcall .result .rline.heading .ltext { color: var(--acc-asst); font-weight: 700; }
+  .toolcall .result .rline.dim .ltext { color: var(--fg-mute); }
+  .toolcall .result .rline.match .ltext mark {
+    background: var(--acc-sel-bg);
+    color: var(--acc-sel);
+    padding: 0;
+  }
+  .toolcall .result .rline.elide .ltext {
+    color: var(--fg-faint);
+    font-style: normal;
+  }
+
+  /* Permission prompt — escape-sequence styled alert */
+  .turn.perm {
+    background: linear-gradient(90deg, rgba(242,91,58,0.06) 0%, transparent 60%);
+    border-left-color: var(--acc-perm);
+  }
+  .turn.perm .body .alert {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 10px;
+    background: var(--acc-perm-bg);
+    border: 1px solid var(--acc-perm);
+    color: var(--acc-perm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: var(--fs-sm);
+  }
+  .turn.perm .body .alert .esc {
+    color: var(--acc-perm);
+    opacity: 0.55;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .turn.perm .body .alert .msg {
+    color: var(--fg);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+  .turn.perm .body .alert .msg b { color: var(--acc-perm); font-weight: 700; }
+  .turn.perm .body .alert .msg code {
+    color: var(--acc-perm);
+    background: rgba(242,91,58,0.12);
+    padding: 0 4px;
+    border: 1px solid rgba(242,91,58,0.4);
+  }
+  .turn.perm .body .alert .countdown {
+    color: var(--acc-perm);
+    font-variant-numeric: tabular-nums;
+    animation: blink 1.1s steps(2,end) infinite;
+  }
+
+  /* Live edge — composing */
+  .turn.composing {
+    background: linear-gradient(90deg, rgba(214,224,138,0.04) 0%, transparent 70%);
+    border-left-color: var(--acc-host);
+  }
+  .turn.composing .body .compose-line {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .turn.composing .body .compose-line .prompt {
+    color: var(--acc-host);
+    font-weight: 700;
+  }
+  .turn.composing .body .compose-line .text {
+    color: var(--fg);
+  }
+  .turn.composing .body .compose-line .caret {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--acc-host);
+    vertical-align: -2px;
+    animation: caret 1s steps(2, end) infinite;
+  }
+  @keyframes caret {
+    0%, 50%   { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .turn.composing .body .compose-meta {
+    margin-top: 2px;
+    font-size: var(--fs-xs);
+    color: var(--fg-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .turn.composing .body .compose-meta b { color: var(--acc-host); font-weight: 700; }
+
+  /* Selected turn — vim visual block */
+  .turn.selected {
+    background: var(--acc-sel-bg) !important;
+    border-left-color: var(--acc-sel);
+  }
+  .turn.selected .gutter {
+    color: var(--acc-sel);
+    font-weight: 700;
+  }
+  .turn.selected .id {
+    color: var(--acc-sel);
+    background: rgba(244,201,93,0.08);
+  }
+  .turn.selected::after {
+    content: "── VISUAL ──";
+    position: absolute;
+    right: 14px;
+    top: 6px;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.16em;
+    color: var(--acc-sel);
+    font-weight: 700;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  /* anchor count badge on a turn */
+  .turn .anchor-count {
+    color: var(--acc-anchor);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    margin-top: 2px;
+    user-select: none;
+  }
+  .turn .anchor-count::before {
+    content: "└─ ";
+    color: var(--fg-faint);
+    font-weight: 400;
+  }
+
+  /* ====================== PRESENCE ====================== */
+
+  .presence-list {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+  }
+  .presence {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 14px;
+    border-bottom: 1px dashed var(--rule);
+    cursor: default;
+  }
+  .presence:hover { background: var(--bg-1); }
+  .presence .tag {
+    text-align: center;
+    border: 1px solid var(--rule-2);
+    padding: 1px 0;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--fg-dim);
+    background: var(--bg-1);
+    user-select: none;
+  }
+  .presence[data-mode="host"]    .tag { color: var(--bg); background: var(--acc-host); border-color: var(--acc-host); }
+  .presence[data-mode="browser"] .tag { color: var(--acc-asst); border-color: var(--acc-asst); }
+  .presence[data-mode="plugin"]  .tag { color: var(--acc-tool); border-color: var(--acc-tool); }
+
+  .presence .who {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .presence .who .name {
+    color: var(--fg);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .presence .who .sub {
+    color: var(--fg-mute);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 1px;
+  }
+  .presence .who .sub b { color: var(--fg-dim); font-weight: 400; }
+
+  .presence .state {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg-mute);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .presence[data-mode="host"] .state {
+    color: var(--acc-host);
+    font-weight: 700;
+  }
+  .presence[data-mode="host"] .state::before {
+    content: "▶ ";
+  }
+
+  /* tool attached note */
+  .presence .who .attached {
+    color: var(--acc-tool);
+    font-size: var(--fs-xs);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .presence .who .attached::before {
+    content: "└─ ";
+    color: var(--fg-faint);
+  }
+
+  /* presence summary bar */
+  .presence-foot {
+    margin-top: auto;
+    padding: 8px 14px;
+    border-top: 1px solid var(--rule);
+    background: var(--bg-1);
+    color: var(--fg-mute);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+  .presence-foot b { color: var(--fg); font-weight: 700; }
+
+  /* ====================== COMMENTS ====================== */
+
+  .comments-list {
+    padding: 4px 0 4px 0;
+  }
+  .comment {
+    display: grid;
+    grid-template-columns: 14px 70px 1fr auto;
+    gap: 10px;
+    padding: 7px 14px;
+    border-bottom: 1px dashed var(--rule);
+    align-items: baseline;
+  }
+  .comment:hover { background: var(--bg-1); }
+  .comment .branch {
+    color: var(--fg-faint);
+    user-select: none;
+    text-align: right;
+    font-weight: 400;
+  }
+  .comment .anchor {
+    color: var(--acc-anchor);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    border: 1px solid var(--rule-2);
+    text-align: center;
+    padding: 1px 0;
+    user-select: none;
+    background: rgba(192,139,216,0.04);
+  }
+  .comment .anchor:hover {
+    background: rgba(192,139,216,0.12);
+    border-color: var(--acc-anchor);
+  }
+  .comment .body {
+    min-width: 0;
+  }
+  .comment .body .who {
+    color: var(--fg-dim);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1px;
+  }
+  .comment .body .who b { color: var(--fg); font-weight: 700; }
+  .comment .body .who .mode { color: var(--fg-mute); font-weight: 400; }
+  .comment .body .text {
+    color: var(--fg);
+    white-space: pre-wrap;
+  }
+  .comment .ts {
+    color: var(--fg-mute);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    align-self: start;
+    text-align: right;
+  }
+
+  .comment.highlighted {
+    background: rgba(244,201,93,0.05);
+  }
+  .comment.highlighted .anchor {
+    color: var(--acc-sel);
+    border-color: var(--acc-sel);
+    background: rgba(244,201,93,0.1);
+  }
+
+  /* composer fixed at bottom of comments pane */
+  .composer {
+    border-top: 1px solid var(--rule);
+    background: var(--bg-1);
+    padding: 8px 14px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+  .composer .anchor-pill {
+    color: var(--acc-sel);
+    border: 1px solid var(--acc-sel);
+    background: var(--acc-sel-bg);
+    padding: 2px 8px;
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    user-select: none;
+  }
+  .composer .anchor-pill::before {
+    content: "── ";
+    color: var(--acc-sel);
+    opacity: 0.55;
+    font-weight: 400;
+  }
+  .composer .anchor-pill::after {
+    content: " ──";
+    color: var(--acc-sel);
+    opacity: 0.55;
+    font-weight: 400;
+  }
+
+  .composer .field {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--rule-2);
+    padding: 4px 8px;
+  }
+  .composer .field:focus-within {
+    border-color: var(--acc-host);
+  }
+  .composer .field .prompt {
+    color: var(--acc-host);
+    font-weight: 700;
+    user-select: none;
+  }
+  .composer .field input {
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: var(--fs);
+    width: 100%;
+    padding: 0;
+  }
+  .composer .field input::placeholder {
+    color: var(--fg-faint);
+  }
+
+  .composer .submit {
+    background: transparent;
+    border: 1px solid var(--rule-2);
+    color: var(--fg-dim);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    padding: 4px 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .composer .submit:hover {
+    color: var(--bg);
+    background: var(--acc-host);
+    border-color: var(--acc-host);
+  }
+  .composer .submit kbd {
+    color: var(--fg-mute);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    margin-left: 6px;
+    padding: 0 4px;
+    border: 1px solid var(--rule-2);
+    border-radius: 0;
+  }
+  .composer .submit:hover kbd {
+    color: var(--bg);
+    border-color: var(--bg);
+  }
+
+  /* tiny help footer in comments header */
+  .pane-head .hint {
+    color: var(--fg-faint);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--fs-xs);
+  }
+  .pane-head .hint kbd {
+    color: var(--fg-dim);
+    border: 1px solid var(--rule-2);
+    padding: 0 4px;
+    margin: 0 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============================================================
+       TMUX TOP BAR
+       ============================================================ -->
+  <header class="topbar">
+    <div class="session">better-together</div>
+    <nav class="windows">
+      <span class="win active">0:lobby*</span>
+      <span class="win">1:host-claude</span>
+      <span class="win">2:logs-</span>
+    </nav>
+    <div class="clock"><span id="clock">14:32:07</span> &nbsp; thu 06 may</div>
+  </header>
+
+  <!-- ============================================================
+       BODY: 3 panes
+       ============================================================ -->
+  <main class="body">
+
+    <!-- ───────────── TRANSCRIPT ───────────── -->
+    <section class="pane transcript">
+      <div class="pane-head">
+        <div class="label">transcript</div>
+        <div class="hint">click a turn to anchor &nbsp; <kbd>j</kbd><kbd>k</kbd> navigate &nbsp; <kbd>c</kbd> comment</div>
+        <div class="meta"><b>turns</b> 6 &nbsp;·&nbsp; <b>tail</b> auto</div>
+      </div>
+
+      <!-- Room banner -->
+      <div class="transcript-room">
+        <div class="key">room/</div>
+        <div class="url">
+          <span class="scheme">https://</span><span class="host">misty-llama-9342.trycloudflare.com</span>
+        </div>
+        <div class="stats">
+          <span><b>23m</b> age</span>
+          <span><b>4</b> peers</span>
+          <span class="live">LIVE</span>
+        </div>
+      </div>
+
+      <!-- Turns -->
+      <div class="pane-body" id="turnsScroll">
+        <div class="turns" id="turns">
+
+          <!-- t1 user -->
+          <article class="turn" data-turn="t1">
+            <div class="gutter">  1</div>
+            <div class="id">t1</div>
+            <div class="role" data-role="user">USR</div>
+            <div class="body">
+              <div class="actor"><b>jabree</b> <span class="ts">22m ago</span> &nbsp;·&nbsp; host</div>
+              <div class="quote">Read PRD.md and tell me what's missing from the privacy section</div>
+              <div class="anchor-count">1 comment anchored here</div>
+            </div>
+          </article>
+
+          <!-- t2 tool_call: Read -->
+          <article class="turn" data-turn="t2">
+            <div class="gutter">  2</div>
+            <div class="id">t2</div>
+            <div class="role" data-role="tool">TUL</div>
+            <div class="body">
+              <div class="actor"><b>tool_use</b> <span class="ts">21m ago</span></div>
+              <div class="toolcall">
+                <div class="head">
+                  <span class="tool-name">read</span>
+                </div>
+                <div class="params">
+                  <div class="row"><span class="branch">├─</span><span class="k">file_path</span><span class="v">/Users/jabreeflor/better-together/PRD.md</span></div>
+                  <div class="row"><span class="branch">└─</span><span class="k">limit</span><span class="v">2000</span></div>
+                </div>
+                <div class="result">
+                  <div class="rline dim"><span class="lno">141</span><span class="ltext"></span></div>
+                  <div class="rline heading"><span class="lno">142</span><span class="ltext">## Privacy &amp; safety</span></div>
+                  <div class="rline dim"><span class="lno">143</span><span class="ltext"></span></div>
+                  <div class="rline"><span class="lno">144</span><span class="ltext">The host's session contains everything in their local context: code, file paths,</span></div>
+                  <div class="rline"><span class="lno">145</span><span class="ltext">error messages, half-formed thoughts to their Claude. Sharing a room means</span></div>
+                  <div class="rline"><span class="lno">146</span><span class="ltext">sharing all of that with whoever's in the room. This isn't a bug, it's the</span></div>
+                  <div class="rline"><span class="lno">147</span><span class="ltext">product, but the UX needs to make it obvious.</span></div>
+                  <div class="rline elide"><span class="lno">···</span><span class="ltext">[ truncated · 38 lines elided ]</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- t3 assistant -->
+          <article class="turn" data-turn="t3">
+            <div class="gutter">  3</div>
+            <div class="id">t3</div>
+            <div class="role" data-role="assistant">AST</div>
+            <div class="body">
+              <div class="actor"><b>jabree's claude</b> <span class="ts">20m ago</span> &nbsp;·&nbsp; sonnet</div>
+              <div class="response"><p>I've reviewed the privacy section. Three things stand out as missing:</p>
+<div class="ol"><div class="li"><span class="num">1.</span><span><b>Comment storage policy.</b> Comments persist in transcript history once posted. If a watcher pastes a secret into a comment, it's there forever. The section should address this.</span></div><div class="li"><span class="num">2.</span><span><b>Redaction filter punted to v1.5 without specifics.</b> The section names common patterns (API_KEY=, AWS keys) but doesn't enumerate them. Without a v1 default list, 'defer to v1.5' can drift indefinitely.</span></div><div class="li"><span class="num">3.</span><span><b>Display name leakage.</b> Watchers pick display names that may include emails or real names. There's no policy on whether to allow plain usernames only, or how kicked users' names persist in the transcript.</span></div></div></div>
+              <div class="anchor-count">2 comments anchored here</div>
+            </div>
+          </article>
+
+          <!-- t4 tool_call: Bash grep -->
+          <article class="turn" data-turn="t4">
+            <div class="gutter">  4</div>
+            <div class="id">t4</div>
+            <div class="role" data-role="tool">TUL</div>
+            <div class="body">
+              <div class="actor"><b>tool_use</b> <span class="ts">20m ago</span></div>
+              <div class="toolcall">
+                <div class="head">
+                  <span class="tool-name">bash</span>
+                </div>
+                <div class="params">
+                  <div class="row"><span class="branch">├─</span><span class="k">command</span><span class="v">grep -n 'secret' PRD.md</span></div>
+                  <div class="row"><span class="branch">└─</span><span class="k">description</span><span class="v">Search for existing mentions of secret handling</span></div>
+                </div>
+                <div class="result">
+                  <div class="rline match"><span class="lno">156</span><span class="ltext">For URLs that might leak, the host can optionally pass <mark>--secret</mark> to <mark>/team:host</mark>, which adds a join-<mark>secret</mark> param.</span></div>
+                  <div class="rline elide"><span class="lno">···</span><span class="ltext">[ 1 match · exit 0 · 0.04s ]</span></div>
+                </div>
+              </div>
+              <div class="anchor-count">1 comment anchored here</div>
+            </div>
+          </article>
+
+          <!-- t5 permission_prompt -->
+          <article class="turn perm" data-turn="t5">
+            <div class="gutter">  5</div>
+            <div class="id">t5</div>
+            <div class="role" data-role="perm">PRM</div>
+            <div class="body">
+              <div class="actor"><b>permission_prompt</b> <span class="ts">just now</span> &nbsp;·&nbsp; ephemeral</div>
+              <div class="alert">
+                <span class="esc">\x1b[41;97m</span>
+                <span class="msg"><b>AWAITING APPROVAL —</b> jabree must approve <code>Bash(rm -rf node_modules)</code></span>
+                <span class="countdown">00:42</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- t6 composing live edge -->
+          <article class="turn composing" data-turn="t6">
+            <div class="gutter">  6</div>
+            <div class="id">t6</div>
+            <div class="role" data-role="user">USR</div>
+            <div class="body">
+              <div class="actor"><b>jabree</b> <span class="ts">just now</span> &nbsp;·&nbsp; composing</div>
+              <div class="compose-line">
+                <span class="prompt">&gt;</span>
+                <span class="text">Add a section under privacy about comment storage. Match the existing voice.</span>
+                <span class="caret"></span>
+              </div>
+              <div class="compose-meta">live edge &nbsp;·&nbsp; <b>jabree is typing</b> &nbsp;·&nbsp; 78 chars &nbsp;·&nbsp; will send on ↵</div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────── PRESENCE ───────────── -->
+    <aside class="pane presence">
+      <div class="pane-head">
+        <div class="label">presence</div>
+        <div></div>
+        <div class="meta"><b>4</b> peers</div>
+      </div>
+
+      <div class="pane-body">
+        <div class="presence-list">
+
+          <div class="presence" data-mode="host">
+            <span class="tag">[H]</span>
+            <div class="who">
+              <div class="name">jabree</div>
+              <div class="sub">host &nbsp;·&nbsp; <b>since start</b></div>
+            </div>
+            <div class="state">DRIVING</div>
+          </div>
+
+          <div class="presence" data-mode="browser">
+            <span class="tag">[B]</span>
+            <div class="who">
+              <div class="name">lin</div>
+              <div class="sub">browser &nbsp;·&nbsp; <b>joined 4m ago</b></div>
+            </div>
+            <div class="state">watching</div>
+          </div>
+
+          <div class="presence" data-mode="plugin">
+            <span class="tag">[P]</span>
+            <div class="who">
+              <div class="name">marcus</div>
+              <div class="sub">plugin &nbsp;·&nbsp; <b>joined 12m ago</b></div>
+              <div class="attached">analyst-claude attached</div>
+            </div>
+            <div class="state">watching</div>
+          </div>
+
+          <div class="presence" data-mode="browser">
+            <span class="tag">[B]</span>
+            <div class="who">
+              <div class="name">anonymous-cat</div>
+              <div class="sub">browser &nbsp;·&nbsp; <b>joined 1m ago</b></div>
+            </div>
+            <div class="state">watching</div>
+          </div>
+
+        </div>
+
+        <div class="presence-foot">
+          <span><b>1</b> driving &nbsp;·&nbsp; <b>3</b> watching</span>
+          <span>net <b>22ms</b></span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ───────────── COMMENTS ───────────── -->
+    <section class="pane comments">
+      <div class="pane-head">
+        <div class="label">comments</div>
+        <div class="hint">anchored to selected turn &nbsp; <kbd>↵</kbd> post</div>
+        <div class="meta"><b>4</b> threads</div>
+      </div>
+
+      <div class="pane-body" style="display:flex; flex-direction:column;">
+        <div class="comments-list" id="commentsList" style="flex:1 1 auto;">
+
+          <article class="comment" data-anchor="t1">
+            <span class="branch">└─</span>
+            <span class="anchor" data-anchor-jump="t1">→ t1</span>
+            <div class="body">
+              <div class="who"><b>lin</b> <span class="mode">· browser</span></div>
+              <div class="text">love this question — the redaction filter punt seems like a real risk if dogfooding stretches into months</div>
+            </div>
+            <div class="ts">3m ago</div>
+          </article>
+
+          <article class="comment" data-anchor="t3">
+            <span class="branch">└─</span>
+            <span class="anchor" data-anchor-jump="t3">→ t3</span>
+            <div class="body">
+              <div class="who"><b>marcus</b> <span class="mode">· plugin</span></div>
+              <div class="text">agree on point 2. should we propose specific regex patterns? happy to draft.</div>
+            </div>
+            <div class="ts">2m ago</div>
+          </article>
+
+          <article class="comment" data-anchor="t3">
+            <span class="branch">└─</span>
+            <span class="anchor" data-anchor-jump="t3">→ t3</span>
+            <div class="body">
+              <div class="who"><b>lin</b> <span class="mode">· browser</span></div>
+              <div class="text">what about display names that contain emails? minor but real</div>
+            </div>
+            <div class="ts">1m ago</div>
+          </article>
+
+          <article class="comment" data-anchor="t4">
+            <span class="branch">└─</span>
+            <span class="anchor" data-anchor-jump="t4">→ t4</span>
+            <div class="body">
+              <div class="who"><b>anonymous-cat</b> <span class="mode">· browser</span></div>
+              <div class="text">[cat]</div>
+            </div>
+            <div class="ts">30s ago</div>
+          </article>
+
+        </div>
+
+        <!-- composer -->
+        <form class="composer" id="composer" onsubmit="return false;">
+          <span class="anchor-pill" id="composerAnchor">commenting on t6</span>
+          <label class="field">
+            <span class="prompt">&gt;</span>
+            <input type="text" id="composerInput" placeholder="leave a comment anchored to the selected turn…" autocomplete="off" />
+          </label>
+          <button class="submit" type="submit">post <kbd>↵</kbd></button>
+        </form>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       TMUX STATUS BAR — permission liveness lives here too
+       ============================================================ -->
+  <footer class="statusbar">
+    <span class="mode">NORMAL</span>
+    <span class="room">misty-llama-9342</span>
+    <span class="filler"></span>
+    <span class="perm" id="permBadge">PERM[Bash(rm -rf node_modules)] AWAIT</span>
+    <span class="latency">22ms</span>
+    <span>plugin v0.2.0-pre</span>
+  </footer>
+
+</div>
+
+<script>
+  // -----------------------------------------------------------
+  // Selection state. Default selection is the live edge (t6).
+  // -----------------------------------------------------------
+  const turns = document.querySelectorAll('.turn');
+  const comments = document.querySelectorAll('.comment');
+  const composerAnchor = document.getElementById('composerAnchor');
+  const composerInput = document.getElementById('composerInput');
+
+  let selected = 't6';
+
+  function applySelection(turnId) {
+    selected = turnId;
+    turns.forEach(t => {
+      t.classList.toggle('selected', t.dataset.turn === turnId);
+    });
+    comments.forEach(c => {
+      c.classList.toggle('highlighted', c.dataset.anchor === turnId);
+    });
+    composerAnchor.textContent = 'commenting on ' + turnId;
+    composerInput.placeholder = 'leave a comment anchored to ' + turnId + '…';
+  }
+
+  turns.forEach(t => {
+    t.addEventListener('click', () => applySelection(t.dataset.turn));
+  });
+
+  // anchor pills inside comments jump-select that turn
+  document.querySelectorAll('[data-anchor-jump]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = a.dataset.anchorJump;
+      applySelection(id);
+      const target = document.querySelector('.turn[data-turn="' + id + '"]');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  // initial selection: live edge
+  applySelection('t6');
+
+  // keyboard: j/k to step, c to focus composer
+  document.addEventListener('keydown', e => {
+    if (e.target === composerInput) return;
+    const ids = Array.from(turns).map(t => t.dataset.turn);
+    const i = ids.indexOf(selected);
+    if (e.key === 'j' && i < ids.length - 1) { e.preventDefault(); applySelection(ids[i+1]); }
+    else if (e.key === 'k' && i > 0)         { e.preventDefault(); applySelection(ids[i-1]); }
+    else if (e.key === 'c')                  { e.preventDefault(); composerInput.focus(); }
+  });
+
+  // -----------------------------------------------------------
+  // Live clock (status realism)
+  // -----------------------------------------------------------
+  const clockEl = document.getElementById('clock');
+  function tick() {
+    const d = new Date();
+    const pad = n => n.toString().padStart(2,'0');
+    clockEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  tick(); setInterval(tick, 1000);
+
+  // -----------------------------------------------------------
+  // Permission badge "countdown" jitter — reinforces ephemerality
+  // -----------------------------------------------------------
+  const perm = document.getElementById('permBadge');
+  let pTick = 42;
+  setInterval(() => {
+    pTick = pTick > 0 ? pTick - 1 : 60;
+    const ss = pTick.toString().padStart(2,'0');
+    perm.textContent = 'PERM[Bash(rm -rf node_modules)] AWAIT 00:' + ss;
+  }, 1000);
+
+  // composer: posting clears input but keeps anchor
+  document.getElementById('composer').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = composerInput.value.trim();
+    if (!v) return;
+    composerInput.value = '';
+    composerInput.placeholder = 'posted to ' + selected + ' · type to add another…';
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "better-together",
+  "version": "0.1.0",
+  "description": "Share your Claude Code session as a live, witnessable room. One host drives, teammates watch via browser or their own Claude Code.",
+  "author": {
+    "name": "Jabree Flor"
+  },
+  "repository": "https://github.com/jabreeflor/better-together",
+  "license": "MIT",
+  "keywords": ["collaboration", "pair-programming", "session-sharing", "agent"]
+}
