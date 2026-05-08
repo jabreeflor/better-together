@@ -136,6 +136,7 @@
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 296px; gap: 24px; padding: 24px 32px 80px; max-width: 1408px; margin: 0 auto; }
   .timeline { position: relative; display: flex; flex-direction: column; gap: 16px; }
   .timeline::before { content: ""; position: absolute; top: 8px; bottom: 8px; left: 19px; width: 2px; background: var(--border-default); z-index: 0; }
+  .timeline:not(:has(.turn))::before { display: none; }
 
   .empty-state {
     margin-left: 56px; padding: 32px;
