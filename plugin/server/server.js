@@ -1,6 +1,24 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { spawn } = require('child_process');
+
+const DATA_DIR = process.env.CLAUDE_PLUGIN_DATA
+  || path.join(os.homedir(), '.claude/plugins/data/better-together');
+const HOST_NAME_FILE = path.join(DATA_DIR, 'host-name.txt');
+
+function readHostName() {
+  try { return fs.readFileSync(HOST_NAME_FILE, 'utf8').trim().slice(0, 64); }
+  catch (e) { return ''; }
+}
+function writeHostName(name) {
+  if (!name) return;
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(HOST_NAME_FILE, String(name).slice(0, 64));
+  } catch (e) { /* best-effort */ }
+}
 
 const PORT = parseInt(process.env.BT_PORT || '0', 10);
 const HOST = '127.0.0.1';
@@ -43,6 +61,19 @@ function isLoopback(req) {
   return a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1';
 }
 
+// True only when the request came directly to the local server, not through
+// a tunnel. cloudflared forwards from 127.0.0.1 too, so we also require the
+// Host header to point at 127.0.0.1/localhost and disallow proxy headers.
+function isHostRequest(req) {
+  if (!isLoopback(req)) return false;
+  const host = (req.headers.host || '').toLowerCase().split(':')[0];
+  if (host !== '127.0.0.1' && host !== 'localhost' && host !== '[::1]' && host !== '::1') return false;
+  if (req.headers['cf-connecting-ip']) return false;
+  if (req.headers['x-forwarded-for']) return false;
+  if (req.headers['x-forwarded-host']) return false;
+  return true;
+}
+
 function send(res, status, body, headers = {}) {
   const isString = typeof body === 'string';
   res.writeHead(status, {
@@ -70,6 +101,17 @@ const server = http.createServer(async (req, res) => {
   // Health
   if (req.method === 'GET' && url.pathname === '/health') {
     return send(res, 200, { ok: true, started_at: STARTED_AT });
+  }
+
+  // Identity — tells the lobby whether it should claim host privileges,
+  // and (for the host) returns a remembered display name so they don't have
+  // to retype it across rooms with different cloudflared subdomains.
+  if (req.method === 'GET' && url.pathname === '/me') {
+    const host = isHostRequest(req);
+    return send(res, 200, {
+      is_host: host,
+      default_name: host ? readHostName() : '',
+    });
   }
 
   // Lobby UI
@@ -121,7 +163,7 @@ const server = http.createServer(async (req, res) => {
 
   // Ingest from bt-relay (loopback only)
   if (req.method === 'POST' && url.pathname === '/events') {
-    if (!isLoopback(req)) return send(res, 403, { error: 'loopback only' });
+    if (!isHostRequest(req)) return send(res, 403, { error: 'host only' });
     try {
       const body = await readBody(req);
       const evt = {
@@ -145,11 +187,13 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await readBody(req);
       if (!body.text || !body.author) return send(res, 400, { error: 'text and author required' });
+      let mode = body.author_mode || 'browser';
+      if (mode === 'host' && !isHostRequest(req)) mode = 'browser';
       const c = {
         id: 'c' + (++nextCommentId),
         ts: new Date().toISOString(),
         author: String(body.author).slice(0, 64),
-        author_mode: body.author_mode || 'browser',
+        author_mode: mode,
         anchor: body.anchor || (transcript.length ? transcript[transcript.length - 1].id : null),
         text: String(body.text).slice(0, 2000),
       };
@@ -172,10 +216,16 @@ const server = http.createServer(async (req, res) => {
       const id = String(body.client_id || '').slice(0, 64);
       if (!id) return send(res, 400, { error: 'client_id required' });
       const existing = presence.get(id);
+      let mode = body.mode || 'browser';
+      if (mode === 'host' && !isHostRequest(req)) mode = 'browser';
+      const display_name = String(body.display_name || 'anonymous').slice(0, 32);
+      if (mode === 'host' && display_name && display_name !== 'anonymous') {
+        writeHostName(display_name);
+      }
       presence.set(id, {
         client_id: id,
-        display_name: String(body.display_name || 'anonymous').slice(0, 32),
-        mode: body.mode || 'browser',
+        display_name,
+        mode,
         last_seen: new Date().toISOString(),
         joined_at: existing ? existing.joined_at : new Date().toISOString(),
       });
@@ -188,12 +238,12 @@ const server = http.createServer(async (req, res) => {
 
   // Loopback admin
   if (req.method === 'GET' && url.pathname === '/admin/who') {
-    if (!isLoopback(req)) return send(res, 403, { error: 'loopback only' });
+    if (!isHostRequest(req)) return send(res, 403, { error: 'host only' });
     return send(res, 200, { presence: Array.from(presence.values()), count: presence.size });
   }
 
   if (req.method === 'POST' && url.pathname === '/admin/kick') {
-    if (!isLoopback(req)) return send(res, 403, { error: 'loopback only' });
+    if (!isHostRequest(req)) return send(res, 403, { error: 'host only' });
     try {
       const body = await readBody(req);
       const name = String(body.name || '');
@@ -210,8 +260,24 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/admin/comments') {
-    if (!isLoopback(req)) return send(res, 403, { error: 'loopback only' });
+    if (!isHostRequest(req)) return send(res, 403, { error: 'host only' });
     return send(res, 200, comments);
+  }
+
+  // End the room from the lobby — host only. Spawns `bt end` which kills
+  // the server, the cloudflared tunnel, and the transcript tailer.
+  if (req.method === 'POST' && url.pathname === '/admin/end-room') {
+    if (!isHostRequest(req)) return send(res, 403, { error: 'host only' });
+    try {
+      const btPath = path.resolve(__dirname, '..', 'bin', 'bt');
+      spawn(process.execPath, [btPath, 'end'], {
+        detached: true,
+        stdio: 'ignore',
+      }).unref();
+      return send(res, 200, { ok: true });
+    } catch (e) {
+      return send(res, 500, { error: e.message });
+    }
   }
 
   send(res, 404, { error: 'not found' });

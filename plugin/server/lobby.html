@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Better Together</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23cf222e' d='M3 9c0-1 1-2 2-2h3v2H5v7c0 1 1 2 2 2h3v2H7c-2 0-4-2-4-4z'/><path fill='%23cf222e' d='M21 9c0-1-1-2-2-2h-3v2h3v7c0 1-1 2-2 2h-3v2h3c2 0 4-2 4-4z'/><path fill='%23ff7a00' d='M12 17.5c-2.5-2-5-3.5-5-6 0-1.5 1-2.5 2.5-2.5 1 0 1.8.5 2.5 1.5.7-1 1.5-1.5 2.5-1.5 1.5 0 2.5 1 2.5 2.5 0 2.5-2.5 4-5 6z'/></svg>" />
 <style>
   :root {
     --bg-canvas: #f6f8fa;
@@ -45,6 +46,7 @@
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body {
     margin: 0; padding: 0;
     background: var(--bg-canvas); color: var(--fg-default);
@@ -75,6 +77,24 @@
   .topbar .conn-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #1f883d; }
   .topbar .conn-pill.disconnected .dot { background: #cf222e; }
   .topbar .conn-pill.disconnected { color: #ffd7d5; border-color: #cf222e; }
+  .topbar .host-pill {
+    display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    background: linear-gradient(135deg,#ff7a00,#cf222e); color: #fff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+  }
+  .topbar .btn-danger {
+    background: #cf222e; color: #fff; border-color: #cf222e;
+  }
+  .topbar .btn-danger:hover { background: #b81e29; }
+  .reviewer-row .kick-btn {
+    display: none; margin-left: 6px;
+    background: var(--bg-default); border: 1px solid var(--border-default);
+    color: var(--danger-fg); padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500; cursor: pointer;
+  }
+  .reviewer-row .kick-btn:hover { background: var(--danger-subtle); border-color: var(--danger-fg); }
+  body.is-host .reviewer-row:not(.is-self) .kick-btn { display: inline-flex; }
 
   .subhead { background: var(--bg-default); border-bottom: 1px solid var(--border-default); padding: 16px 32px 0; }
   .repo-line { display: flex; align-items: center; gap: 8px; color: var(--fg-default); font-size: 14px; margin-bottom: 8px; }
@@ -119,6 +139,50 @@
     font-family: var(--mono); font-size: 12.5px; color: var(--accent-fg);
     background: var(--accent-subtle); padding: 2px 6px; border-radius: 4px;
   }
+  .view-mode-bar {
+    display: flex; gap: 4px; padding: 4px 0 12px; align-items: center;
+    border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px;
+  }
+  .view-mode-bar .vm-label {
+    font-size: 12px; color: var(--fg-muted); margin-right: 8px;
+    text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+  }
+  .view-mode-bar .vm-btn {
+    background: var(--bg-default); border: 1px solid var(--border-default);
+    color: var(--fg-default); padding: 4px 10px; border-radius: var(--radius);
+    font-size: 12px; font-weight: 500;
+  }
+  .view-mode-bar .vm-btn:hover:not(.active) { background: var(--bg-muted); }
+  .view-mode-bar .vm-btn.active {
+    background: var(--accent-emphasis); color: #fff; border-color: var(--accent-emphasis);
+    cursor: default;
+  }
+  .view-mode-bar .vm-count {
+    margin-left: 4px; padding: 0 5px; border-radius: 10px; font-size: 11px;
+    background: var(--bg-muted); color: var(--fg-muted); display: inline-block; min-width: 16px; text-align: center;
+  }
+  .view-mode-bar .vm-btn.active .vm-count { background: rgba(255,255,255,0.2); color: #fff; }
+
+  /* per-mode visibility */
+  .timeline[data-mode="conv"] .turn[data-kind-class="tool"],
+  .timeline[data-mode="conv"] .turn[data-kind-class="perm"] { display: none; }
+  .timeline[data-mode="tools"] .turn[data-kind-class="user"],
+  .timeline[data-mode="tools"] .turn[data-kind-class="assistant"] { display: none; }
+
+  /* compact: collapse tool bodies until expanded */
+  .timeline[data-mode="compact"] .turn[data-kind-class="tool"]:not(.expanded) .card-body { display: none; }
+  .timeline[data-mode="compact"] .turn[data-kind-class="tool"]:not(.expanded) .card-head { padding-bottom: 8px; }
+  .compact-caret {
+    display: none; cursor: pointer; user-select: none;
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    color: var(--fg-muted); background: var(--bg-muted); margin-left: 6px;
+    transition: transform 120ms ease;
+  }
+  .compact-caret:hover { background: var(--border-muted); color: var(--fg-default); }
+  .timeline[data-mode="compact"] .turn[data-kind-class="tool"] .compact-caret { display: inline-flex; align-items: center; }
+  .turn[data-kind-class="tool"].expanded .compact-caret::before { content: "▾ collapse"; }
+  .turn[data-kind-class="tool"]:not(.expanded) .compact-caret::before { content: "▸ expand"; }
+
   .tabs { display: flex; gap: 0; margin-top: 4px; list-style: none; padding: 0; align-items: center; }
   .tab {
     display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
@@ -135,8 +199,7 @@
 
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 296px; gap: 24px; padding: 24px 32px 80px; max-width: 1408px; margin: 0 auto; }
   .timeline { position: relative; display: flex; flex-direction: column; gap: 16px; }
-  .timeline::before { content: ""; position: absolute; top: 8px; bottom: 8px; left: 19px; width: 2px; background: var(--border-default); z-index: 0; }
-  .timeline:not(:has(.turn))::before { display: none; }
+  .timeline::before { display: none; }
 
   .empty-state {
     margin-left: 56px; padding: 32px;
@@ -398,9 +461,14 @@
 <body>
 
 <header class="topbar">
-  <div class="mark">
-    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/>
+  <div class="mark" title="Better Together">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <!-- Left cupped hand: hook curving up-and-right -->
+      <path fill="currentColor" d="M3 9c0-1.1.9-2 2-2h3v2H5v7c0 1.1.9 2 2 2h3v2H7c-2.2 0-4-1.8-4-4z"/>
+      <!-- Right cupped hand: mirror -->
+      <path fill="currentColor" d="M21 9c0-1.1-.9-2-2-2h-3v2h3v7c0 1.1-.9 2-2 2h-3v2h3c2.2 0 4-1.8 4-4z"/>
+      <!-- Heart cradled between the hands -->
+      <path fill="#ff5d6c" d="M12 17.5c-2.5-2-5-3.5-5-6 0-1.5 1-2.5 2.5-2.5 1 0 1.8.5 2.5 1.5.7-1 1.5-1.5 2.5-1.5 1.5 0 2.5 1 2.5 2.5 0 2.5-2.5 4-5 6z"/>
     </svg>
   </div>
   <nav class="crumbs">
@@ -409,6 +477,8 @@
     <span style="color:#8b949e" id="crumb-room">live session</span>
   </nav>
   <div class="grow"></div>
+  <button class="btn btn-danger" id="end-room-btn" hidden title="Tear down the room (server, tunnel, tailer)">End room</button>
+  <span class="host-pill" id="host-pill" hidden title="You're the host on this tab">HOST</span>
   <span class="conn-pill" id="conn-pill"><span class="dot"></span><span id="conn-text">connecting</span></span>
   <div class="avatar-me" id="me-avatar" title="you">·</div>
 </header>
@@ -446,7 +516,14 @@
 </section>
 
 <main class="layout">
-  <section class="timeline" id="timeline">
+  <section class="timeline" id="timeline" data-mode="full">
+    <div class="view-mode-bar" id="view-mode-bar" role="tablist">
+      <span class="vm-label">View</span>
+      <button class="vm-btn" data-mode="full" role="tab" aria-selected="true">Full <span class="vm-count" id="vm-count-full">0</span></button>
+      <button class="vm-btn" data-mode="conv" role="tab" aria-selected="false">Conversation <span class="vm-count" id="vm-count-conv">0</span></button>
+      <button class="vm-btn" data-mode="compact" role="tab" aria-selected="false">Compact</button>
+      <button class="vm-btn" data-mode="tools" role="tab" aria-selected="false">Tool calls <span class="vm-count" id="vm-count-tools">0</span></button>
+    </div>
     <div class="empty-state" id="empty-state">
       <strong>Waiting for the host…</strong>
       Nothing has happened yet. New prompts, tool calls, and assistant responses will appear here in real time.
@@ -522,6 +599,8 @@
 
 let displayName = "";
 let clientId = "";
+let isHost = false;
+let meInfo = null;
 let snapshot = { transcript: [], comments: [], presence: [], started_at: null };
 let selectedAnchor = null;
 let sse = null;
@@ -583,7 +662,7 @@ function caretSvg() {
   return svg;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("room-url").textContent = location.origin;
   document.getElementById("room-url").href = location.origin;
   document.getElementById("meta-url").textContent = location.origin;
@@ -596,12 +675,81 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("bt-client-id", clientId);
   }
 
+  // Fetch identity early so we can autofill the host's remembered name
+  // before deciding whether to show the name modal.
+  try {
+    const r = await fetch("/me");
+    if (r.ok) meInfo = await r.json();
+  } catch (e) { /* default to watcher */ }
+
+  if (!displayName && meInfo && meInfo.default_name) {
+    displayName = meInfo.default_name;
+    localStorage.setItem("bt-display-name", displayName);
+  }
+
   if (!displayName) showNameModal();
   else onIdentityReady();
 
   wireComposer();
   wireNameModal();
+  wireViewMode();
+  wireEndRoom();
 });
+
+async function kickWatcher(name) {
+  if (!isHost || !name) return;
+  if (!confirm("Kick " + name + " from the room?")) return;
+  try {
+    const r = await fetch("/admin/kick", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+  } catch (e) {
+    alert("Kick failed: " + e.message);
+  }
+}
+
+async function endRoom() {
+  if (!isHost) return;
+  if (!confirm("End this room? This will tear down the server, the cloudflared tunnel, and the transcript tailer. Watchers will see 'Room closed'.")) return;
+  const btn = document.getElementById("end-room-btn");
+  btn.disabled = true;
+  try {
+    await fetch("/admin/end-room", { method: "POST" });
+  } catch (e) { /* server may have died before responding */ }
+}
+
+function wireEndRoom() {
+  const btn = document.getElementById("end-room-btn");
+  if (btn) btn.addEventListener("click", endRoom);
+}
+
+function wireViewMode() {
+  const bar = document.getElementById("view-mode-bar");
+  const tl = document.getElementById("timeline");
+  const valid = new Set(["full", "conv", "compact", "tools"]);
+  let mode = localStorage.getItem("bt-view-mode") || "full";
+  if (!valid.has(mode)) mode = "full";
+  applyViewMode(mode);
+  bar.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".vm-btn");
+    if (!btn) return;
+    const m = btn.getAttribute("data-mode");
+    if (!valid.has(m)) return;
+    applyViewMode(m);
+  });
+  function applyViewMode(m) {
+    tl.setAttribute("data-mode", m);
+    localStorage.setItem("bt-view-mode", m);
+    bar.querySelectorAll(".vm-btn").forEach(b => {
+      const isActive = b.getAttribute("data-mode") === m;
+      b.classList.toggle("active", isActive);
+      b.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+  }
+}
 
 function showNameModal() {
   const m = document.getElementById("name-modal");
@@ -632,10 +780,26 @@ async function onIdentityReady() {
   me.textContent = (displayName[0] || "?").toUpperCase();
   me.title = displayName + " (you)";
 
+  await detectHostMode();
   await loadSnapshot();
   renderAll();
   startSSE();
   startHeartbeat();
+}
+
+async function detectHostMode() {
+  if (!meInfo) {
+    try {
+      const r = await fetch("/me");
+      if (r.ok) meInfo = await r.json();
+    } catch (e) { /* default to watcher */ }
+  }
+  isHost = !!(meInfo && meInfo.is_host);
+  document.body.classList.toggle("is-host", isHost);
+  const pill = document.getElementById("host-pill");
+  if (pill) pill.hidden = !isHost;
+  const endBtn = document.getElementById("end-room-btn");
+  if (endBtn) endBtn.hidden = !isHost;
 }
 
 async function loadSnapshot() {
@@ -785,7 +949,7 @@ function startHeartbeat() {
     fetch("/presence", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ client_id: clientId, display_name: displayName, mode: "browser" }),
+      body: JSON.stringify({ client_id: clientId, display_name: displayName, mode: isHost ? "host" : "browser" }),
     }).catch(() => {});
   };
   beat();
@@ -963,7 +1127,7 @@ function buildBashTool(p, hasResponse) {
 
 function buildPermissionBanner(evt) {
   const p = evt.payload || {};
-  const article = el("article", { class: "turn", "data-turn": evt.id });
+  const article = el("article", { class: "turn", "data-turn": evt.id, "data-kind-class": "perm" });
   article.append(el("div", { class: "avatar system" }, "!"));
   const wrap = el("div", { style: "flex:1;min-width:0" });
   const banner = el("div", {
@@ -1005,6 +1169,14 @@ function buildPermissionBanner(evt) {
     selectAnchor(evt.id, banner.getAttribute("data-anchor-preview") || "");
   });
   return article;
+}
+
+function kindClassFor(evt) {
+  if (evt.kind === "user_prompt") return "user";
+  if (evt.kind === "stop") return "assistant";
+  if (evt.kind === "pre_tool_use" || evt.kind === "post_tool_use") return "tool";
+  if (evt.kind === "permission_prompt") return "perm";
+  return "other";
 }
 
 function buildTurnEl(evt) {
@@ -1062,7 +1234,8 @@ function buildTurnEl(evt) {
     bodyContent = el("pre", null, JSON.stringify(p, null, 2).slice(0, 1200));
   }
 
-  const article = el("article", { class: "turn", "data-turn": evt.id });
+  const kc = kindClassFor(evt);
+  const article = el("article", { class: "turn", "data-turn": evt.id, "data-kind-class": kc });
   article.append(el("div", { class: "avatar " + avatarClass }, avatarLabel));
 
   const card = el("div", {
@@ -1080,6 +1253,14 @@ function buildTurnEl(evt) {
     el("span", { class: "kdot" }), kindLabel
   ));
   head.append(el("span", { class: "head-spacer" }));
+  if (kc === "tool") {
+    const caret = el("button", { class: "compact-caret", type: "button", title: "Toggle body" });
+    caret.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      article.classList.toggle("expanded");
+    });
+    head.append(caret);
+  }
   card.append(head);
 
   const bodyDiv = el("div", { class: "card-body" });
@@ -1100,7 +1281,8 @@ function renderAll() {
   const tl = document.getElementById("timeline");
   const composer = document.getElementById("composer");
   const empty = document.getElementById("empty-state");
-  const keep = new Set([composer, empty]);
+  const modeBar = document.getElementById("view-mode-bar");
+  const keep = new Set([composer, empty, modeBar]);
   Array.from(tl.children).forEach(child => { if (!keep.has(child)) tl.removeChild(child); });
 
   for (const evt of snapshot.transcript) {
@@ -1207,7 +1389,7 @@ function renderPresence() {
                 : p.mode === "plugin" ? "analyst Claude attached"
                 : "watching";
 
-      const row = el("div", { class: "reviewer-row" });
+      const row = el("div", { class: "reviewer-row" + (isMe ? " is-self" : "") });
       row.append(el("span", { class: "status-icon " + status, title: status }));
       row.append(el("div", { class: "r-avatar " + avatarMode }, initial));
       const nameLine = el("div", { class: "name-line" });
@@ -1217,6 +1399,14 @@ function renderPresence() {
       nameLine.append(el("span", { class: "sub" }, sub + " · joined " + relTime(p.joined_at)));
       row.append(nameLine);
       row.append(el("span", { class: "channel-tag " + (p.mode || "browser") }, p.mode || "browser"));
+      if (!isMe) {
+        const kickBtn = el("button", {
+          class: "kick-btn", type: "button",
+          title: "Remove " + (p.display_name || "this watcher") + " from the room",
+        }, "Kick");
+        kickBtn.addEventListener("click", () => kickWatcher(p.display_name));
+        row.append(kickBtn);
+      }
       list.append(row);
     }
   }
@@ -1225,13 +1415,20 @@ function renderPresence() {
 
 function updateCounts() {
   const turns = snapshot.transcript.length;
-  const tools = snapshot.transcript.filter(t => t.kind === "post_tool_use").length;
+  const tools = snapshot.transcript.filter(t => t.kind === "post_tool_use" || t.kind === "pre_tool_use").length;
+  const conv = snapshot.transcript.filter(t => t.kind === "user_prompt" || t.kind === "stop").length;
   const comments = snapshot.comments.length;
   const perms = snapshot.transcript.filter(t => t.kind === "permission_prompt").length;
 
   document.getElementById("tab-conv").textContent = turns;
   document.getElementById("tab-tools").textContent = tools;
   document.getElementById("tab-watchers").textContent = snapshot.presence.length;
+  const fullCount = document.getElementById("vm-count-full");
+  const convCount = document.getElementById("vm-count-conv");
+  const toolsCount = document.getElementById("vm-count-tools");
+  if (fullCount) fullCount.textContent = String(turns);
+  if (convCount) convCount.textContent = String(conv);
+  if (toolsCount) toolsCount.textContent = String(tools);
   document.getElementById("watcher-count-meta").textContent = snapshot.presence.length;
   document.getElementById("comment-count-meta").textContent = comments;
 
@@ -1321,7 +1518,7 @@ async function submitComment() {
     const r = await fetch("/comments", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ author: displayName, text, anchor: selectedAnchor, author_mode: "browser" }),
+      body: JSON.stringify({ author: displayName, text, anchor: selectedAnchor, author_mode: isHost ? "host" : "browser" }),
     });
     if (!r.ok) throw new Error("HTTP " + r.status);
     input.value = "";

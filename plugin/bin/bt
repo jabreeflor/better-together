@@ -316,20 +316,32 @@ async function cmdHost(args) {
     have_cloudflared: !!cloudflaredPath,
   });
 
-  const url = tunnel_url || `http://127.0.0.1:${port}`;
+  const localUrl = `http://127.0.0.1:${port}`;
   console.log(``);
   console.log(`  Better Together — room is live`);
   console.log(``);
-  console.log(`  ${url}`);
+  console.log(`  Your URL (host controls):  ${localUrl}`);
+  if (tunnel_url) {
+    console.log(`  Watchers' URL:             ${tunnel_url}`);
+  } else if (cloudflaredPath) {
+    console.log(`  Watchers' URL:             ⚠ tunnel didn't come up; local-only`);
+  } else {
+    console.log(`  Watchers' URL:             ⚠ cloudflared not installed; local-only`);
+  }
   console.log(``);
   if (tunnel_url) {
-    if (copyToClipboard(url)) console.log(`  (copied to clipboard)`);
-    console.log(`  Share this URL with anyone you want in the room.`);
-  } else if (cloudflaredPath) {
-    console.log(`  ⚠ Tunnel didn’t come up; URL is local-only for now.`);
+    if (copyToClipboard(tunnel_url)) {
+      console.log(`  Watchers' URL copied to clipboard. Share it with anyone you want`);
+      console.log(`  in the room. Open your URL above in a browser to join as host`);
+      console.log(`  (kick + end-room powers).`);
+    } else {
+      console.log(`  Share the watchers' URL with anyone you want in the room. Open`);
+      console.log(`  your URL above in a browser to join as host (kick + end-room`);
+      console.log(`  powers).`);
+    }
   } else {
-    console.log(`  ⚠ cloudflared couldn’t be installed automatically.`);
-    console.log(`    Room is local-only — only this machine can reach it.`);
+    console.log(`  Open the host URL above in a browser to join the room. Watchers`);
+    console.log(`  can't reach you without a tunnel.`);
   }
   console.log(``);
   console.log(`  Run /better-together:end when you're done. Quitting Claude Code`);
