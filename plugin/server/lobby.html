@@ -8,12 +8,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  (function() {
+    try {
+      var saved = localStorage.getItem("bt-theme");
+      var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+      var theme = saved || (prefersLight ? "light" : "dark");
+      document.documentElement.setAttribute("data-theme", theme);
+    } catch (e) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  })();
+</script>
 <style>
   :root {
     --bg: #09090b;
     --bg-elev: #111114;
     --bg-card: #141418;
     --bg-card-2: #18181c;
+    --bg-code: var(--bg-code);
     --fg: #fafafa;
     --fg-muted: #a1a1aa;
     --fg-dim: #71717a;
@@ -23,12 +36,45 @@
     --border-soft: rgba(255,255,255,0.05);
     --accent-warm: #ff8a4c;
     --accent-danger: #ff5d6c;
+    --diff-add-bg: rgba(109,204,163,0.06);
+    --diff-add-fg: #b8e6cd;
+    --diff-del-bg: rgba(255,90,90,0.06);
+    --diff-del-fg: #ffb4b4;
+    --noise-opacity: 0.035;
     --w-jabree: #ff8a4c;
-    --w-kavi:   #6dcca3;
-    --w-mira:   #b89cf0;
-    --w-alex:   #f0c074;
+    --w-kavi:   #5b8a72;
+    --w-mira:   #8a6cb1;
+    --w-alex:   #c98a4a;
     --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  /* Dark uses luminous tints; light reuses the deeper semantic palette. */
+  html[data-theme="dark"] {
+    --w-kavi: #6dcca3;
+    --w-mira: #b89cf0;
+    --w-alex: #f0c074;
+  }
+  html[data-theme="light"] {
+    --bg: #fafaf7;
+    --bg-elev: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-2: #f5f3ec;
+    --bg-code: #fbfaf3;
+    --fg: #1d1c19;
+    --fg-muted: #555048;
+    --fg-dim: #807a6c;
+    --fg-faint: #a8a191;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+    --border-soft: rgba(0,0,0,0.05);
+    --accent-warm: #b15a2c;
+    --accent-danger: #b73238;
+    --diff-add-bg: rgba(91,138,114,0.10);
+    --diff-add-fg: #2f5a45;
+    --diff-del-bg: rgba(183,50,56,0.08);
+    --diff-del-fg: #7a221a;
+    --noise-opacity: 0.022;
+    --w-jabree: #b15a2c;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { color-scheme: dark; }
@@ -40,7 +86,7 @@
   }
   body::after {
     content: ''; position: fixed; inset: 0; z-index: 9999;
-    pointer-events: none; opacity: 0.035;
+    pointer-events: none; opacity: var(--noise-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-repeat: repeat; background-size: 256px 256px;
   }
@@ -99,11 +145,17 @@
 
   .avatar-me {
     width: 28px; height: 28px; border-radius: 999px;
-    color: var(--bg); display: grid; place-items: center;
+    color: #fafafa; display: grid; place-items: center;
     font-family: var(--sans); font-weight: 600; font-size: 12px;
     background: var(--w-jabree);
   }
   body:not(.is-host) .avatar-me { background: var(--w-mira); }
+  html[data-theme="light"] .avatar-me { color: #fafafa; }
+
+  .theme-btn { padding: 5px 10px; }
+  .theme-btn .theme-icon { display: none; }
+  html[data-theme="dark"]  .theme-btn .theme-icon-sun  { display: block; }
+  html[data-theme="light"] .theme-btn .theme-icon-moon { display: block; }
 
   /* Presence + view mode bar */
   .presence-bar {
@@ -167,15 +219,9 @@
     left: 61.5%; top: 0; bottom: 0; width: 1px;
     background: var(--border);
   }
-  /* Vertical spine line in the left column */
-  .layout::after {
-    content: ''; position: absolute;
-    left: 52px; top: 36px; bottom: 60px; width: 1px;
-    background: var(--border);
-  }
   .row { display: contents; }
-  .row > .spine-cell { padding: 0 28px 0 36px; min-width: 0; }
-  .row > .sticky-cell { padding: 0 28px 0 28px; min-height: 24px; min-width: 0; }
+  .row > .spine-cell { padding: 0 28px; min-width: 0; }
+  .row > .sticky-cell { padding: 0 28px; min-height: 24px; min-width: 0; }
 
   /* Hide-by-mode logic */
   .layout[data-mode="conv"]    .row.kind-tool > .spine-cell,
@@ -199,24 +245,8 @@
   .turn[data-kind-class="tool"].expanded .compact-caret::before { content: "▾ collapse"; }
   .turn[data-kind-class="tool"]:not(.expanded) .compact-caret::before { content: "▸ expand"; }
 
-  /* Spine items */
-  .turn { position: relative; padding: 12px 0 16px 38px; opacity: 0; animation: fade-in 0.4s ease-out forwards; }
-  .turn::before {
-    content: ''; position: absolute; left: 16px; top: 24px;
-    width: 12px; height: 12px; border-radius: 999px;
-    background: var(--bg); border: 2px solid var(--border-strong); z-index: 1;
-    box-shadow: 0 0 0 4px var(--bg);
-  }
-  .turn[data-kind-class="user"]::before {
-    background: var(--w-jabree); border-color: var(--w-jabree);
-    box-shadow: 0 0 0 4px var(--bg), 0 0 14px rgba(255,138,76,0.35);
-  }
-  .turn[data-kind-class="assistant"]::before {
-    background: var(--bg); border-color: var(--fg);
-    box-shadow: 0 0 0 4px var(--bg), 0 0 12px rgba(255,255,255,0.15);
-  }
-  .turn[data-kind-class="tool"]::before { background: var(--bg-card); border-color: var(--fg-muted); }
-  .turn[data-kind-class="perm"]::before { background: var(--accent-danger); border-color: var(--accent-danger); }
+  /* Spine items — no rail, no connector dots; identity comes from the card itself. */
+  .turn { position: relative; padding: 12px 0 16px; opacity: 0; animation: fade-in 0.4s ease-out forwards; }
 
   .card-head {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -277,7 +307,7 @@
   .prose ul, .prose ol { margin: 0 0 8px 20px; }
   .prose li { padding: 1px 0; }
   .prose pre {
-    background: #0c0c0e; border: 1px solid var(--border);
+    background: var(--bg-code); border: 1px solid var(--border);
     border-radius: 8px; padding: 10px 12px; margin: 8px 0;
     font-family: var(--mono); font-size: 12.5px; color: var(--fg);
     overflow-x: auto; white-space: pre;
@@ -288,7 +318,7 @@
   /* Tool call cards */
   .turn[data-kind-class="tool"] .card { padding: 0; }
   .turn[data-kind-class="tool"] .card-body { padding: 0; }
-  .filebox { font-family: var(--mono); font-size: 12.5px; background: #0c0c0e; }
+  .filebox { font-family: var(--mono); font-size: 12.5px; background: var(--bg-code); }
   .filebox-head {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 14px; background: var(--bg-card-2);
@@ -314,7 +344,7 @@
     font-family: var(--mono); font-size: 12px; color: var(--fg-muted);
   }
   .bash-desc .label { color: var(--fg-faint); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; margin-right: 4px; }
-  .term { background: #0c0c0e; font-family: var(--mono); font-size: 12px; }
+  .term { background: var(--bg-code); font-family: var(--mono); font-size: 12px; }
   .term-head {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 14px; background: var(--bg-card-2); color: var(--fg-dim);
@@ -331,7 +361,7 @@
   .term-body .out { display: block; color: var(--fg-muted); margin-top: 4px; white-space: pre-wrap; font-size: 11.5px; }
 
   pre {
-    background: #0c0c0e; border: 1px solid var(--border);
+    background: var(--bg-code); border: 1px solid var(--border);
     border-radius: 0; padding: 10px 14px;
     font-family: var(--mono); font-size: 12px; color: var(--fg-muted);
     overflow-x: auto; white-space: pre;
@@ -562,6 +592,10 @@
     <span id="crumb-room">live session</span>
   </nav>
   <div class="grow"></div>
+  <button class="btn theme-btn" id="theme-btn" title="Switch theme" aria-label="Switch theme">
+    <svg class="theme-icon theme-icon-moon" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6 0a6 6 0 100 12 6 6 0 005.92-5A4 4 0 016 0z"/></svg>
+    <svg class="theme-icon theme-icon-sun" width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="8" r="3.2"/><g stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="8" y1="0.7" x2="8" y2="2.3"/><line x1="8" y1="13.7" x2="8" y2="15.3"/><line x1="0.7" y1="8" x2="2.3" y2="8"/><line x1="13.7" y1="8" x2="15.3" y2="8"/><line x1="2.6" y1="2.6" x2="3.7" y2="3.7"/><line x1="12.3" y1="12.3" x2="13.4" y2="13.4"/><line x1="2.6" y1="13.4" x2="3.7" y2="12.3"/><line x1="12.3" y1="3.7" x2="13.4" y2="2.6"/></g></svg>
+  </button>
   <button class="btn" id="copy-url-btn" title="Copy room URL">Copy URL</button>
   <button class="btn btn-danger" id="end-room-btn" hidden title="Tear down the room (server, tunnel, tailer)">End room</button>
   <span class="host-pill" id="host-pill" hidden title="You're the host on this tab">HOST</span>
@@ -763,7 +797,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   wireNameModal();
   wireViewMode();
   wireEndRoom();
+  wireThemeToggle();
 });
+
+function wireThemeToggle() {
+  const btn = document.getElementById("theme-btn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") || "dark";
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("bt-theme", next); } catch (e) {}
+  });
+}
 
 async function kickWatcher(name) {
   if (!isHost || !name) return;
