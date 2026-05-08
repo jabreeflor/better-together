@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "better-together",
+  "description": "Marketplace for the Better Together plugin — turn one developer's Claude Code session into a shareable, witnessable room.",
+  "owner": {
+    "name": "Jabree Flor"
+  },
+  "plugins": [
+    {
+      "name": "better-together",
+      "source": ".",
+      "description": "Share your Claude Code session as a live, witnessable room. One host drives, teammates watch via browser or their own Claude Code.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Jabree Flor"
+      },
+      "homepage": "https://github.com/jabreeflor/better-together",
+      "repository": "https://github.com/jabreeflor/better-together",
+      "license": "MIT",
+      "category": "collaboration",
+      "keywords": [
+        "collaboration",
+        "pair-programming",
+        "session-sharing",
+        "agent",
+        "witness",
+        "mentoring"
+      ]
+    }
+  ]
+}
