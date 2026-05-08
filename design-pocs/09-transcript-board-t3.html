@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Better Together — transcript board (t3 skin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #09090b;
+    --bg-elev: #111114;
+    --bg-card: #141418;
+    --bg-card-2: #18181c;
+    --fg: #fafafa;
+    --fg-muted: #a1a1aa;
+    --fg-dim: #71717a;
+    --fg-faint: #52525b;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.12);
+    --border-soft: rgba(255,255,255,0.05);
+
+    --accent: #fafafa;             /* host highlight = full white, t3-style */
+    --accent-warm: #ff8a4c;        /* reserved for "live"/hot states */
+
+    /* Watcher palette — luminous, distinguishable on near-black */
+    --w-jabree: #ff8a4c;
+    --w-kavi:   #6dcca3;
+    --w-mira:   #b89cf0;
+    --w-alex:   #f0c074;
+
+    /* Token aliases */
+    --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* signature t3 noise grain overlay */
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none; opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 256px 256px;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .doc-shell { max-width: 1240px; margin: 0 auto; padding: 8vh 32px 96px; }
+
+  .doc-eyebrow {
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--fg-dim); margin: 0 0 12px;
+    opacity: 0; animation: 1s ease-out forwards fade-in;
+  }
+  h1.doc-title {
+    font-size: clamp(2rem, 4.6vw, 3.2rem);
+    font-weight: 500; line-height: 1.1; letter-spacing: -0.035em;
+    margin: 0 0 14px;
+    opacity: 0; animation: 1s ease-out 0.05s forwards fade-in;
+  }
+  .doc-deck {
+    font-size: 17px; color: var(--fg-muted); max-width: 760px;
+    margin: 0 0 28px; line-height: 1.5;
+    opacity: 0; animation: 1s ease-out 0.15s forwards fade-in;
+  }
+  .doc-meta {
+    font-family: var(--mono); font-size: 12px; color: var(--fg-dim);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 12px 0; margin: 0 0 36px;
+    display: flex; flex-wrap: wrap; gap: 22px;
+    opacity: 0; animation: 1s ease-out 0.25s forwards fade-in;
+  }
+  .doc-meta b { color: var(--fg); font-weight: 500; }
+
+  .doc-prose p { margin: 0 0 14px; max-width: 800px; color: var(--fg-muted); }
+  .doc-prose code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--bg-card); padding: 2px 7px; border-radius: 4px;
+    color: var(--fg); border: 1px solid var(--border);
+  }
+  .doc-prose .doc-h2-deck { font-size: 16px; color: var(--fg-muted); margin: 0 0 18px; max-width: 820px; }
+
+  /* Mockup frame (the "screenshot") */
+  .doc-mockup-frame {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow:
+      0 24px 80px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(255,255,255,0.02) inset;
+    margin: 18px 0 12px;
+    opacity: 0; transform: scale(0.99);
+    animation: 1s ease-out 0.2s forwards screenshot-in;
+  }
+  @keyframes screenshot-in {
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .doc-mockup-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #18181c 0%, #131316 100%);
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+  }
+  .doc-mockup-chrome .dots { display: flex; gap: 6px; margin-right: 6px; }
+  .doc-mockup-chrome .dots i { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,0.08); display: inline-block; }
+  .doc-mockup-chrome .url {
+    flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+    padding: 4px 12px; border-radius: 999px; color: var(--fg-muted);
+  }
+  .doc-mockup-caption {
+    font-family: var(--sans); font-size: 13px; color: var(--fg-dim);
+    margin: 6px 0 0; padding-left: 4px; max-width: 900px; line-height: 1.5;
+  }
+  .doc-mockup-body { font-family: var(--sans); font-size: 14px; line-height: 1.5; color: var(--fg); background: var(--bg); }
+  .doc-mockup-body * { box-sizing: border-box; }
+
+  .doc-tradeoffs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 16px 20px; margin: 18px 0; border-radius: 12px;
+    font-family: var(--sans); font-size: 13.5px;
+  }
+  .doc-tradeoffs h5 {
+    margin: 0 0 8px; font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500;
+  }
+  .doc-tradeoffs .pros h5 { color: var(--w-kavi); }
+  .doc-tradeoffs .cons h5 { color: var(--w-jabree); }
+  .doc-tradeoffs ul { margin: 0; padding-left: 18px; color: var(--fg-muted); }
+  .doc-tradeoffs li { padding: 3px 0; }
+
+  /* ============================================================
+     Mockup styles — transcript board (t3 skin)
+     ============================================================ */
+
+  /* GH activity strip */
+  .tb-gh {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    font-family: var(--mono); font-size: 12px; color: var(--fg-muted);
+  }
+  .tb-gh .tb-label {
+    text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px;
+    color: var(--fg-faint); margin-right: 6px;
+  }
+  .tb-gh .tb-evt {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 3px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
+    color: var(--fg-muted);
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .tb-gh .tb-evt:hover { border-color: var(--border-strong); color: var(--fg); }
+  .tb-gh .tb-evt b { color: var(--fg); font-weight: 500; }
+  .tb-gh .tb-evt.live {
+    background: rgba(255,138,76,0.06);
+    border-color: rgba(255,138,76,0.25);
+    color: var(--accent-warm);
+  }
+  .tb-gh .tb-evt.live b { color: var(--accent-warm); }
+  .tb-gh a.tb-link { color: inherit; text-underline-offset: 3px; text-decoration: underline rgba(255,255,255,0.2); }
+  .tb-gh a.tb-link:hover { text-decoration-color: var(--fg-muted); }
+  .tb-gh .tb-spacer { flex: 1; }
+  .tb-gh .tb-time { color: var(--fg-faint); font-size: 11px; }
+
+  /* Presence bar */
+  .tb-presence {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    font-family: var(--mono); font-size: 11.5px; color: var(--fg-dim);
+  }
+  .tb-presence .tb-room { color: var(--fg); font-weight: 500; letter-spacing: 0.04em; }
+  .tb-presence .tb-pavi-row { display: inline-flex; }
+  .tb-presence .tb-pavi {
+    width: 26px; height: 26px; border-radius: 999px; color: #09090b;
+    display: inline-grid; place-items: center;
+    font-size: 11px; font-weight: 600; font-family: var(--sans);
+    border: 2px solid var(--bg); margin-left: -7px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .tb-presence .tb-pavi:first-child { margin-left: 0; }
+  .tb-presence .tb-spacer { flex: 1; }
+
+  /* Two-column body */
+  .tb-body {
+    display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
+    gap: 0;
+    background: var(--bg);
+    padding: 26px 0 36px;
+    position: relative;
+  }
+  .tb-body::before {
+    content: ''; position: absolute;
+    left: 61.5%; top: 0; bottom: 0; width: 1px;
+    background: var(--border);
+  }
+  .tb-spine { padding: 0 28px 0 36px; position: relative; }
+  .tb-spine::before {
+    content: ''; position: absolute;
+    left: 54px; top: 12px; bottom: 0; width: 1px;
+    background: var(--border);
+  }
+  .tb-stickies { padding: 0 28px 0 28px; position: relative; }
+
+  .tb-row { display: contents; }
+
+  /* Spine items */
+  .tb-item { position: relative; padding: 12px 0 16px 38px; }
+  .tb-item::before {
+    content: ''; position: absolute; left: 12px; top: 24px;
+    width: 12px; height: 12px; border-radius: 999px;
+    background: var(--bg); border: 2px solid var(--border-strong); z-index: 1;
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  .tb-item.host::before      { background: var(--w-jabree); border-color: var(--w-jabree); box-shadow: 0 0 0 4px var(--bg), 0 0 16px rgba(255,138,76,0.4); }
+  .tb-item.assistant::before { background: var(--bg); border-color: var(--fg); box-shadow: 0 0 0 4px var(--bg), 0 0 12px rgba(255,255,255,0.15); }
+  .tb-item.tool::before      { background: var(--bg-card); border-color: var(--fg-muted); }
+  .tb-item.gh::before        { background: var(--bg-card); border-color: var(--fg-faint); }
+
+  .tb-item .tb-meta {
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .tb-item .tb-who { font-family: var(--sans); font-weight: 500; font-size: 13px; }
+  .tb-item.host .tb-who      { color: var(--w-jabree); }
+  .tb-item.assistant .tb-who { color: var(--fg); }
+  .tb-item .tb-tag {
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.04); color: var(--fg-muted);
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    border: 1px solid var(--border);
+  }
+  .tb-item.host .tb-tag      { background: rgba(255,138,76,0.10); color: var(--w-jabree); border-color: rgba(255,138,76,0.25); }
+  .tb-item.tool .tb-tag      { background: rgba(255,255,255,0.04); color: var(--fg); }
+  .tb-item.gh .tb-tag        { background: transparent; color: var(--fg-dim); }
+
+  /* Cards */
+  .tb-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: border-color 0.3s;
+  }
+  .tb-item:hover .tb-card { border-color: var(--border-strong); }
+
+  .tb-item.host .tb-card {
+    background: linear-gradient(180deg, rgba(255,138,76,0.06) 0%, rgba(255,138,76,0.02) 100%);
+    border-color: rgba(255,138,76,0.18);
+  }
+  .tb-item.host .tb-card .quote {
+    font-size: 17px; line-height: 1.5; color: var(--fg);
+    font-weight: 400; letter-spacing: -0.01em;
+  }
+  .tb-item.host .tb-card .quote::before { content: '\201C'; color: var(--w-jabree); margin-right: 2px; font-size: 22px; vertical-align: -3px; opacity: 0.8; }
+  .tb-item.host .tb-card .quote::after  { content: '\201D'; color: var(--w-jabree); margin-left: 2px;  font-size: 22px; vertical-align: -3px; opacity: 0.8; }
+
+  .tb-item.assistant .tb-card .prose { font-size: 15px; line-height: 1.6; color: var(--fg); letter-spacing: -0.005em; }
+  .tb-item.assistant .tb-card .prose code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--border-soft); color: var(--fg);
+  }
+  .tb-item.assistant .tb-card .prose p { margin: 0 0 8px; }
+  .tb-item.assistant .tb-card .prose p:last-child { margin-bottom: 0; }
+
+  /* Tool cards */
+  .tb-item.tool .tb-card { padding: 0; overflow: hidden; }
+  .tb-item.tool .tb-tool-h {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: var(--bg-card-2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .tb-item.tool .tb-tool-h .tb-tname { color: var(--fg); font-weight: 600; }
+  .tb-item.tool .tb-tool-h .tb-tpath { color: var(--fg-muted); }
+  .tb-item.tool .tb-tool-h .tb-tstat { color: var(--fg-dim); margin-left: auto; font-size: 11px; }
+  .tb-item.tool .tb-tool-body {
+    padding: 0; font-family: var(--mono); font-size: 12px; line-height: 1.7;
+    background: #0c0c0e;
+  }
+  .tb-item.tool .tb-tool-body .tb-dl { padding: 1px 14px; white-space: pre; }
+  .tb-item.tool .tb-tool-body .tb-dl.add { background: rgba(109,204,163,0.06); color: #b8e6cd; }
+  .tb-item.tool .tb-tool-body .tb-dl.del { background: rgba(255,90,90,0.06); color: #ffb4b4; }
+  .tb-item.tool .tb-tool-body .tb-dl.ctx { color: var(--fg-muted); }
+  .tb-item.tool .tb-tool-body .tb-bash { padding: 10px 14px; color: var(--fg); }
+  .tb-item.tool .tb-tool-body .tb-bash .tb-prompt { color: var(--w-jabree); }
+  .tb-item.tool .tb-tool-body .tb-bash .tb-out { color: var(--fg-muted); padding-top: 4px; font-size: 11.5px; }
+  .tb-item.tool .tb-expand {
+    padding: 8px 14px; background: var(--bg-card-2);
+    border-top: 1px solid var(--border); color: var(--fg-dim);
+    font-family: var(--mono); font-size: 11px; cursor: pointer;
+    transition: color 0.3s;
+  }
+  .tb-item.tool .tb-expand:hover { color: var(--fg); }
+
+  /* GH inline cards */
+  .tb-item.gh .tb-card {
+    background: transparent; border-style: dashed; border-color: var(--border-strong);
+    padding: 10px 14px;
+    font-family: var(--mono); font-size: 12px; color: var(--fg-muted);
+  }
+  .tb-item.gh .tb-card a { color: var(--fg); text-underline-offset: 3px; text-decoration: underline rgba(255,255,255,0.2); }
+  .tb-item.gh .tb-card a:hover { text-decoration-color: var(--fg-muted); }
+  .tb-item.gh .tb-card b { color: var(--fg); font-weight: 500; }
+  .tb-item.gh .tb-card em { font-style: normal; color: var(--fg-dim); }
+
+  /* Reactions */
+  .tb-react {
+    display: flex; align-items: center; gap: 6px; margin-top: 8px;
+    font-family: var(--sans); flex-wrap: wrap;
+  }
+  .tb-react .tb-r {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px 10px; font-size: 12px;
+    color: var(--fg-muted); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.25s;
+  }
+  .tb-react .tb-r b { color: var(--fg); font-weight: 500; }
+  .tb-react .tb-r:hover {
+    background: rgba(255,255,255,0.06); border-color: var(--border-strong);
+    transform: scale(1.04);
+  }
+  .tb-react .tb-r:active { transform: scale(0.98); }
+  .tb-react .tb-add {
+    background: transparent; border: 1px dashed var(--border-strong);
+    color: var(--fg-faint); border-radius: 999px;
+    padding: 3px 10px; font-size: 12px; cursor: pointer;
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .tb-react .tb-add:hover { color: var(--fg-muted); border-color: var(--fg-faint); }
+  .tb-react .tb-seen-by {
+    margin-left: auto; font-family: var(--mono); font-size: 10.5px;
+    color: var(--fg-dim); display: inline-flex; align-items: center; gap: 5px;
+  }
+  .tb-react .tb-seen-by .tb-savi {
+    width: 16px; height: 16px; border-radius: 999px; color: #09090b;
+    display: inline-grid; place-items: center; font-size: 9px; font-weight: 700;
+    border: 1.5px solid var(--bg); margin-left: -4px; font-family: var(--sans);
+  }
+  .tb-react .tb-seen-by .tb-savi:first-of-type { margin-left: 0; }
+
+  /* Sticky notes — t3-style luminescent glass cards */
+  .tb-stickies-col { padding-top: 4px; }
+  .tb-sticky-row { padding: 12px 0 16px; min-height: 24px; position: relative; }
+  .tb-note {
+    position: relative; width: 100%; max-width: 280px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: var(--sans); font-size: 13px; line-height: 1.5;
+    color: var(--fg);
+    transform: rotate(-0.6deg);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .tb-note:hover { transform: rotate(0deg) translateY(-1px); }
+  .tb-note + .tb-note { margin-top: 12px; }
+
+  /* author-tinted variants */
+  .tb-note.kavi {
+    background: linear-gradient(180deg, rgba(109,204,163,0.10) 0%, rgba(109,204,163,0.04) 100%);
+    border-color: rgba(109,204,163,0.22);
+    box-shadow: 0 6px 24px rgba(109,204,163,0.06), 0 0 24px rgba(109,204,163,0.03);
+    transform: rotate(0.8deg);
+  }
+  .tb-note.mira {
+    background: linear-gradient(180deg, rgba(184,156,240,0.10) 0%, rgba(184,156,240,0.04) 100%);
+    border-color: rgba(184,156,240,0.24);
+    box-shadow: 0 6px 24px rgba(184,156,240,0.06), 0 0 24px rgba(184,156,240,0.03);
+    transform: rotate(-1.1deg);
+  }
+  .tb-note.alex {
+    background: linear-gradient(180deg, rgba(240,192,116,0.09) 0%, rgba(240,192,116,0.03) 100%);
+    border-color: rgba(240,192,116,0.22);
+    box-shadow: 0 6px 24px rgba(240,192,116,0.05), 0 0 24px rgba(240,192,116,0.03);
+    transform: rotate(0.4deg);
+  }
+  .tb-note.jabree {
+    background: linear-gradient(180deg, rgba(255,138,76,0.10) 0%, rgba(255,138,76,0.04) 100%);
+    border-color: rgba(255,138,76,0.24);
+    box-shadow: 0 6px 24px rgba(255,138,76,0.06), 0 0 24px rgba(255,138,76,0.03);
+    transform: rotate(-0.4deg);
+  }
+
+  .tb-note .tb-nh {
+    display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .tb-note .tb-na {
+    width: 18px; height: 18px; border-radius: 999px;
+    color: #09090b; display: inline-grid; place-items: center;
+    font-size: 9.5px; font-weight: 700; font-family: var(--sans);
+  }
+  .tb-note .tb-anchor {
+    display: block; margin-top: 8px; font-family: var(--mono); font-size: 10px;
+    color: var(--fg-dim);
+  }
+  .tb-note .tb-reply {
+    margin-top: 9px; padding-top: 9px;
+    border-top: 1px dashed rgba(255,255,255,0.10);
+    font-size: 12.5px; color: var(--fg-muted);
+  }
+  .tb-note .tb-reply .tb-rwho {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--fg-dim); display: block; margin-bottom: 2px;
+  }
+
+  /* leader line back to spine */
+  .tb-note::before {
+    content: ''; position: absolute;
+    left: -36px; top: 24px; width: 34px; height: 1px;
+    border-top: 1px dashed currentColor; opacity: 0.45;
+  }
+  .tb-note.kavi::before   { color: var(--w-kavi); }
+  .tb-note.mira::before   { color: var(--w-mira); }
+  .tb-note.alex::before   { color: var(--w-alex); }
+  .tb-note.jabree::before { color: var(--w-jabree); }
+  .tb-note:not(.kavi):not(.mira):not(.alex):not(.jabree)::before { color: var(--fg-muted); }
+
+  /* drop-a-note placeholder */
+  .tb-drop {
+    border: 1px dashed var(--border-strong); border-radius: 10px;
+    padding: 10px 14px; color: var(--fg-faint);
+    font-family: var(--sans); font-size: 12.5px;
+    background: transparent;
+    max-width: 280px; transition: color 0.3s, border-color 0.3s;
+    cursor: pointer;
+  }
+  .tb-drop:hover { color: var(--fg-muted); border-color: var(--fg-faint); }
+  .tb-drop b { color: var(--fg-muted); font-weight: 500; font-family: var(--mono); font-size: 11px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.05); }
+
+  /* "K here" presence pin floating next to spine items */
+  .tb-here {
+    position: absolute; left: -94px; top: 18px;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 9px 2px 2px; border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-strong);
+    font-family: var(--mono); font-size: 10px; color: var(--fg-muted);
+    backdrop-filter: blur(6px);
+  }
+  .tb-here .tb-ha {
+    width: 18px; height: 18px; border-radius: 999px;
+    color: #09090b; display: inline-grid; place-items: center;
+    font-size: 9.5px; font-weight: 700; font-family: var(--sans);
+  }
+
+  /* Footer of mockup */
+  .tb-foot {
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    background: var(--bg);
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  .tb-foot .tb-foot-act {
+    color: var(--fg); padding: 4px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    cursor: pointer; transition: all 0.25s;
+    font-size: 11px;
+  }
+  .tb-foot .tb-foot-act:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--border-strong);
+    transform: scale(1.03);
+  }
+  .tb-foot .tb-foot-act:active { transform: scale(0.98); }
+  .tb-foot .tb-foot-spacer { flex: 1; }
+
+  /* Mask the bottom of the mockup with a fade — t3 screenshot move */
+  .doc-mockup-frame .doc-mockup-body {
+    mask-image: linear-gradient(180deg, #000 0%, #000 96%, transparent 100%);
+  }
+
+  /* Sub-headlines in prose */
+  h2.doc-sub {
+    font-size: 22px; font-weight: 500; letter-spacing: -0.02em;
+    margin: 32px 0 8px; color: var(--fg);
+  }
+  .doc-footer {
+    font-family: var(--mono); font-size: 12px; color: var(--fg-dim);
+    border-top: 1px solid var(--border); padding-top: 16px; margin-top: 56px;
+  }
+
+  @media (max-width: 760px) {
+    .doc-shell { padding: 5vh 18px 60px; }
+    .doc-tradeoffs { grid-template-columns: 1fr; }
+    .tb-body { grid-template-columns: 1fr; }
+    .tb-body::before { display: none; }
+    .tb-stickies { padding: 14px 16px 0; }
+    .tb-note::before { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="doc-shell">
+
+  <p class="doc-eyebrow">Design exploration v4 &middot; t3 skin &middot; 2026-05-07</p>
+  <h1 class="doc-title">Transcript board, reskinned for t3.</h1>
+  <p class="doc-deck">
+    Same layout, same data. Reskinned to t3.codes&rsquo; design language: zinc-950 base, DM Sans, soft white-alpha borders, pill chips, subtle white-glow on hover, and the signature SVG noise grain overlay.
+  </p>
+  <div class="doc-meta">
+    <span><b>Skin source:</b> t3.codes</span>
+    <span><b>Stack:</b> DM Sans &middot; JetBrains Mono &middot; #09090b base</span>
+    <span><b>Predecessor:</b> <code>08-transcript-board.html</code></span>
+  </div>
+
+  <section class="doc-prose">
+    <p class="doc-h2-deck">Visual translation: cream &amp; serif &rarr; near-black &amp; DM Sans. Rotated paper sticky notes &rarr; tinted glass cards with author-color glows. Hard borders &rarr; <code>rgba(255,255,255,0.08)</code>. The transcript spine, sticky-note chat, leader lines, reactions, and seen-by ribbons all carry over &mdash; just dressed in the t3 language.</p>
+  </section>
+
+  <div class="doc-mockup-frame">
+    <div class="doc-mockup-chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="url">https://misty-llama-9342.trycloudflare.com/ui</span>
+      <span>transcript board &middot; t34 &middot; 4 watching</span>
+    </div>
+    <div class="doc-mockup-body">
+
+      <!-- GH activity strip -->
+      <div class="tb-gh">
+        <span class="tb-label">this session</span>
+        <span class="tb-evt">&#x1F33F; branch <a class="tb-link" href="#"><b>feat/transcript-tailer</b></a> &middot; <span class="tb-time">14m ago</span></span>
+        <span class="tb-evt">&#x270E; 4 commits, latest <b>d2f1c08</b></span>
+        <span class="tb-evt live">&#x21AA; <a class="tb-link" href="#">PR #142</a> opened &middot; <em>view on GitHub</em></span>
+        <span class="tb-spacer"></span>
+        <span class="tb-time">jabreeflor/better-together</span>
+      </div>
+
+      <!-- presence bar -->
+      <div class="tb-presence">
+        <span class="tb-room">misty-llama-9342</span>
+        <span>&middot; 4 in the room</span>
+        <span class="tb-pavi-row">
+          <span class="tb-pavi" style="background:var(--w-jabree)" title="jabree (host)">J</span>
+          <span class="tb-pavi" style="background:var(--w-kavi)" title="kavi">K</span>
+          <span class="tb-pavi" style="background:var(--w-mira)" title="mira">M</span>
+          <span class="tb-pavi" style="background:var(--w-alex)" title="alex">A</span>
+        </span>
+        <span class="tb-spacer"></span>
+        <span>kavi at t31 &middot; mira at t34 &middot; alex idle 4m</span>
+      </div>
+
+      <div class="tb-body">
+
+        <!-- row 1: host prompt t26 -->
+        <div class="tb-spine">
+          <div class="tb-item host">
+            <div class="tb-meta">
+              <span class="tb-who">jabree (host)</span>
+              <span class="tb-tag">prompt</span>
+              <span>t26 &middot; 11:41:02</span>
+            </div>
+            <div class="tb-card">
+              <div class="quote">the per-event hooks miss <code style="font-family:var(--mono); font-size:0.92em; background:rgba(255,255,255,0.06); padding:1px 6px; border-radius:4px;">/resume</code> into a different jsonl. let&rsquo;s tail the session jsonl directly and emit events from there.</div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F44D; <b>2</b></span>
+              <span class="tb-r">&#x1F440; <b>1</b></span>
+              <span class="tb-add">+ react</span>
+              <span class="tb-seen-by">
+                <span class="tb-savi" style="background:var(--w-kavi)">K</span>
+                <span class="tb-savi" style="background:var(--w-mira)">M</span>
+                <span class="tb-savi" style="background:var(--w-alex)">A</span>
+                seen by 3
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note kavi">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-kavi)">K</span> kavi &middot; t26.5</div>
+              <div>nice catch &mdash; was about to ask the same. tailing avoids the entire hook-ordering mess.</div>
+              <span class="tb-anchor">&#x21B3; t26 &middot; jabree&rsquo;s prompt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- row 2: assistant t27 -->
+        <div class="tb-spine">
+          <div class="tb-item assistant">
+            <div class="tb-meta">
+              <span class="tb-who">claude</span>
+              <span class="tb-tag">response</span>
+              <span>t27 &middot; 11:41:14</span>
+            </div>
+            <div class="tb-card">
+              <div class="prose">
+                <p>Right idea. The JSONL tailer can also handle log-rotation if we watch for <code>inode</code> change &mdash; that covers the <code>/resume</code> case where Claude Code starts writing a different file under <code>~/.claude/projects/&lt;cwd&gt;/&lt;sid&gt;.jsonl</code>.</p>
+                <p>Plan: read <code>plugin/server/server.js</code> first to see how the relay shapes events, then add <code>plugin/server/transcript-tailer.js</code> as a sibling that POSTs into the same endpoint.</p>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F525; <b>3</b></span>
+              <span class="tb-r">&#x1F44D; <b>1</b></span>
+              <span class="tb-add">+ react</span>
+              <span class="tb-seen-by">
+                <span class="tb-savi" style="background:var(--w-kavi)">K</span>
+                <span class="tb-savi" style="background:var(--w-mira)">M</span>
+                <span class="tb-savi" style="background:var(--w-alex)">A</span>
+                seen by 3
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note mira">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-mira)">M</span> mira &middot; t27.3</div>
+              <div>have we actually tested rotation? remember the macOS APFS atomic-rename thing &mdash; same path, new inode. should work for jsonl but worth a real test.</div>
+              <span class="tb-anchor">&#x21B3; t27 &middot; claude</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- row 3: tool Read -->
+        <div class="tb-spine">
+          <div class="tb-item tool">
+            <div class="tb-meta">
+              <span class="tb-who" style="color:var(--fg);">claude</span>
+              <span class="tb-tag">tool: Read</span>
+              <span>t27.1 &middot; 11:41:18</span>
+            </div>
+            <div class="tb-card">
+              <div class="tb-tool-h">
+                <span class="tb-tname">Read</span>
+                <span class="tb-tpath">plugin/server/server.js</span>
+                <span class="tb-tstat">lines 1&ndash;50</span>
+              </div>
+              <div class="tb-expand">&#x21F3; expand 50 lines</div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F440; <b>2</b></span>
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- row 4: assistant t28 -->
+        <div class="tb-spine">
+          <div class="tb-item assistant">
+            <div class="tb-meta">
+              <span class="tb-who">claude</span>
+              <span class="tb-tag">response</span>
+              <span>t28 &middot; 11:41:42</span>
+            </div>
+            <div class="tb-card">
+              <div class="prose">
+                <p>OK &mdash; the relay just forwards POSTs from <code>bt-relay</code>. I&rsquo;ll add <code>transcript-tailer.js</code> that watches the active session file and POSTs to <code>/relay</code> in the same shape, so nothing downstream changes.</p>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F44D; <b>2</b></span>
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- row 5: tool Write -->
+        <div class="tb-spine">
+          <div class="tb-item tool">
+            <div class="tb-meta">
+              <span class="tb-who" style="color:var(--fg);">claude</span>
+              <span class="tb-tag">tool: Write</span>
+              <span>t28.1 &middot; 11:41:48</span>
+            </div>
+            <div class="tb-card">
+              <div class="tb-tool-h">
+                <span class="tb-tname">Write</span>
+                <span class="tb-tpath">plugin/server/transcript-tailer.js</span>
+                <span class="tb-tstat">+218 &middot; new file</span>
+              </div>
+              <div class="tb-tool-body">
+                <div class="tb-dl add">+ const fs = require('fs');</div>
+                <div class="tb-dl add">+ const path = require('path');</div>
+                <div class="tb-dl add">+ </div>
+                <div class="tb-dl add">+ function tailJsonl(filepath, onEntry) {</div>
+                <div class="tb-dl add">+   let inode = null, offset = 0;</div>
+                <div class="tb-dl add">+   const tick = () =&gt; {</div>
+                <div class="tb-dl add">+     const stat = fs.statSync(filepath);</div>
+                <div class="tb-dl add">+     if (stat.ino !== inode) { inode = stat.ino; offset = 0; }</div>
+              </div>
+              <div class="tb-expand">&#x21F3; expand 211 more lines</div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F389; <b>2</b></span>
+              <span class="tb-r">&#x1F440; <b>4</b></span>
+              <span class="tb-r">&#x1F525; <b>1</b></span>
+              <span class="tb-add">+ react</span>
+              <span class="tb-seen-by">
+                <span class="tb-savi" style="background:var(--w-kavi)">K</span>
+                <span class="tb-savi" style="background:var(--w-mira)">M</span>
+                <span class="tb-savi" style="background:var(--w-alex)">A</span>
+                <span class="tb-savi" style="background:var(--w-jabree)">J</span>
+                seen by 4
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note alex">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-alex)">A</span> alex &middot; t28.4</div>
+              <div>kavi was right last session &mdash; <code style="font-family:var(--mono); font-size:11px; background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:3px;">inode</code> change is the cleanest signal. nice that this also covers truncation.</div>
+              <span class="tb-anchor">&#x21B3; t28.1 &middot; transcript-tailer.js</span>
+              <div class="tb-reply">
+                <span class="tb-rwho">jabree replied:</span>
+                yeah, i&rsquo;m starting to trust this pattern. will use it for the watch-context tail too.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- row 6: assistant t29 -->
+        <div class="tb-spine">
+          <div class="tb-item assistant">
+            <div class="tb-meta">
+              <span class="tb-who">claude</span>
+              <span class="tb-tag">response</span>
+              <span>t29 &middot; 11:42:12</span>
+            </div>
+            <div class="tb-card">
+              <div class="prose">
+                <p>Wired the tailer into <code>server.js</code>: starts at boot, stops on SIGTERM. Now testing that <code>/resume</code> into a fresh jsonl is picked up within the 5s polling tick.</p>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note mira">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-mira)">M</span> mira &middot; t29.2</div>
+              <div>5s feels long for the resume case &mdash; can we drop to 2s under churn? not blocking.</div>
+              <span class="tb-anchor">&#x21B3; t29 &middot; claude</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- row 7: GH branch -->
+        <div class="tb-spine">
+          <div class="tb-item gh">
+            <div class="tb-meta"><span class="tb-tag">github</span><span>t29.5 &middot; 11:42:38</span></div>
+            <div class="tb-card">&#x1F33F; branch <b>feat/transcript-tailer</b> created from <b>main</b> &middot; <a href="#">view on GitHub</a></div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- row 8: tool Bash + here pin -->
+        <div class="tb-spine" style="position:relative;">
+          <div class="tb-here" title="kavi is here"><span class="tb-ha" style="background:var(--w-kavi)">K</span> here</div>
+          <div class="tb-item tool">
+            <div class="tb-meta">
+              <span class="tb-who" style="color:var(--fg);">claude</span>
+              <span class="tb-tag">tool: Bash</span>
+              <span>t31 &middot; 11:43:02</span>
+            </div>
+            <div class="tb-card">
+              <div class="tb-tool-h">
+                <span class="tb-tname">Bash</span>
+                <span class="tb-tpath">node plugin/server/server.js &amp;</span>
+                <span class="tb-tstat">exit 0 &middot; 1.4s</span>
+              </div>
+              <div class="tb-tool-body">
+                <div class="tb-bash">
+                  <div><span class="tb-prompt">$</span> node plugin/server/server.js &amp;</div>
+                  <div class="tb-out">[bt] server listening on 0.0.0.0:8421</div>
+                  <div class="tb-out">[bt] tailer watching ~/.claude/projects/-Users-jabree.../sid-7a91f.jsonl</div>
+                  <div class="tb-out">[bt] cloudflared tunnel: https://misty-llama-9342.trycloudflare.com</div>
+                </div>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F680; <b>3</b></span>
+              <span class="tb-r">&#x1F440; <b>2</b></span>
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note kavi">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-kavi)">K</span> kavi &middot; t31.4</div>
+              <div>cleanup story for cloudflared on SIGTERM? i remember a stranded process from last time.</div>
+              <span class="tb-anchor">&#x21B3; t31 &middot; bash output</span>
+            </div>
+            <div class="tb-note jabree">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-jabree)">J</span> jabree &middot; t31.5</div>
+              <div>good catch. SessionEnd hook handles it but i should add a fallback PID-file kill for crash cases.</div>
+              <span class="tb-anchor">&#x21B3; reply to kavi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- row 9: GH commit -->
+        <div class="tb-spine">
+          <div class="tb-item gh">
+            <div class="tb-meta"><span class="tb-tag">github</span><span>t33 &middot; 11:44:21</span></div>
+            <div class="tb-card">&#x270E; commit <b>d2f1c08</b> pushed: <em>"lobby: tail transcript JSONL instead of relying on per-event hooks"</em> &middot; <a href="#">view diff</a></div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- row 10: GH PR + here pin -->
+        <div class="tb-spine" style="position:relative;">
+          <div class="tb-here" title="mira is here"><span class="tb-ha" style="background:var(--w-mira)">M</span> here</div>
+          <div class="tb-item gh">
+            <div class="tb-meta"><span class="tb-tag">github</span><span>t34 &middot; 11:44:29 &middot; <span style="color:var(--accent-warm);">just now</span></span></div>
+            <div class="tb-card">&#x21AA; PR <b>#142</b> opened by <b>jabreeflor</b> &rarr; <a href="#">jabreeflor/better-together#142</a> &middot; <em>"lobby: tail transcript JSONL&hellip;"</em></div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note mira">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-mira)">M</span> mira &middot; just now</div>
+              <div>opening to read it on github real quick. back in 2 &#x1F4D6;</div>
+              <span class="tb-anchor">&#x21B3; t34 &middot; PR #142</span>
+            </div>
+            <div class="tb-drop">drop a note on this turn &mdash; press <b>n</b></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tb-foot">
+        <span>11 turns &middot; 5 sticky notes &middot; 14 reactions &middot; 4 watchers</span>
+        <span class="tb-foot-spacer"></span>
+        <span class="tb-foot-act">drop a note (n)</span>
+        <span class="tb-foot-act">react (r)</span>
+        <span class="tb-foot-act">jump to live</span>
+      </div>
+    </div>
+  </div>
+  <p class="doc-mockup-caption">
+    Same shape as mockup 08, t3-skinned. Spine cards are dark zinc panels with white-low-alpha borders; the host card carries a soft warm gradient. Sticky notes are tinted glass &mdash; each author color tinting a translucent card with a matching glow shadow. Pill chips throughout for tags, reactions, and footer actions. Subtle SVG noise overlay tints the entire surface.
+  </p>
+
+  <div class="doc-tradeoffs">
+    <div class="pros">
+      <h5>What the t3 skin buys</h5>
+      <ul>
+        <li>The transcript becomes the brightest thing on screen by default &mdash; less chrome to compete</li>
+        <li>Author colors pop harder against zinc-950 than they did on cream &mdash; identity stays legible</li>
+        <li>Pill chips for reactions read as quick, low-stakes &mdash; matches whiteboard&rsquo;s "casual" register</li>
+        <li>Glow shadows on sticky notes give the &ldquo;sticker on glass&rdquo; feel without paper-y kitsch</li>
+        <li>DM Sans lets prose, mono code, and meta labels coexist without serif weirdness</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h5>Watch out for</h5>
+      <ul>
+        <li>Saturated emoji can fight the monochrome palette &mdash; consider a "low-saturation emoji set" mode</li>
+        <li>Long sessions on near-black are eye-fatiguing without a light-mode toggle</li>
+        <li>Glass sticky notes are quieter than paper ones &mdash; if the user wants more &ldquo;chat energy,&rdquo; bump the glow opacity</li>
+        <li>Watcher palette needs accessibility check &mdash; especially mira lavender on dark for color-blind users</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="doc-prose">
+    <h2 class="doc-sub">Design tokens lifted from t3.codes</h2>
+    <p>Background <code>#09090b</code> &middot; foreground <code>#fafafa</code> &middot; muted <code>#a1a1aa</code> &middot; dim <code>#71717a</code> &middot; borders <code>rgba(255,255,255,0.08)</code>. Typography is <code>DM Sans</code> 400/500/600 with optical-size axis 9&ndash;40, paired with <code>JetBrains Mono</code> for code/meta. Tagline letter-spacing <code>-0.035em</code>, headings weight 500. Hero pill button at <code>border-radius: 999px</code> with <code>0 0 24px #ffffff14</code> on hover. Fade-up entrance animations: 1s ease-out, staggered 0.05s/0.15s/0.25s. The signature is the inline SVG <code>feTurbulence</code> noise overlay at 3.5% opacity, fixed-positioned across the viewport.</p>
+
+    <h2 class="doc-sub">What stayed identical to mockup 08</h2>
+    <p>Two-column layout, transcript spine on the left, sticky-note chat on the right, leader lines, presence pins, GH activity strip, reaction chips, seen-by ribbons. Tool calls still show real Claude Code shapes (<code>Read</code>, <code>Write</code>, <code>Bash</code>) with their typical inputs. The GH integration is still references-only.</p>
+  </section>
+
+  <p class="doc-footer">
+    Generated 2026-05-07 &middot; <code>design-pocs/09-transcript-board-t3.html</code> &middot;
+    Iteration on <code>08-transcript-board.html</code> &middot;
+    Skin sourced from <a href="https://t3.codes/" style="color:var(--fg); text-decoration: underline rgba(255,255,255,0.2);">t3.codes</a>.
+  </p>
+
+</div>
+</body>
+</html>

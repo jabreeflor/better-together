@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Better Together — transcript board</title>
+<style>
+  :root {
+    --doc-bg: #f7f5ee;
+    --doc-fg: #1d1c19;
+    --doc-muted: #807a6c;
+    --doc-rule: #d9d4c2;
+    --doc-accent: #b15a2c;
+    --doc-card: #ffffff;
+    --doc-card-rule: #e6e2d4;
+    --doc-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --doc-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --doc-serif: "Iowan Old Style", "Iowan", Palatino, Georgia, serif;
+
+    --w-jabree: #b15a2c;
+    --w-kavi:   #5b8a72;
+    --w-mira:   #8a6cb1;
+    --w-alex:   #c98a4a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--doc-bg);
+    color: var(--doc-fg);
+    font-family: var(--doc-serif);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .doc-shell { max-width: 1240px; margin: 0 auto; padding: 56px 32px 96px; }
+  .doc-eyebrow {
+    font-family: var(--doc-mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--doc-accent); margin: 0 0 8px;
+  }
+  h1.doc-title {
+    font-size: 40px; line-height: 1.08; font-weight: 500;
+    letter-spacing: -0.5px; margin: 0 0 12px;
+  }
+  .doc-deck {
+    font-size: 18px; color: var(--doc-muted); font-style: italic;
+    max-width: 780px; margin: 0 0 28px;
+  }
+  .doc-meta {
+    font-family: var(--doc-mono); font-size: 12px; color: var(--doc-muted);
+    border-top: 1px solid var(--doc-rule); border-bottom: 1px solid var(--doc-rule);
+    padding: 10px 0; margin: 0 0 36px;
+    display: flex; flex-wrap: wrap; gap: 18px;
+  }
+  .doc-meta b { color: var(--doc-fg); font-weight: 600; }
+
+  .doc-prose p { margin: 0 0 14px; max-width: 800px; }
+  .doc-prose code {
+    font-family: var(--doc-mono); font-size: 0.86em;
+    background: #efece1; padding: 1px 6px; border-radius: 3px;
+  }
+  .doc-prose .doc-h2-deck { font-size: 16px; color: var(--doc-muted); font-style: italic; margin: 0 0 18px; max-width: 820px; }
+
+  .doc-mockup-frame {
+    background: var(--doc-card); border: 1px solid var(--doc-card-rule);
+    border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(31,35,40,0.06);
+    margin: 18px 0 12px;
+  }
+  .doc-mockup-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-bottom: 1px solid var(--doc-card-rule);
+    background: linear-gradient(#fafaf6,#f1ede1);
+    font-family: var(--doc-mono); font-size: 11px; color: var(--doc-muted);
+  }
+  .doc-mockup-chrome .dots { display: flex; gap: 6px; margin-right: 6px; }
+  .doc-mockup-chrome .dots i { width: 11px; height: 11px; border-radius: 50%; background: #e0d6c2; display: inline-block; }
+  .doc-mockup-chrome .url {
+    flex: 1; background: #fff; border: 1px solid var(--doc-card-rule);
+    padding: 3px 12px; border-radius: 3px; color: #4a4842;
+  }
+  .doc-mockup-caption {
+    font-family: var(--doc-sans); font-size: 13px; color: var(--doc-muted);
+    margin: 4px 0 0; padding-left: 4px; max-width: 900px;
+  }
+  .doc-mockup-body { font-family: var(--doc-sans); font-size: 14px; line-height: 1.5; color: #1d1c19; background: #fdfaf0; }
+  .doc-mockup-body * { box-sizing: border-box; }
+
+  .doc-tradeoffs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    background: #faf6e8; border: 1px solid var(--doc-card-rule);
+    padding: 14px 18px; margin: 16px 0; border-radius: 6px;
+    font-family: var(--doc-sans); font-size: 13.5px;
+  }
+  .doc-tradeoffs h5 { margin: 0 0 6px; font-family: var(--doc-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .doc-tradeoffs .pros h5 { color: #4f7d3a; }
+  .doc-tradeoffs .cons h5 { color: #a13325; }
+  .doc-tradeoffs ul { margin: 0; padding-left: 18px; }
+  .doc-tradeoffs li { padding: 2px 0; }
+
+  /* ============================================================
+     Mockup styles — transcript board
+     ============================================================ */
+
+  /* GH activity strip + presence bar */
+  .tb-gh {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 8px 18px; border-bottom: 1px solid #ece7d6;
+    background: #fdfaf0;
+    font-family: var(--doc-mono); font-size: 12px; color: #5a5142;
+  }
+  .tb-gh .tb-label {
+    text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px;
+    color: #a8a191; margin-right: 4px;
+  }
+  .tb-gh .tb-evt {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px; border-radius: 2em;
+    background: #f4ede0; border: 1px solid #e0d6c2; color: #5a5142;
+  }
+  .tb-gh .tb-evt b { color: #1d1c19; font-weight: 600; }
+  .tb-gh .tb-evt.live { background: #fff7e6; border-color: #e6c98a; color: #8c6a14; }
+  .tb-gh a.tb-link { color: inherit; text-decoration: none; border-bottom: 1px dashed #c8b88f; }
+  .tb-gh a.tb-link:hover { color: var(--doc-accent); border-bottom-color: var(--doc-accent); }
+  .tb-gh .tb-spacer { flex: 1; }
+  .tb-gh .tb-time { color: #a8a191; font-size: 11px; }
+
+  .tb-presence {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px; border-bottom: 1px solid #ece7d6;
+    background: #faf3df;
+    font-family: var(--doc-mono); font-size: 11px; color: #807a6c;
+  }
+  .tb-presence .tb-room { color: var(--doc-accent); font-weight: 600; letter-spacing: 0.04em; }
+  .tb-presence .tb-pavi-row { display: inline-flex; }
+  .tb-presence .tb-pavi {
+    width: 24px; height: 24px; border-radius: 50%; color: #fff;
+    display: inline-grid; place-items: center;
+    font-size: 11px; font-weight: 600;
+    border: 2px solid #faf3df; margin-left: -6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .tb-presence .tb-pavi:first-child { margin-left: 0; }
+  .tb-presence .tb-spacer { flex: 1; }
+
+  /* Two-column body: transcript spine + sticky notes column */
+  .tb-body {
+    display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
+    gap: 0;
+    background:
+      linear-gradient(90deg, transparent 0, transparent calc(61.5% - 1px), #ece7d6 calc(61.5% - 1px), #ece7d6 calc(61.5% + 0px), transparent calc(61.5% + 0px)),
+      #fdfaf0;
+    background-size: 100% auto, auto;
+    padding: 22px 0 32px;
+  }
+  .tb-spine { padding: 0 26px 0 32px; position: relative; }
+  .tb-spine::before {
+    content: ''; position: absolute;
+    left: 50px; top: 8px; bottom: 0;
+    width: 2px; background: #ece7d6;
+  }
+  .tb-stickies { padding: 0 26px 0 26px; position: relative; }
+
+  /* Transcript row: every row aligns the spine item with any sticky notes for that row */
+  .tb-row { display: contents; }
+
+  /* Spine item shell */
+  .tb-item { position: relative; padding: 10px 0 14px 36px; }
+  .tb-item::before {
+    content: ''; position: absolute; left: 12px; top: 22px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #fff; border: 2px solid #c8b88f; z-index: 1;
+  }
+  .tb-item.host::before    { border-color: var(--w-jabree); background: var(--w-jabree); }
+  .tb-item.assistant::before { border-color: var(--doc-accent); background: #fdfaf0; }
+  .tb-item.tool::before    { border-color: var(--doc-accent); background: #fff7e6; }
+  .tb-item.gh::before      { border-color: #c8b88f; background: #faf3df; }
+  .tb-item.file::before    { border-color: var(--doc-accent); background: #fff7e6; }
+
+  .tb-item .tb-meta { font-family: var(--doc-mono); font-size: 11px; color: #807a6c; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tb-item .tb-who { font-weight: 600; }
+  .tb-item.host .tb-who { color: var(--w-jabree); }
+  .tb-item.assistant .tb-who { color: var(--doc-accent); }
+  .tb-item .tb-tag {
+    padding: 1px 7px; border-radius: 2em; background: #f4ede0; color: #5a5142;
+    font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .tb-item.host .tb-tag      { background: rgba(177,90,44,0.12); color: var(--w-jabree); }
+  .tb-item.assistant .tb-tag { background: rgba(177,90,44,0.10); color: var(--doc-accent); }
+  .tb-item.tool .tb-tag      { background: #fff7e6; color: #8c6a14; }
+  .tb-item.gh .tb-tag        { background: #faf3df; color: #5a5142; }
+
+  .tb-card {
+    background: #fff; border: 1px solid #ece7d6; border-radius: 6px;
+    padding: 12px 14px; box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+  }
+  .tb-item.host .tb-card {
+    background: #fffaef; border-color: #f0e4c4;
+    font-family: var(--doc-serif); font-size: 16.5px; line-height: 1.5;
+  }
+  .tb-item.host .tb-card .quote { color: #1d1c19; }
+  .tb-item.host .tb-card .quote::before { content: '\201C'; color: var(--w-jabree); margin-right: 2px; font-size: 22px; vertical-align: -3px; }
+  .tb-item.host .tb-card .quote::after { content: '\201D'; color: var(--w-jabree); margin-left: 2px; font-size: 22px; vertical-align: -3px; }
+
+  .tb-item.assistant .tb-card { background: #fffdf3; border-color: #f0e4c4; }
+  .tb-item.assistant .tb-card .prose { font-family: var(--doc-serif); font-size: 16px; line-height: 1.55; color: #1d1c19; }
+  .tb-item.assistant .tb-card .prose code { font-family: var(--doc-mono); font-size: 13px; background: #f4ede0; padding: 1px 5px; border-radius: 3px; }
+  .tb-item.assistant .tb-card .prose p { margin: 0 0 8px; }
+  .tb-item.assistant .tb-card .prose p:last-child { margin-bottom: 0; }
+
+  .tb-item.tool .tb-card { padding: 0; overflow: hidden; }
+  .tb-item.tool .tb-tool-h { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #faf3df; border-bottom: 1px solid #ece7d6; font-family: var(--doc-mono); font-size: 12px; }
+  .tb-item.tool .tb-tool-h .tb-tname { color: var(--doc-accent); font-weight: 600; }
+  .tb-item.tool .tb-tool-h .tb-tpath { color: #1d1c19; }
+  .tb-item.tool .tb-tool-h .tb-tstat { color: #807a6c; margin-left: auto; font-size: 11px; }
+  .tb-item.tool .tb-tool-body { padding: 0; font-family: var(--doc-mono); font-size: 11.5px; line-height: 1.65; }
+  .tb-item.tool .tb-tool-body .tb-dl { padding: 1px 14px; white-space: pre; }
+  .tb-item.tool .tb-tool-body .tb-dl.add { background: #f0f7e7; color: #36572a; }
+  .tb-item.tool .tb-tool-body .tb-dl.del { background: #fbe9e6; color: #7a221a; }
+  .tb-item.tool .tb-tool-body .tb-dl.ctx { color: #5a5142; }
+  .tb-item.tool .tb-tool-body .tb-bash { padding: 8px 14px; color: #1d1c19; }
+  .tb-item.tool .tb-tool-body .tb-bash .tb-prompt { color: var(--doc-accent); }
+  .tb-item.tool .tb-tool-body .tb-bash .tb-out { color: #5a5142; padding-top: 4px; }
+  .tb-item.tool .tb-expand { padding: 6px 14px; background: #fffdf3; border-top: 1px solid #ece7d6; color: #807a6c; font-size: 11px; cursor: pointer; }
+
+  .tb-item.gh .tb-card {
+    background: #faf3df; border-style: dashed; padding: 8px 12px;
+    font-family: var(--doc-mono); font-size: 12px; color: #5a5142;
+  }
+  .tb-item.gh .tb-card a { color: var(--doc-accent); }
+  .tb-item.gh .tb-card b { color: #1d1c19; }
+
+  /* Reaction strip */
+  .tb-react {
+    display: flex; align-items: center; gap: 6px; margin-top: 6px;
+    font-family: var(--doc-sans);
+  }
+  .tb-react .tb-r {
+    background: #fff; border: 1px solid #e0d6c2; border-radius: 2em;
+    padding: 1px 8px; font-size: 12px; color: #5a5142; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .tb-react .tb-r b { color: #1d1c19; font-weight: 600; }
+  .tb-react .tb-r:hover { background: #fff7e6; border-color: #e6c98a; }
+  .tb-react .tb-add {
+    background: transparent; border: 1px dashed #c8b88f; color: #a8a191;
+    border-radius: 2em; padding: 1px 8px; font-size: 12px; cursor: pointer;
+  }
+  .tb-react .tb-seen-by { margin-left: auto; font-family: var(--doc-mono); font-size: 10.5px; color: #a8a191; display: inline-flex; align-items: center; gap: 5px; }
+  .tb-react .tb-seen-by .tb-savi { width: 16px; height: 16px; border-radius: 50%; color: #fff; display: inline-grid; place-items: center; font-size: 9px; font-weight: 600; border: 1.5px solid #faf3df; margin-left: -4px; }
+  .tb-react .tb-seen-by .tb-savi:first-of-type { margin-left: 0; }
+
+  /* Right-column sticky notes */
+  .tb-stickies-col { padding-top: 4px; position: relative; }
+  .tb-sticky-row { padding: 10px 0 14px; min-height: 24px; position: relative; }
+  .tb-note {
+    position: relative; width: 100%; max-width: 280px;
+    padding: 11px 12px 10px;
+    background: #fff8c5; box-shadow: 0 4px 12px rgba(0,0,0,0.10), 0 1px 0 rgba(0,0,0,0.04);
+    font-family: var(--doc-sans); font-size: 13px; line-height: 1.45;
+    color: #1d1c19;
+    transform: rotate(-1.4deg);
+  }
+  .tb-note + .tb-note { margin-top: 10px; }
+  .tb-note.kavi   { background: #d9ead0; transform: rotate(1.6deg); }
+  .tb-note.mira   { background: #e7dcf4; transform: rotate(-2deg); }
+  .tb-note.alex   { background: #fde6c7; transform: rotate(0.8deg); }
+  .tb-note.jabree { background: #fad9b8; transform: rotate(-0.6deg); }
+  .tb-note .tb-nh { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-family: var(--doc-mono); font-size: 10.5px; color: #5a5142; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tb-note .tb-na { width: 17px; height: 17px; border-radius: 50%; color: #fff; display: inline-grid; place-items: center; font-size: 9.5px; font-weight: 700; }
+  .tb-note .tb-anchor { display: block; margin-top: 6px; font-family: var(--doc-mono); font-size: 10px; color: #807a6c; }
+  .tb-note .tb-reply { margin-top: 7px; padding-top: 7px; border-top: 1px dashed rgba(0,0,0,0.12); font-size: 12.5px; color: #5a5142; }
+  .tb-note .tb-reply .tb-rwho { font-family: var(--doc-mono); font-size: 10px; color: #807a6c; display: block; }
+
+  /* Leader line from sticky note back to spine */
+  .tb-note::before {
+    content: ''; position: absolute;
+    left: -34px; top: 22px; width: 32px; height: 2px;
+    border-top: 2px dashed currentColor;
+    opacity: 0.65;
+  }
+  .tb-note.kavi::before   { color: var(--w-kavi); }
+  .tb-note.mira::before   { color: var(--w-mira); }
+  .tb-note.alex::before   { color: var(--w-alex); }
+  .tb-note.jabree::before { color: var(--w-jabree); }
+
+  /* "drop a note" prompt cell */
+  .tb-drop {
+    border: 1.5px dashed #d9d4c2; border-radius: 6px;
+    padding: 7px 12px; color: #a8a191;
+    font-family: var(--doc-sans); font-size: 12.5px; font-style: italic;
+    background: rgba(255,255,255,0.4);
+    max-width: 280px;
+  }
+
+  /* Watcher cursor pin (rendered next to spine item to show "is here") */
+  .tb-here {
+    position: absolute; left: -84px; top: 18px;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 6px 1px 1px; border-radius: 2em;
+    background: #fff; border: 1px solid #e0d6c2;
+    font-family: var(--doc-mono); font-size: 10px; color: #5a5142;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .tb-here .tb-ha { width: 16px; height: 16px; border-radius: 50%; color: #fff; display: inline-grid; place-items: center; font-size: 9px; font-weight: 700; }
+
+  .tb-foot {
+    padding: 12px 18px; border-top: 1px solid #ece7d6;
+    background: #faf3df; font-family: var(--doc-mono); font-size: 11px; color: #807a6c;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .tb-foot .tb-foot-act { color: var(--doc-accent); border-bottom: 1px dashed currentColor; cursor: pointer; }
+
+  .doc-footer {
+    font-family: var(--doc-mono); font-size: 12px; color: var(--doc-muted);
+    border-top: 1px solid var(--doc-rule); padding-top: 14px; margin-top: 56px;
+  }
+
+  @media (max-width: 760px) {
+    .doc-shell { padding: 36px 18px 60px; }
+    h1.doc-title { font-size: 30px; }
+    .doc-tradeoffs { grid-template-columns: 1fr; }
+    .tb-body { grid-template-columns: 1fr; background: #fdfaf0; }
+    .tb-stickies { padding: 12px 16px 0; }
+    .tb-note::before { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="doc-shell">
+
+  <p class="doc-eyebrow">Design exploration v3 · 2026-05-07</p>
+  <h1 class="doc-title">Transcript board &mdash; sticky-note chat over the live conversation</h1>
+  <p class="doc-deck">
+    Round-table&rsquo;s transcript spine, but watcher chat is sticky notes (your favorite from whiteboard) and every transcript item gets reactions. The actual prompts, Claude responses, and tool calls are visible inline; sticky notes anchor to whichever item they're about via dashed leader lines.
+  </p>
+  <div class="doc-meta">
+    <span><b>Combines:</b> mockup 03 (round table) + mockup 02 (whiteboard)</span>
+    <span><b>GitHub:</b> still light refs only</span>
+    <span><b>Companion to:</b> <code>07-group-review.html</code></span>
+  </div>
+
+  <section class="doc-prose">
+    <p class="doc-h2-deck">Two columns. Spine on the left is the actual host&harr;Claude conversation as it happens; right column is the watcher chat as sticky notes, leader-lined back to whichever transcript item each note is about. Reactions live on the spine items. GitHub events sit quietly inline as dashed cards.</p>
+  </section>
+
+  <div class="doc-mockup-frame">
+    <div class="doc-mockup-chrome">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="url">https://misty-llama-9342.trycloudflare.com/ui</span>
+      <span>transcript board &middot; t34 &middot; 4 watching</span>
+    </div>
+    <div class="doc-mockup-body">
+
+      <!-- GH activity strip -->
+      <div class="tb-gh">
+        <span class="tb-label">this session</span>
+        <span class="tb-evt">&#x1F33F; branch <a class="tb-link" href="#"><b>feat/transcript-tailer</b></a> &middot; <span class="tb-time">14m ago</span></span>
+        <span class="tb-evt">&#x270E; 4 commits, latest <b>d2f1c08</b></span>
+        <span class="tb-evt live">&#x21AA; <a class="tb-link" href="#">PR #142</a> opened &middot; <em>view on GitHub</em></span>
+        <span class="tb-spacer"></span>
+        <span class="tb-time">jabreeflor/better-together</span>
+      </div>
+
+      <!-- presence bar -->
+      <div class="tb-presence">
+        <span class="tb-room">misty-llama-9342</span>
+        <span>&middot; 4 in the room</span>
+        <span class="tb-pavi-row">
+          <span class="tb-pavi" style="background:var(--w-jabree)" title="jabree (host)">J</span>
+          <span class="tb-pavi" style="background:var(--w-kavi)" title="kavi">K</span>
+          <span class="tb-pavi" style="background:var(--w-mira)" title="mira">M</span>
+          <span class="tb-pavi" style="background:var(--w-alex)" title="alex">A</span>
+        </span>
+        <span class="tb-spacer"></span>
+        <span>kavi at t31 &middot; mira at t34 &middot; alex idle 4m</span>
+      </div>
+
+      <!-- ===================== TRANSCRIPT + STICKY GRID ===================== -->
+      <div class="tb-body">
+
+        <!-- ============== row 1: host prompt at t26 ============== -->
+        <div class="tb-spine">
+          <div class="tb-item host">
+            <div class="tb-meta">
+              <span class="tb-who">jabree (host)</span>
+              <span class="tb-tag">prompt</span>
+              <span>t26 &middot; 11:41:02</span>
+            </div>
+            <div class="tb-card">
+              <div class="quote">the per-event hooks miss <code>/resume</code> into a different jsonl. let&rsquo;s tail the session jsonl directly and emit events from there.</div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F44D; <b>2</b></span>
+              <span class="tb-r">&#x1F440; <b>1</b></span>
+              <span class="tb-add">+ react</span>
+              <span class="tb-seen-by">
+                <span class="tb-savi" style="background:var(--w-kavi)">K</span>
+                <span class="tb-savi" style="background:var(--w-mira)">M</span>
+                <span class="tb-savi" style="background:var(--w-alex)">A</span>
+                seen by 3
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note kavi">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-kavi)">K</span> kavi &middot; t26.5</div>
+              <div>nice catch &mdash; was about to ask the same. tailing avoids the entire hook-ordering mess.</div>
+              <span class="tb-anchor">&#x21B3; t26 &middot; jabree&rsquo;s prompt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============== row 2: assistant response t27 ============== -->
+        <div class="tb-spine">
+          <div class="tb-item assistant">
+            <div class="tb-meta">
+              <span class="tb-who">claude</span>
+              <span class="tb-tag">response</span>
+              <span>t27 &middot; 11:41:14</span>
+            </div>
+            <div class="tb-card">
+              <div class="prose">
+                <p>Right idea. The JSONL tailer can also handle log-rotation if we watch for <code>inode</code> change &mdash; that covers the <code>/resume</code> case where Claude Code starts writing a different file under <code>~/.claude/projects/&lt;cwd&gt;/&lt;sid&gt;.jsonl</code>.</p>
+                <p>Plan: read <code>plugin/server/server.js</code> first to see how the relay shapes events, then add <code>plugin/server/transcript-tailer.js</code> as a sibling that POSTs into the same endpoint.</p>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F525; <b>3</b></span>
+              <span class="tb-r">&#x1F44D; <b>1</b></span>
+              <span class="tb-add">+ react</span>
+              <span class="tb-seen-by">
+                <span class="tb-savi" style="background:var(--w-kavi)">K</span>
+                <span class="tb-savi" style="background:var(--w-mira)">M</span>
+                <span class="tb-savi" style="background:var(--w-alex)">A</span>
+                seen by 3
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note mira">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-mira)">M</span> mira &middot; t27.3</div>
+              <div>have we actually tested rotation? remember the macOS APFS atomic-rename thing &mdash; same path, new inode. should work for jsonl but worth a real test.</div>
+              <span class="tb-anchor">&#x21B3; t27 &middot; claude</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============== row 3: tool call Read ============== -->
+        <div class="tb-spine">
+          <div class="tb-item tool">
+            <div class="tb-meta">
+              <span class="tb-who" style="color:var(--doc-accent);">claude</span>
+              <span class="tb-tag">tool: Read</span>
+              <span>t27.1 &middot; 11:41:18</span>
+            </div>
+            <div class="tb-card">
+              <div class="tb-tool-h">
+                <span class="tb-tname">Read</span>
+                <span class="tb-tpath">plugin/server/server.js</span>
+                <span class="tb-tstat">lines 1&ndash;50</span>
+              </div>
+              <div class="tb-expand">&#x21F3; expand 50 lines</div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F440; <b>2</b></span>
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- ============== row 4: assistant prose continuing t28 ============== -->
+        <div class="tb-spine">
+          <div class="tb-item assistant">
+            <div class="tb-meta">
+              <span class="tb-who">claude</span>
+              <span class="tb-tag">response</span>
+              <span>t28 &middot; 11:41:42</span>
+            </div>
+            <div class="tb-card">
+              <div class="prose">
+                <p>OK &mdash; the relay just forwards POSTs from <code>bt-relay</code>. I&rsquo;ll add <code>transcript-tailer.js</code> that watches the active session file and POSTs to <code>/relay</code> in the same shape, so nothing downstream changes.</p>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F44D; <b>2</b></span>
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- ============== row 5: tool call Write — file change ============== -->
+        <div class="tb-spine">
+          <div class="tb-item tool">
+            <div class="tb-meta">
+              <span class="tb-who" style="color:var(--doc-accent);">claude</span>
+              <span class="tb-tag">tool: Write</span>
+              <span>t28.1 &middot; 11:41:48</span>
+            </div>
+            <div class="tb-card">
+              <div class="tb-tool-h">
+                <span class="tb-tname">Write</span>
+                <span class="tb-tpath">plugin/server/transcript-tailer.js</span>
+                <span class="tb-tstat">+218 &middot; new file</span>
+              </div>
+              <div class="tb-tool-body">
+                <div class="tb-dl add">+ const fs = require('fs');</div>
+                <div class="tb-dl add">+ const path = require('path');</div>
+                <div class="tb-dl add">+ </div>
+                <div class="tb-dl add">+ function tailJsonl(filepath, onEntry) {</div>
+                <div class="tb-dl add">+   let inode = null, offset = 0;</div>
+                <div class="tb-dl add">+   const tick = () =&gt; {</div>
+                <div class="tb-dl add">+     const stat = fs.statSync(filepath);</div>
+                <div class="tb-dl add">+     if (stat.ino !== inode) { inode = stat.ino; offset = 0; }</div>
+              </div>
+              <div class="tb-expand">&#x21F3; expand 211 more lines</div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F389; <b>2</b></span>
+              <span class="tb-r">&#x1F440; <b>4</b></span>
+              <span class="tb-r">&#x1F525; <b>1</b></span>
+              <span class="tb-add">+ react</span>
+              <span class="tb-seen-by">
+                <span class="tb-savi" style="background:var(--w-kavi)">K</span>
+                <span class="tb-savi" style="background:var(--w-mira)">M</span>
+                <span class="tb-savi" style="background:var(--w-alex)">A</span>
+                <span class="tb-savi" style="background:var(--w-jabree)">J</span>
+                seen by 4
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note alex">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-alex)">A</span> alex &middot; t28.4</div>
+              <div>kavi was right last session &mdash; <code>inode</code> change is the cleanest signal. nice that this also covers truncation.</div>
+              <span class="tb-anchor">&#x21B3; t28.1 &middot; transcript-tailer.js</span>
+              <div class="tb-reply">
+                <span class="tb-rwho">jabree replied:</span>
+                yeah, i&rsquo;m starting to trust this pattern. will use it for the watch-context tail too.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============== row 6: assistant t29 ============== -->
+        <div class="tb-spine">
+          <div class="tb-item assistant">
+            <div class="tb-meta">
+              <span class="tb-who">claude</span>
+              <span class="tb-tag">response</span>
+              <span>t29 &middot; 11:42:12</span>
+            </div>
+            <div class="tb-card">
+              <div class="prose">
+                <p>Wired the tailer into <code>server.js</code>: starts at boot, stops on SIGTERM. Now testing that <code>/resume</code> into a fresh jsonl is picked up within the 5s polling tick.</p>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note mira">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-mira)">M</span> mira &middot; t29.2</div>
+              <div>5s feels long for the resume case &mdash; can we drop to 2s under churn? not blocking.</div>
+              <span class="tb-anchor">&#x21B3; t29 &middot; claude</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============== row 7: GH event — branch created ============== -->
+        <div class="tb-spine">
+          <div class="tb-item gh">
+            <div class="tb-meta"><span class="tb-tag">github</span><span>t29.5 &middot; 11:42:38</span></div>
+            <div class="tb-card">&#x1F33F; branch <b>feat/transcript-tailer</b> created from <b>main</b> &middot; <a href="#">view on GitHub</a></div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- ============== row 8: tool Bash + currently-here cursor ============== -->
+        <div class="tb-spine" style="position:relative;">
+          <div class="tb-here" title="kavi is here"><span class="tb-ha" style="background:var(--w-kavi)">K</span> here</div>
+          <div class="tb-item tool">
+            <div class="tb-meta">
+              <span class="tb-who" style="color:var(--doc-accent);">claude</span>
+              <span class="tb-tag">tool: Bash</span>
+              <span>t31 &middot; 11:43:02</span>
+            </div>
+            <div class="tb-card">
+              <div class="tb-tool-h">
+                <span class="tb-tname">Bash</span>
+                <span class="tb-tpath">node plugin/server/server.js &amp;</span>
+                <span class="tb-tstat">exit 0 &middot; 1.4s</span>
+              </div>
+              <div class="tb-tool-body">
+                <div class="tb-bash">
+                  <div><span class="tb-prompt">$</span> node plugin/server/server.js &amp;</div>
+                  <div class="tb-out">[bt] server listening on 0.0.0.0:8421</div>
+                  <div class="tb-out">[bt] tailer watching ~/.claude/projects/-Users-jabree.../sid-7a91f.jsonl</div>
+                  <div class="tb-out">[bt] cloudflared tunnel: https://misty-llama-9342.trycloudflare.com</div>
+                </div>
+              </div>
+            </div>
+            <div class="tb-react">
+              <span class="tb-r">&#x1F680; <b>3</b></span>
+              <span class="tb-r">&#x1F440; <b>2</b></span>
+              <span class="tb-add">+ react</span>
+            </div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note kavi">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-kavi)">K</span> kavi &middot; t31.4</div>
+              <div>cleanup story for cloudflared on SIGTERM? i remember a stranded process from last time.</div>
+              <span class="tb-anchor">&#x21B3; t31 &middot; bash output</span>
+            </div>
+            <div class="tb-note jabree">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-jabree)">J</span> jabree &middot; t31.5</div>
+              <div>good catch. SessionEnd hook handles it but i should add a fallback PID-file kill for crash cases.</div>
+              <span class="tb-anchor">&#x21B3; reply to kavi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============== row 9: GH commit ============== -->
+        <div class="tb-spine">
+          <div class="tb-item gh">
+            <div class="tb-meta"><span class="tb-tag">github</span><span>t33 &middot; 11:44:21</span></div>
+            <div class="tb-card">&#x270E; commit <b>d2f1c08</b> pushed: <em>"lobby: tail transcript JSONL instead of relying on per-event hooks"</em> &middot; <a href="#">view diff</a></div>
+          </div>
+        </div>
+        <div class="tb-stickies"><div class="tb-sticky-row"></div></div>
+
+        <!-- ============== row 10: GH PR opened (live) + currently-here cursor ============== -->
+        <div class="tb-spine" style="position:relative;">
+          <div class="tb-here" title="mira is here"><span class="tb-ha" style="background:var(--w-mira)">M</span> here</div>
+          <div class="tb-item gh">
+            <div class="tb-meta"><span class="tb-tag">github</span><span>t34 &middot; 11:44:29 &middot; <span style="color:var(--doc-accent);">just now</span></span></div>
+            <div class="tb-card">&#x21AA; PR <b>#142</b> opened by <b>jabreeflor</b> &rarr; <a href="#">jabreeflor/better-together#142</a> &middot; <em>"lobby: tail transcript JSONL&hellip;"</em></div>
+          </div>
+        </div>
+        <div class="tb-stickies">
+          <div class="tb-sticky-row">
+            <div class="tb-note mira">
+              <div class="tb-nh"><span class="tb-na" style="background:var(--w-mira)">M</span> mira &middot; just now</div>
+              <div>opening to read it on github real quick. back in 2 &#x1F4D6;</div>
+              <span class="tb-anchor">&#x21B3; t34 &middot; PR #142</span>
+            </div>
+            <div class="tb-drop">drop a note on this turn &mdash; press <b>n</b> or click&hellip;</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tb-foot">
+        <span>11 turns &middot; 5 sticky notes &middot; 14 reactions &middot; 4 watchers</span>
+        <span class="tb-spacer" style="flex:1;"></span>
+        <span class="tb-foot-act">drop a note (n)</span>
+        <span class="tb-foot-act">react (r)</span>
+        <span class="tb-foot-act">jump to live</span>
+      </div>
+    </div>
+  </div>
+  <p class="doc-mockup-caption">
+    Spine on the left holds the actual transcript &mdash; host prompts (warm cards with serif quote marks), Claude responses (prose with inline <code>code</code>), tool calls (Read / Write / Bash with collapsible bodies), and GitHub events (quiet dashed cards). Right column is sticky-note chat; each note tilts a degree or two, gets the author&rsquo;s color, and connects back to its anchor turn via a dashed leader line. Reactions stack under every transcript item. The "K&nbsp;here" / "M&nbsp;here" pins float next to whichever turn each watcher is currently looking at.
+  </p>
+
+  <div class="doc-tradeoffs">
+    <div class="pros">
+      <h5>Why this works</h5>
+      <ul>
+        <li>Every type of thing &mdash; prompt, response, tool call, file edit, GH event &mdash; lives in one chronological spine, so a watcher who joins late just scrolls up</li>
+        <li>Sticky notes feel social (offset, color-coded, leader-lined) without overwhelming the actual transcript</li>
+        <li>Reactions are zero-friction <em>and</em> persistent &mdash; "this is the moment we all approved" is recoverable later</li>
+        <li>"Seen-by" ribbons quietly answer "did anyone notice?" without needing read-receipts UX</li>
+        <li>Light GH refs stay light: branch / commit / PR are dashed-card events, not their own surface</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h5>Watch out for</h5>
+      <ul>
+        <li>Long sessions = long scroll &mdash; needs a "filter to file changes only" toggle and a turn-id jumper</li>
+        <li>Sticky notes need a flat search/list view too, since stickies aren&rsquo;t scannable past ~30 of them</li>
+        <li>Live cursor position over Cloudflare quick-tunnel will lag 200&ndash;500ms &mdash; the pin says "here" not "exactly here"</li>
+        <li>Author colors max out at ~6 watchers before they collide with each other or with state colors</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="doc-prose" style="margin-top:48px;">
+    <h2 style="font-size:22px; font-weight:500; letter-spacing:-0.2px; margin:0 0 8px;">What's new vs. mockup 03 (round table)</h2>
+    <p>Round-table treated comments as inline replies under their anchor item. This version pulls them out into a parallel sticky-note column, keeps them visually distinct from the transcript, and adds reactions on every spine item. Tool calls now show real Claude Code tool shapes (<code>Read</code>, <code>Write</code>, <code>Bash</code>) with their typical inputs/outputs, so the actual conversation is legible rather than abstracted.</p>
+    <h2 style="font-size:22px; font-weight:500; letter-spacing:-0.2px; margin:24px 0 8px;">What's new vs. mockup 02 (whiteboard)</h2>
+    <p>Whiteboard floated stickies on a 2D canvas around a single diff. This version anchors them to a vertical timeline so the spine is always navigable. Reactions and "seen-by" ribbons replace the line-level emoji clusters &mdash; same affordance, less density.</p>
+  </section>
+
+  <p class="doc-footer">
+    Generated 2026-05-07 &middot; <code>design-pocs/08-transcript-board.html</code> &middot;
+    Iteration on <code>07-group-review.html</code> &middot;
+    Combines round-table chronology with whiteboard sticky-note chat &amp; reactions.
+  </p>
+
+</div>
+</body>
+</html>

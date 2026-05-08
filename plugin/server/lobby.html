@@ -4,458 +4,546 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Better Together</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23cf222e' d='M3 9c0-1 1-2 2-2h3v2H5v7c0 1 1 2 2 2h3v2H7c-2 0-4-2-4-4z'/><path fill='%23cf222e' d='M21 9c0-1-1-2-2-2h-3v2h3v7c0 1-1 2-2 2h-3v2h3c2 0 4-2 4-4z'/><path fill='%23ff7a00' d='M12 17.5c-2.5-2-5-3.5-5-6 0-1.5 1-2.5 2.5-2.5 1 0 1.8.5 2.5 1.5.7-1 1.5-1.5 2.5-1.5 1.5 0 2.5 1 2.5 2.5 0 2.5-2.5 4-5 6z'/></svg>" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ff8a4c' d='M3 9c0-1 1-2 2-2h3v2H5v7c0 1 1 2 2 2h3v2H7c-2 0-4-2-4-4z'/><path fill='%23ff8a4c' d='M21 9c0-1-1-2-2-2h-3v2h3v7c0 1-1 2-2 2h-3v2h3c2 0 4-2 4-4z'/><path fill='%23ff5d6c' d='M12 17.5c-2.5-2-5-3.5-5-6 0-1.5 1-2.5 2.5-2.5 1 0 1.8.5 2.5 1.5.7-1 1.5-1.5 2.5-1.5 1.5 0 2.5 1 2.5 2.5 0 2.5-2.5 4-5 6z'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg-canvas: #f6f8fa;
-    --bg-default: #ffffff;
-    --bg-subtle: #f6f8fa;
-    --bg-muted: #eaeef2;
-    --bg-emphasis: #ddf4ff;
-    --border-default: #d0d7de;
-    --border-muted: #d8dee4;
-    --border-subtle: #eaeef2;
-    --fg-default: #1f2328;
-    --fg-muted: #59636e;
-    --fg-subtle: #6e7781;
-    --fg-onEmphasis: #ffffff;
-    --accent-fg: #0969da;
-    --accent-emphasis: #0969da;
-    --accent-subtle: #ddf4ff;
-    --success-fg: #1a7f37;
-    --success-emphasis: #1f883d;
-    --success-subtle: #dafbe1;
-    --danger-fg: #cf222e;
-    --danger-emphasis: #cf222e;
-    --danger-subtle: #ffebe9;
-    --attention-fg: #9a6700;
-    --attention-emphasis: #bf8700;
-    --attention-subtle: #fff8c5;
-    --done-fg: #8250df;
-    --done-subtle: #fbefff;
-    --neutral-emphasis: #6e7781;
-    --neutral-subtle: #eaeef2;
-    --diff-add-bg: #dafbe1;
-    --diff-add-text: #1f2328;
-    --diff-add-gutter: #ccffd8;
-    --diff-context-bg: #ffffff;
-    --shadow-small: 0 1px 0 rgba(31,35,40,0.04);
-    --shadow-medium: 0 3px 6px rgba(140,149,159,0.15);
-    --radius: 6px;
-    --mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --bg: #09090b;
+    --bg-elev: #111114;
+    --bg-card: #141418;
+    --bg-card-2: #18181c;
+    --fg: #fafafa;
+    --fg-muted: #a1a1aa;
+    --fg-dim: #71717a;
+    --fg-faint: #52525b;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.12);
+    --border-soft: rgba(255,255,255,0.05);
+    --accent-warm: #ff8a4c;
+    --accent-danger: #ff5d6c;
+    --w-jabree: #ff8a4c;
+    --w-kavi:   #6dcca3;
+    --w-mira:   #b89cf0;
+    --w-alex:   #f0c074;
+    --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
-  * { box-sizing: border-box; }
-  [hidden] { display: none !important; }
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--bg-canvas); color: var(--fg-default);
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body {
+    background: var(--bg); color: var(--fg);
     font-family: var(--sans); font-size: 14px; line-height: 1.5;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh; overflow-x: hidden;
   }
-  a { color: var(--accent-fg); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none; opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 256px 256px;
+  }
+  a { color: inherit; text-decoration: none; }
   button { font-family: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
 
-  .topbar { background: #1f2328; color: #ffffff; height: 56px; display: flex; align-items: center; padding: 0 24px; gap: 16px; border-bottom: 1px solid #1f2328; }
-  .topbar .mark { width: 28px; height: 28px; display: grid; place-items: center; color: #fff; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  /* Topbar */
+  .topbar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 28px; border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .topbar .mark { width: 28px; height: 28px; display: grid; place-items: center; color: var(--accent-warm); }
   .topbar .mark svg { width: 28px; height: 28px; }
-  .topbar .crumbs { display: flex; align-items: center; gap: 6px; font-size: 14px; }
-  .topbar .crumbs a { color: #ffffff; }
-  .topbar .crumbs .sep { color: #8b949e; }
+  .topbar .crumbs { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--fg-muted); }
+  .topbar .crumbs .brand { color: var(--fg); font-weight: 500; }
+  .topbar .crumbs .sep { color: var(--fg-faint); }
   .topbar .grow { flex: 1; }
-  .topbar .avatar-me {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: linear-gradient(135deg,#1a7f37,#054da7); color: #fff;
-    display: grid; place-items: center; font-weight: 600; font-size: 12px;
-  }
-  .topbar .conn-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    border: 1px solid #30363d; padding: 3px 8px; border-radius: 999px;
-    font-size: 12px; color: #d1d7e0;
-  }
-  .topbar .conn-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #1f883d; }
-  .topbar .conn-pill.disconnected .dot { background: #cf222e; }
-  .topbar .conn-pill.disconnected { color: #ffd7d5; border-color: #cf222e; }
-  .topbar .host-pill {
-    display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-    background: linear-gradient(135deg,#ff7a00,#cf222e); color: #fff;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
-  }
-  .topbar .btn-danger {
-    background: #cf222e; color: #fff; border-color: #cf222e;
-  }
-  .topbar .btn-danger:hover { background: #b81e29; }
-  .reviewer-row .kick-btn {
-    display: none; margin-left: 6px;
-    background: var(--bg-default); border: 1px solid var(--border-default);
-    color: var(--danger-fg); padding: 2px 8px; border-radius: 4px;
-    font-size: 11px; font-weight: 500; cursor: pointer;
-  }
-  .reviewer-row .kick-btn:hover { background: var(--danger-subtle); border-color: var(--danger-fg); }
-  body.is-host .reviewer-row:not(.is-self) .kick-btn { display: inline-flex; }
 
-  .subhead { background: var(--bg-default); border-bottom: 1px solid var(--border-default); padding: 16px 32px 0; }
-  .repo-line { display: flex; align-items: center; gap: 8px; color: var(--fg-default); font-size: 14px; margin-bottom: 8px; }
-  .repo-line .repo-icon { color: var(--fg-muted); }
-  .repo-line .repo { color: var(--accent-fg); font-weight: 600; }
-  .repo-line .visibility {
-    border: 1px solid var(--border-default); border-radius: 2em; padding: 0 7px;
-    font-size: 12px; color: var(--fg-muted); line-height: 18px; margin-left: 4px;
+  .conn-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    font-family: var(--mono); font-size: 11px; color: var(--fg-muted);
+    transition: all 0.25s;
   }
-  .pr-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
-  .pr-title { font-size: 26px; font-weight: 400; color: var(--fg-default); line-height: 1.25; letter-spacing: -0.2px; }
-  .pr-actions { display: flex; gap: 8px; }
+  .conn-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #6dcca3; box-shadow: 0 0 8px rgba(109,204,163,0.5); }
+  .conn-pill.disconnected { color: var(--accent-danger); border-color: rgba(255,93,108,0.3); }
+  .conn-pill.disconnected .dot { background: var(--accent-danger); box-shadow: 0 0 8px rgba(255,93,108,0.5); animation: pulse 1.4s ease-in-out infinite; }
+
+  .host-pill {
+    display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px;
+    background: rgba(255,138,76,0.10); border: 1px solid rgba(255,138,76,0.28);
+    color: var(--accent-warm);
+    font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  }
+
   .btn {
     display: inline-flex; align-items: center; gap: 6px;
-    background: var(--bg-default); border: 1px solid rgba(31,35,40,0.15);
-    color: var(--fg-default); padding: 5px 12px; border-radius: var(--radius);
-    font-size: 12px; font-weight: 500; box-shadow: var(--shadow-small);
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    color: var(--fg); padding: 5px 12px; border-radius: 999px;
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    transition: all 0.25s;
   }
-  .btn:hover { background: var(--bg-muted); }
-  .btn:disabled { opacity: .5; cursor: not-allowed; }
-  .btn-primary { background: var(--success-emphasis); color: #fff; border-color: rgba(31,35,40,0.15); }
-  .btn-primary:hover { background: #1c8139; }
-  .pr-meta-row { display: flex; align-items: center; gap: 8px; padding-bottom: 16px; color: var(--fg-muted); font-size: 14px; flex-wrap: wrap; }
-  .state-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--success-emphasis); color: #fff;
-    padding: 5px 12px; border-radius: 2em; font-size: 14px; font-weight: 500; line-height: 1;
+  .btn:hover { background: rgba(255,255,255,0.08); border-color: var(--border-strong); transform: scale(1.03); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--fg); color: var(--bg); border-color: transparent; font-weight: 600; }
+  .btn-primary:hover { background: var(--fg); box-shadow: 0 0 24px rgba(255,255,255,0.10); }
+  .btn-danger { background: rgba(255,93,108,0.10); border-color: rgba(255,93,108,0.30); color: var(--accent-danger); }
+  .btn-danger:hover { background: rgba(255,93,108,0.18); border-color: rgba(255,93,108,0.50); }
+
+  .avatar-me {
+    width: 28px; height: 28px; border-radius: 999px;
+    color: var(--bg); display: grid; place-items: center;
+    font-family: var(--sans); font-weight: 600; font-size: 12px;
+    background: var(--w-jabree);
   }
-  .state-pill.closed { background: var(--neutral-emphasis); }
-  .state-pill .live-dot {
-    width: 8px; height: 8px; border-radius: 50%; background: #fff;
-    box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
-    animation: livepulse 2s ease-in-out infinite;
+  body:not(.is-host) .avatar-me { background: var(--w-mira); }
+
+  /* Presence + view mode bar */
+  .presence-bar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 28px; border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    font-family: var(--mono); font-size: 11.5px; color: var(--fg-dim);
   }
-  @keyframes livepulse {
-    0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
-    70%  { box-shadow: 0 0 0 6px rgba(255,255,255,0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  .presence-bar .room { color: var(--accent-warm); font-weight: 500; letter-spacing: 0.04em; }
+  .presence-bar .pavi-row { display: inline-flex; }
+  .presence-bar .pavi {
+    width: 26px; height: 26px; border-radius: 999px; color: var(--bg);
+    display: inline-grid; place-items: center;
+    font-size: 11px; font-weight: 600; font-family: var(--sans);
+    border: 2px solid var(--bg); margin-left: -7px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.3);
+    cursor: default; position: relative;
   }
-  .pr-meta-row .meta-text strong { color: var(--fg-default); font-weight: 600; }
-  .pr-meta-row .room-url {
-    font-family: var(--mono); font-size: 12.5px; color: var(--accent-fg);
-    background: var(--accent-subtle); padding: 2px 6px; border-radius: 4px;
-  }
+  .presence-bar .pavi:first-child { margin-left: 0; }
+  .presence-bar .pavi.is-self { outline: 2px solid var(--fg); outline-offset: 1px; }
+  .presence-bar .pavi-empty { color: var(--fg-faint); font-style: italic; }
+  .presence-bar .grow { flex: 1; }
+
   .view-mode-bar {
-    display: flex; gap: 4px; padding: 4px 0 12px; align-items: center;
-    border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 12px 28px; border-bottom: 1px solid var(--border);
+    background: var(--bg);
   }
   .view-mode-bar .vm-label {
-    font-size: 12px; color: var(--fg-muted); margin-right: 8px;
-    text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+    font-family: var(--mono); font-size: 10px; color: var(--fg-faint);
+    letter-spacing: 0.12em; text-transform: uppercase; margin-right: 6px;
   }
   .view-mode-bar .vm-btn {
-    background: var(--bg-default); border: 1px solid var(--border-default);
-    color: var(--fg-default); padding: 4px 10px; border-radius: var(--radius);
-    font-size: 12px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: transparent; border: 1px solid var(--border); color: var(--fg-muted);
+    padding: 4px 12px; border-radius: 999px;
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    transition: all 0.25s;
   }
-  .view-mode-bar .vm-btn:hover:not(.active) { background: var(--bg-muted); }
+  .view-mode-bar .vm-btn .vm-count {
+    font-family: var(--mono); font-size: 10.5px; color: var(--fg-faint);
+    background: rgba(255,255,255,0.04); padding: 0 6px; border-radius: 999px;
+    min-width: 18px; text-align: center;
+  }
+  .view-mode-bar .vm-btn:hover { color: var(--fg); border-color: var(--border-strong); }
   .view-mode-bar .vm-btn.active {
-    background: var(--accent-emphasis); color: #fff; border-color: var(--accent-emphasis);
-    cursor: default;
+    background: rgba(255,255,255,0.06); border-color: var(--border-strong);
+    color: var(--fg);
   }
-  .view-mode-bar .vm-count {
-    margin-left: 4px; padding: 0 5px; border-radius: 10px; font-size: 11px;
-    background: var(--bg-muted); color: var(--fg-muted); display: inline-block; min-width: 16px; text-align: center;
-  }
-  .view-mode-bar .vm-btn.active .vm-count { background: rgba(255,255,255,0.2); color: #fff; }
+  .view-mode-bar .vm-btn.active .vm-count { color: var(--fg); background: rgba(255,255,255,0.08); }
+  .view-mode-bar .grow { flex: 1; }
 
-  /* per-mode visibility */
-  .timeline[data-mode="conv"] .turn[data-kind-class="tool"],
-  .timeline[data-mode="conv"] .turn[data-kind-class="perm"] { display: none; }
-  .timeline[data-mode="tools"] .turn[data-kind-class="user"],
-  .timeline[data-mode="tools"] .turn[data-kind-class="assistant"] { display: none; }
-
-  /* compact: collapse tool bodies until expanded */
-  .timeline[data-mode="compact"] .turn[data-kind-class="tool"]:not(.expanded) .card-body { display: none; }
-  .timeline[data-mode="compact"] .turn[data-kind-class="tool"]:not(.expanded) .card-head { padding-bottom: 8px; }
-  .compact-caret {
-    display: none; cursor: pointer; user-select: none;
-    font-size: 11px; padding: 2px 8px; border-radius: 4px;
-    color: var(--fg-muted); background: var(--bg-muted); margin-left: 6px;
-    transition: transform 120ms ease;
+  /* Two-column body grid — each .row uses display:contents so its spine-cell + sticky-cell
+     become direct grid children and auto-rows align them vertically. */
+  .layout {
+    display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
+    gap: 0; padding: 24px 0 32px; position: relative; min-height: 60vh;
   }
-  .compact-caret:hover { background: var(--border-muted); color: var(--fg-default); }
-  .timeline[data-mode="compact"] .turn[data-kind-class="tool"] .compact-caret { display: inline-flex; align-items: center; }
+  .layout::before {
+    content: ''; position: absolute;
+    left: 61.5%; top: 0; bottom: 0; width: 1px;
+    background: var(--border);
+  }
+  /* Vertical spine line in the left column */
+  .layout::after {
+    content: ''; position: absolute;
+    left: 52px; top: 36px; bottom: 60px; width: 1px;
+    background: var(--border);
+  }
+  .row { display: contents; }
+  .row > .spine-cell { padding: 0 28px 0 36px; min-width: 0; }
+  .row > .sticky-cell { padding: 0 28px 0 28px; min-height: 24px; min-width: 0; }
+
+  /* Hide-by-mode logic */
+  .layout[data-mode="conv"]    .row.kind-tool > .spine-cell,
+  .layout[data-mode="conv"]    .row.kind-tool > .sticky-cell,
+  .layout[data-mode="conv"]    .row.kind-perm > .spine-cell,
+  .layout[data-mode="conv"]    .row.kind-perm > .sticky-cell { display: none; }
+  .layout[data-mode="tools"]   .row.kind-user > .spine-cell,
+  .layout[data-mode="tools"]   .row.kind-user > .sticky-cell,
+  .layout[data-mode="tools"]   .row.kind-assistant > .spine-cell,
+  .layout[data-mode="tools"]   .row.kind-assistant > .sticky-cell { display: none; }
+  .layout[data-mode="compact"] .turn[data-kind-class="tool"]:not(.expanded) .card-body { display: none; }
+  .layout[data-mode="compact"] .turn[data-kind-class="tool"]:not(.expanded) .card-head { padding-bottom: 8px; }
+  .compact-caret { display: none; }
+  .layout[data-mode="compact"] .turn[data-kind-class="tool"] .compact-caret {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    background: transparent; border: 1px solid var(--border); border-radius: 999px;
+    padding: 2px 8px; transition: color 0.25s;
+  }
+  .layout[data-mode="compact"] .turn[data-kind-class="tool"] .compact-caret:hover { color: var(--fg); }
   .turn[data-kind-class="tool"].expanded .compact-caret::before { content: "▾ collapse"; }
   .turn[data-kind-class="tool"]:not(.expanded) .compact-caret::before { content: "▸ expand"; }
 
-  .tabs { display: flex; gap: 0; margin-top: 4px; list-style: none; padding: 0; align-items: center; }
-  .tab {
-    display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
-    margin-bottom: -1px; border: 1px solid transparent;
-    border-radius: var(--radius) var(--radius) 0 0; color: var(--fg-default);
-    font-size: 14px; font-weight: 500; cursor: pointer; background: transparent;
+  /* Spine items */
+  .turn { position: relative; padding: 12px 0 16px 38px; opacity: 0; animation: fade-in 0.4s ease-out forwards; }
+  .turn::before {
+    content: ''; position: absolute; left: 16px; top: 24px;
+    width: 12px; height: 12px; border-radius: 999px;
+    background: var(--bg); border: 2px solid var(--border-strong); z-index: 1;
+    box-shadow: 0 0 0 4px var(--bg);
   }
-  .tab.active { background: var(--bg-default); border: 1px solid var(--border-default); border-bottom-color: var(--bg-default); font-weight: 600; }
-  .tab .count {
-    background: var(--neutral-subtle); color: var(--fg-default); font-size: 12px; font-weight: 500;
-    padding: 0 6px; border-radius: 2em; min-width: 20px; text-align: center; line-height: 18px;
+  .turn[data-kind-class="user"]::before {
+    background: var(--w-jabree); border-color: var(--w-jabree);
+    box-shadow: 0 0 0 4px var(--bg), 0 0 14px rgba(255,138,76,0.35);
   }
-  .tab.active .count { background: var(--bg-muted); }
+  .turn[data-kind-class="assistant"]::before {
+    background: var(--bg); border-color: var(--fg);
+    box-shadow: 0 0 0 4px var(--bg), 0 0 12px rgba(255,255,255,0.15);
+  }
+  .turn[data-kind-class="tool"]::before { background: var(--bg-card); border-color: var(--fg-muted); }
+  .turn[data-kind-class="perm"]::before { background: var(--accent-danger); border-color: var(--accent-danger); }
 
-  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 296px; gap: 24px; padding: 24px 32px 80px; max-width: 1408px; margin: 0 auto; }
-  .timeline { position: relative; display: flex; flex-direction: column; gap: 16px; }
-  .timeline::before { display: none; }
-
-  .empty-state {
-    margin-left: 56px; padding: 32px;
-    border: 1px dashed var(--border-default); border-radius: var(--radius);
-    background: var(--bg-default); color: var(--fg-muted);
-    text-align: center; font-size: 14px;
-  }
-  .empty-state strong { color: var(--fg-default); display: block; margin-bottom: 6px; font-size: 15px; }
-
-  .turn { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; z-index: 1; }
-  .avatar {
-    width: 40px; height: 40px; border-radius: 50%; background: var(--bg-muted);
-    display: grid; place-items: center; font-weight: 600; font-size: 15px;
-    color: var(--fg-default); border: 2px solid var(--bg-canvas); flex-shrink: 0;
-  }
-  .avatar.host    { background: linear-gradient(135deg,#ff7a00,#cf222e); color:#fff; }
-  .avatar.claude  { background: linear-gradient(135deg,#0969da,#054da7); color:#fff; }
-  .avatar.tool    { background: #1f2328; color:#fff; }
-  .avatar.system  { background: var(--danger-emphasis); color:#fff; }
-
-  .card {
-    border: 1px solid var(--border-default); border-radius: var(--radius);
-    background: var(--bg-default); overflow: hidden; box-shadow: var(--shadow-small);
-    position: relative; cursor: pointer;
-    transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
-  }
-  .card:hover { border-color: #b1bac4; }
-  .card.selected { border-color: var(--accent-fg); box-shadow: 0 0 0 1px var(--accent-fg), var(--shadow-medium); }
-  .card::before {
-    content: ""; position: absolute; left: -8px; top: 13px;
-    width: 14px; height: 14px; background: var(--bg-default);
-    border-left: 1px solid var(--border-default); border-bottom: 1px solid var(--border-default);
-    transform: rotate(45deg); z-index: 1;
-  }
-  .card.selected::before { border-left-color: var(--accent-fg); border-bottom-color: var(--accent-fg); }
   .card-head {
-    background: var(--bg-subtle); padding: 8px 16px; border-bottom: 1px solid var(--border-default);
-    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg-muted);
-    flex-wrap: wrap; position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+    margin-bottom: 6px;
   }
-  .card-head .who { color: var(--fg-default); font-weight: 600; }
+  .card-head .who { font-family: var(--sans); font-weight: 500; font-size: 13px; }
+  .turn[data-kind-class="user"] .who { color: var(--w-jabree); }
+  .turn[data-kind-class="assistant"] .who { color: var(--fg); }
+  .turn[data-kind-class="tool"] .who { color: var(--fg); }
   .card-head .turn-id {
-    font-family: var(--mono); background: var(--neutral-subtle); color: var(--fg-muted);
-    padding: 1px 6px; border-radius: 4px; font-size: 11.5px;
+    font-family: var(--mono); font-size: 10.5px; color: var(--fg-faint);
+    background: rgba(255,255,255,0.03); padding: 1px 6px; border-radius: 999px;
+    border: 1px solid var(--border);
   }
+  .card-head .kind {
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.04); color: var(--fg-muted);
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    border: 1px solid var(--border);
+  }
+  .turn[data-kind-class="user"] .kind { background: rgba(255,138,76,0.10); color: var(--w-jabree); border-color: rgba(255,138,76,0.25); }
+  .turn[data-kind-class="perm"] .kind { background: rgba(255,93,108,0.12); color: var(--accent-danger); border-color: rgba(255,93,108,0.30); }
   .card-head .head-spacer { flex: 1; }
 
-  .kind {
-    display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px;
-    border-radius: 2em; font-size: 12px; font-weight: 500; line-height: 18px;
-    border: 1px solid transparent; font-family: var(--sans);
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    cursor: pointer;
   }
-  .kind .kdot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-  .kind-user      { background: var(--accent-subtle); color: var(--accent-fg); border-color: rgba(9,105,218,0.2); }
-  .kind-user      .kdot { background: var(--accent-fg); }
-  .kind-tool-read { background: #fbefff; color: var(--done-fg); border-color: rgba(130,80,223,0.2); }
-  .kind-tool-read .kdot { background: var(--done-fg); }
-  .kind-tool-bash { background: #1f2328; color: #ffffff; border-color: #1f2328; }
-  .kind-tool-bash .kdot { background: #1f883d; }
-  .kind-tool-other { background: var(--neutral-subtle); color: var(--fg-default); border-color: var(--border-default); }
-  .kind-tool-other .kdot { background: var(--fg-muted); }
-  .kind-assistant { background: var(--success-subtle); color: var(--success-fg); border-color: rgba(31,136,61,0.2); }
-  .kind-assistant .kdot { background: var(--success-fg); }
-  .kind-perm      { background: var(--danger-subtle); color: var(--danger-fg); border-color: rgba(207,34,46,0.25); }
-  .kind-perm      .kdot { background: var(--danger-fg); animation: pulseRed 1.2s ease-in-out infinite; }
-  .kind-pending   { background: var(--neutral-subtle); color: var(--fg-muted); border-color: var(--border-default); }
-  .kind-pending   .kdot { background: var(--fg-muted); animation: pulseRed 1.2s ease-in-out infinite; }
-  @keyframes pulseRed {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.4); box-shadow: 0 0 0 4px rgba(207,34,46,0.2); }
+  .card:hover { border-color: var(--border-strong); }
+  .card.selected {
+    border-color: var(--accent-warm);
+    box-shadow: 0 0 0 1px var(--accent-warm), 0 0 24px rgba(255,138,76,0.15);
   }
+  .turn[data-kind-class="user"] .card {
+    background: linear-gradient(180deg, rgba(255,138,76,0.06) 0%, rgba(255,138,76,0.02) 100%);
+    border-color: rgba(255,138,76,0.18);
+  }
+  .card-body { padding: 14px 16px; }
 
-  .card-body { padding: 16px; font-size: 14px; color: var(--fg-default); }
-  .card-body p { margin: 0 0 8px 0; }
-  .card-body p:last-child { margin-bottom: 0; }
-  .card-body ol, .card-body ul { margin: 8px 0 0 0; padding-left: 22px; }
-  .card-body ol li, .card-body ul li { margin-bottom: 8px; }
-  .card-body strong { font-weight: 600; }
-  .card-body code {
-    font-family: var(--mono); background: var(--neutral-subtle); color: var(--fg-default);
-    padding: 1px 6px; border-radius: 4px; font-size: 12.5px;
+  .user-quote {
+    font-size: 16px; line-height: 1.5; color: var(--fg);
+    font-weight: 400; letter-spacing: -0.01em;
   }
-  .card-body pre {
-    font-family: var(--mono); background: var(--neutral-subtle); color: var(--fg-default);
-    padding: 10px 12px; border-radius: 4px; font-size: 12.5px; overflow-x: auto;
-    margin: 6px 0; white-space: pre;
-  }
-  .user-quote { font-size: 15px; color: var(--fg-default); }
-  .user-quote::before { content: "\201C"; color: var(--fg-subtle); margin-right: 2px; font-size: 18px; }
-  .user-quote::after  { content: "\201D"; color: var(--fg-subtle); margin-left: 2px; font-size: 18px; }
+  .user-quote::before { content: '\201C'; color: var(--w-jabree); margin-right: 2px; font-size: 22px; vertical-align: -3px; opacity: 0.8; }
+  .user-quote::after  { content: '\201D'; color: var(--w-jabree); margin-left: 2px;  font-size: 22px; vertical-align: -3px; opacity: 0.8; }
 
-  .filebox { border: 1px solid var(--border-default); border-radius: var(--radius); overflow: hidden; margin-top: 4px; background: var(--bg-default); }
+  .prose { font-size: 15px; line-height: 1.6; color: var(--fg); letter-spacing: -0.005em; }
+  .prose code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--border-soft); color: var(--fg);
+  }
+  .prose p { margin: 0 0 8px; }
+  .prose p:last-child { margin-bottom: 0; }
+  .prose ul, .prose ol { margin: 0 0 8px 20px; }
+  .prose li { padding: 1px 0; }
+  .prose pre {
+    background: #0c0c0e; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; margin: 8px 0;
+    font-family: var(--mono); font-size: 12.5px; color: var(--fg);
+    overflow-x: auto; white-space: pre;
+  }
+  .prose strong { color: var(--fg); font-weight: 600; }
+  .prose br { display: block; margin: 4px 0; content: ""; }
+
+  /* Tool call cards */
+  .turn[data-kind-class="tool"] .card { padding: 0; }
+  .turn[data-kind-class="tool"] .card-body { padding: 0; }
+  .filebox { font-family: var(--mono); font-size: 12.5px; background: #0c0c0e; }
   .filebox-head {
-    display: flex; align-items: center; gap: 8px; background: var(--bg-subtle);
-    padding: 8px 12px; border-bottom: 1px solid var(--border-default);
-    font-family: var(--mono); font-size: 12.5px; color: var(--fg-default);
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: var(--bg-card-2);
+    border-bottom: 1px solid var(--border);
   }
-  .filebox-head .filepath { color: var(--fg-default); flex: 1; word-break: break-all; }
+  .filebox-head .filepath { color: var(--fg); font-weight: 500; }
   .filebox-head .pill-add {
-    background: var(--success-subtle); color: var(--success-fg);
-    border: 1px solid rgba(31,136,61,0.25); border-radius: 2em;
-    font-size: 11px; padding: 1px 7px; font-family: var(--sans); font-weight: 500;
+    margin-left: auto; padding: 1px 8px; border-radius: 999px;
+    background: rgba(109,204,163,0.10); color: #8edfb6;
+    border: 1px solid rgba(109,204,163,0.25);
+    font-family: var(--mono); font-size: 10.5px;
   }
-  .difftable { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; line-height: 20px; }
-  .difftable td { padding: 0; vertical-align: top; }
-  .difftable .ln {
-    width: 1%; min-width: 50px; color: rgba(31,35,40,0.4);
-    text-align: right; padding: 0 10px; border-right: 1px solid var(--border-subtle);
-    background: var(--bg-subtle); user-select: none; white-space: nowrap;
-  }
-  .difftable .code { padding: 0 10px; white-space: pre; overflow-x: auto; }
-  .difftable tr.ctx { background: var(--diff-context-bg); }
-  .difftable tr.elision { color: var(--fg-subtle); background: var(--bg-subtle); }
-  .difftable tr.elision .code { color: var(--fg-subtle); font-style: italic; }
+  .difftable { width: 100%; border-collapse: collapse; }
+  .difftable td { padding: 1px 0; }
+  .difftable td.ln { color: var(--fg-faint); text-align: right; padding: 1px 12px; user-select: none; width: 50px; font-size: 11px; }
+  .difftable td.code { padding: 1px 14px; white-space: pre; color: var(--fg-muted); font-size: 12px; }
+  .difftable tr.ctx td.code { color: var(--fg); }
+  .difftable tr.elision td { color: var(--fg-faint); font-style: italic; }
 
-  .term {
-    background: #0d1117; color: #e6edf3; border-radius: var(--radius);
-    overflow: hidden; border: 1px solid #1f2328;
-    font-family: var(--mono); font-size: 12.5px; line-height: 1.55; margin-top: 4px;
+  .bash-desc {
+    padding: 10px 14px; background: var(--bg-card-2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 12px; color: var(--fg-muted);
   }
+  .bash-desc .label { color: var(--fg-faint); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; margin-right: 4px; }
+  .term { background: #0c0c0e; font-family: var(--mono); font-size: 12px; }
   .term-head {
-    background: #161b22; padding: 6px 12px; color: #8b949e;
-    font-size: 11.5px; border-bottom: 1px solid #30363d;
     display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; background: var(--bg-card-2); color: var(--fg-dim);
+    border-bottom: 1px solid var(--border); font-size: 11px;
   }
-  .term-head .dots { display: inline-flex; gap: 6px; }
-  .term-head .dot { width: 11px; height: 11px; border-radius: 50%; background: #30363d; }
-  .term-head .dot.r { background: #ff5f57; }
-  .term-head .dot.y { background: #febc2e; }
-  .term-head .dot.g { background: #28c840; }
-  .term-body { padding: 12px 14px; white-space: pre-wrap; word-break: break-word; font-family: var(--mono); }
-  .term-body .prompt { color: #7ee787; }
-  .term-body .cmd { color: #e6edf3; }
-  .term-body .out { color: #8b949e; display: block; margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
-  .bash-desc { font-family: var(--sans); font-size: 12.5px; color: var(--fg-muted); margin-bottom: 6px; }
-  .bash-desc .label { color: var(--fg-default); font-weight: 600; }
+  .term-head .dots { display: flex; gap: 5px; }
+  .term-head .dots .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .term-head .dots .dot.r { background: rgba(255,93,108,0.5); }
+  .term-head .dots .dot.y { background: rgba(240,192,116,0.5); }
+  .term-head .dots .dot.g { background: rgba(109,204,163,0.5); }
+  .term-body { padding: 10px 14px; line-height: 1.7; color: var(--fg); }
+  .term-body .prompt { color: var(--w-jabree); margin-right: 6px; }
+  .term-body .cmd { color: var(--fg); }
+  .term-body .out { display: block; color: var(--fg-muted); margin-top: 4px; white-space: pre-wrap; font-size: 11.5px; }
 
+  pre {
+    background: #0c0c0e; border: 1px solid var(--border);
+    border-radius: 0; padding: 10px 14px;
+    font-family: var(--mono); font-size: 12px; color: var(--fg-muted);
+    overflow-x: auto; white-space: pre;
+  }
+
+  /* Permission banner */
   .ci-banner {
-    border: 1px solid var(--danger-emphasis); border-radius: var(--radius);
-    background: var(--bg-default); overflow: hidden;
-    margin-left: 56px;
-    box-shadow: 0 0 0 4px rgba(207,34,46,0.08);
-    animation: bannerPulse 2.4s ease-in-out infinite;
+    background: linear-gradient(180deg, rgba(255,93,108,0.08) 0%, rgba(255,93,108,0.02) 100%);
+    border: 1px solid rgba(255,93,108,0.30);
+    border-radius: 12px; overflow: hidden;
+    cursor: pointer; transition: all 0.25s;
   }
-  @keyframes bannerPulse {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(207,34,46,0.08); }
-    50%      { box-shadow: 0 0 0 6px rgba(207,34,46,0.15); }
+  .ci-banner:hover { border-color: rgba(255,93,108,0.50); }
+  .ci-banner-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-bottom: 1px solid rgba(255,93,108,0.20);
+    color: var(--accent-danger); font-weight: 500;
   }
-  .ci-banner-head { background: var(--danger-subtle); padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--danger-emphasis); }
   .ci-banner-head .x-icon {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--danger-emphasis); color: #fff;
-    display: grid; place-items: center; font-weight: 700; font-size: 13px; flex-shrink: 0;
+    width: 20px; height: 20px; border-radius: 999px;
+    background: rgba(255,93,108,0.20); color: var(--accent-danger);
+    display: grid; place-items: center; font-weight: 700; font-size: 13px;
   }
-  .ci-banner-head .ci-title { font-weight: 600; color: var(--danger-fg); flex: 1; font-size: 14px; }
-  .ci-banner-head .ci-title small { color: var(--fg-muted); font-weight: 400; margin-left: 8px; }
-  .ci-banner-body { padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
-  .ci-banner-body code {
-    font-family: var(--mono); background: #1f2328; color: #fff;
-    padding: 2px 8px; border-radius: 4px; font-size: 12.5px; word-break: break-all;
+  .ci-banner-head .ci-title small { color: var(--fg-muted); font-weight: 400; margin-left: 4px; }
+  .ci-banner-body { padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+  .ci-banner-body code { font-family: var(--mono); font-size: 12px; background: rgba(255,93,108,0.10); border: 1px solid rgba(255,93,108,0.25); padding: 2px 6px; border-radius: 4px; color: var(--accent-danger); }
+  .ci-banner-foot { padding: 8px 14px; background: rgba(255,93,108,0.04); font-family: var(--mono); font-size: 11px; color: var(--fg-dim); }
+
+  /* Sticky notes (comments anchored to turns) */
+  .sticky-cell { padding: 12px 0 8px; }
+  .note {
+    position: relative; width: 100%; max-width: 280px;
+    padding: 12px 14px; border-radius: 10px;
+    font-family: var(--sans); font-size: 13px; line-height: 1.5;
+    color: var(--fg);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    transform: rotate(-0.6deg);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin: 4px 0 12px;
+    opacity: 0; animation: fade-in 0.4s ease-out forwards;
   }
-  .ci-banner-foot {
-    border-top: 1px solid var(--border-default); padding: 8px 14px;
-    background: var(--bg-subtle); display: flex; justify-content: space-between;
-    align-items: center; font-size: 12px; color: var(--fg-muted);
+  .note:hover { transform: rotate(0deg) translateY(-1px); }
+  .note.tint-jabree {
+    background: linear-gradient(180deg, rgba(255,138,76,0.10) 0%, rgba(255,138,76,0.04) 100%);
+    border-color: rgba(255,138,76,0.24);
+    box-shadow: 0 6px 24px rgba(255,138,76,0.06), 0 0 24px rgba(255,138,76,0.03);
+    transform: rotate(-0.4deg);
+  }
+  .note.tint-kavi {
+    background: linear-gradient(180deg, rgba(109,204,163,0.10) 0%, rgba(109,204,163,0.04) 100%);
+    border-color: rgba(109,204,163,0.22);
+    box-shadow: 0 6px 24px rgba(109,204,163,0.06), 0 0 24px rgba(109,204,163,0.03);
+    transform: rotate(0.8deg);
+  }
+  .note.tint-mira {
+    background: linear-gradient(180deg, rgba(184,156,240,0.10) 0%, rgba(184,156,240,0.04) 100%);
+    border-color: rgba(184,156,240,0.24);
+    box-shadow: 0 6px 24px rgba(184,156,240,0.06), 0 0 24px rgba(184,156,240,0.03);
+    transform: rotate(-1.1deg);
+  }
+  .note.tint-alex {
+    background: linear-gradient(180deg, rgba(240,192,116,0.09) 0%, rgba(240,192,116,0.03) 100%);
+    border-color: rgba(240,192,116,0.22);
+    box-shadow: 0 6px 24px rgba(240,192,116,0.05), 0 0 24px rgba(240,192,116,0.03);
+    transform: rotate(0.4deg);
+  }
+  .note .note-head {
+    display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+    font-family: var(--mono); font-size: 10.5px;
+    color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .note .note-avi {
+    width: 18px; height: 18px; border-radius: 999px;
+    color: var(--bg); display: inline-grid; place-items: center;
+    font-size: 9.5px; font-weight: 700; font-family: var(--sans);
+  }
+  .note .note-anchor {
+    display: block; margin-top: 8px; font-family: var(--mono); font-size: 10px;
+    color: var(--fg-dim);
+  }
+  .note .note-body { color: var(--fg); }
+  .note .note-body code { font-family: var(--mono); font-size: 11.5px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-soft); padding: 1px 5px; border-radius: 3px; }
+  .note::before {
+    content: ''; position: absolute;
+    left: -36px; top: 24px; width: 34px; height: 1px;
+    border-top: 1px dashed currentColor; opacity: 0.45;
+  }
+  .note.tint-jabree::before { color: var(--w-jabree); }
+  .note.tint-kavi::before   { color: var(--w-kavi); }
+  .note.tint-mira::before   { color: var(--w-mira); }
+  .note.tint-alex::before   { color: var(--w-alex); }
+  .note .channel-pill {
+    display: inline-block; margin-left: auto; padding: 1px 7px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.06em;
+    background: rgba(255,255,255,0.06); color: var(--fg-dim);
+    border: 1px solid var(--border); border-radius: 999px;
   }
 
-  .thread { margin-top: 12px; margin-left: 56px; border: 1px solid var(--border-default); border-radius: var(--radius); background: var(--bg-default); overflow: hidden; }
-  .thread-head { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg-subtle); border-bottom: 1px solid var(--border-default); font-size: 12px; color: var(--fg-muted); cursor: pointer; user-select: none; }
-  .thread-head .anchor-tag { font-family: var(--mono); color: var(--accent-fg); background: var(--accent-subtle); padding: 1px 6px; border-radius: 4px; font-size: 11.5px; }
-  .thread-head .caret { transition: transform 150ms ease; color: var(--fg-muted); width: 12px; height: 12px; display: inline-block; }
-  .thread.collapsed .caret { transform: rotate(-90deg); }
-  .thread.collapsed .thread-list { display: none; }
-  .thread-head .count-pill { background: var(--neutral-subtle); color: var(--fg-default); padding: 0 6px; border-radius: 2em; font-size: 11px; line-height: 18px; margin-left: auto; }
-  .thread-list { padding: 4px 0; }
-  .comment { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
-  .comment:last-child { border-bottom: none; }
-  .comment .c-avatar {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: grid; place-items: center;
-    font-size: 12px; font-weight: 600; color: #fff;
-    background: linear-gradient(135deg,#1a7f37,#116329);
+  /* Empty state */
+  .empty-state {
+    margin: 40px 0 0; padding: 32px;
+    border: 1px dashed var(--border-strong); border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    text-align: center; color: var(--fg-muted); font-size: 14px;
   }
-  .comment .c-avatar.plugin { background: linear-gradient(135deg,#8250df,#6639ba); }
-  .comment .c-avatar.host { background: linear-gradient(135deg,#ff7a00,#cf222e); }
-  .comment .c-meta { color: var(--fg-muted); font-size: 12.5px; margin-bottom: 2px; }
-  .comment .c-meta .name { color: var(--fg-default); font-weight: 600; margin-right: 4px; }
-  .comment .c-meta .channel-pill { display: inline-flex; align-items: center; gap: 3px; padding: 0 6px; background: var(--neutral-subtle); color: var(--fg-muted); border-radius: 2em; font-size: 10.5px; font-weight: 500; margin-left: 4px; line-height: 16px; }
-  .comment .c-text { color: var(--fg-default); white-space: pre-wrap; word-wrap: break-word; }
+  .empty-state strong { display: block; color: var(--fg); font-weight: 500; margin-bottom: 6px; font-size: 16px; letter-spacing: -0.01em; }
 
-  .sidebar { display: flex; flex-direction: column; gap: 24px; align-self: start; position: sticky; top: 16px; }
-  .side-group h3 { font-size: 12px; color: var(--fg-default); font-weight: 600; margin: 0 0 8px 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-default); display: flex; align-items: center; justify-content: space-between; }
-  .reviewer-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; }
-  .reviewer-row + .reviewer-row { border-top: 1px solid var(--border-subtle); }
-  .reviewer-row .r-avatar { width: 20px; height: 20px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 10px; font-weight: 600; flex-shrink: 0; background: linear-gradient(135deg,#1a7f37,#116329); }
-  .reviewer-row .r-avatar.host    { background: linear-gradient(135deg,#ff7a00,#cf222e); }
-  .reviewer-row .r-avatar.plugin  { background: linear-gradient(135deg,#8250df,#6639ba); }
-  .reviewer-row .name-line { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .reviewer-row .name-line .name { color: var(--fg-default); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .reviewer-row .name-line .sub { color: var(--fg-muted); font-size: 11.5px; }
-  .reviewer-row .you-tag { font-size: 10.5px; color: var(--accent-fg); margin-left: 4px; }
-  .channel-tag { font-size: 10.5px; padding: 0 6px; border-radius: 2em; line-height: 16px; font-weight: 500; border: 1px solid transparent; }
-  .channel-tag.browser { background: var(--accent-subtle); color: var(--accent-fg); border-color: rgba(9,105,218,0.2); }
-  .channel-tag.plugin  { background: var(--done-subtle); color: var(--done-fg); border-color: rgba(130,80,223,0.2); }
-  .channel-tag.host    { background: var(--success-subtle); color: var(--success-fg); border-color: rgba(31,136,61,0.2); }
-  .status-icon { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; color: #fff; flex-shrink: 0; }
-  .status-icon.driving { background: var(--success-emphasis); }
-  .status-icon.viewing { background: var(--accent-fg); }
-  .status-icon.attached { background: var(--done-fg); }
-  .status-icon::before { content: ""; display: block; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
-
-  .side-meta { border: 1px solid var(--border-default); border-radius: var(--radius); background: var(--bg-default); padding: 12px; font-size: 12.5px; color: var(--fg-muted); line-height: 1.5; }
-  .side-meta .row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
-  .side-meta .row .k { color: var(--fg-muted); }
-  .side-meta .row .v { color: var(--fg-default); font-weight: 500; }
-  .side-meta .url-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle); font-family: var(--mono); font-size: 11.5px; color: var(--accent-fg); word-break: break-all; }
-
-  .composer-wrap { margin-top: 32px; border-top: 1px solid var(--border-default); padding-top: 16px; }
+  /* Composer (anchored to bottom of spine column) */
+  .composer-wrap {
+    margin-top: 28px; padding: 16px 0 32px;
+  }
   .composer-anchor {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-    background: var(--accent-subtle); border: 1px solid rgba(9,105,218,0.3);
-    border-radius: var(--radius) var(--radius) 0 0;
-    font-size: 12.5px; color: var(--accent-fg); border-bottom: none;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 14px; border-radius: 999px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    font-family: var(--mono); font-size: 11.5px; color: var(--fg-muted);
+    margin-bottom: 10px; transition: all 0.25s;
   }
-  .composer-anchor.no-anchor { background: var(--bg-subtle); border-color: var(--border-default); color: var(--fg-muted); }
-  .composer-anchor .anchor-id { font-family: var(--mono); background: #fff; color: var(--accent-fg); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(9,105,218,0.2); margin: 0 4px; }
-  .composer-anchor .anchor-preview { color: var(--fg-default); font-style: italic; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
-  .composer-anchor .change-anchor { margin-left: auto; color: var(--accent-fg); font-size: 11.5px; cursor: pointer; border: none; background: transparent; padding: 0; text-decoration: underline; }
-  .composer { border: 1px solid var(--border-default); border-radius: 0 0 var(--radius) var(--radius); background: var(--bg-default); overflow: hidden; }
+  .composer-anchor.no-anchor { color: var(--fg-faint); border-style: dashed; }
+  .composer-anchor:not(.no-anchor) {
+    border-color: var(--accent-warm);
+    background: rgba(255,138,76,0.06);
+    color: var(--fg);
+  }
+  .composer-anchor .anchor-id { color: var(--accent-warm); font-weight: 600; }
+  .composer-anchor .anchor-preview { color: var(--fg-muted); font-style: italic; flex: 1; min-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .composer-anchor .change-anchor {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--fg-muted);
+    border-radius: 999px; padding: 1px 8px; font-size: 10.5px; font-family: var(--mono);
+    transition: color 0.25s, border-color 0.25s;
+  }
+  .composer-anchor .change-anchor:hover { color: var(--fg); border-color: var(--fg-faint); }
+
+  .composer {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
   .composer-input {
-    width: 100%; min-height: 96px; padding: 12px 14px;
-    border: none; background: var(--bg-default);
-    font-family: var(--sans); font-size: 14px; color: var(--fg-default);
-    resize: vertical; outline: none;
+    width: 100%; min-height: 80px; padding: 12px 14px;
+    background: transparent; border: none; outline: none; resize: vertical;
+    color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.5;
   }
-  .composer-input::placeholder { color: var(--fg-subtle); }
-  .composer-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-top: 1px solid var(--border-default); background: var(--bg-subtle); }
-  .composer-foot .help { font-size: 12px; color: var(--fg-muted); }
-  .composer-foot .help kbd { background: var(--bg-default); border: 1px solid var(--border-default); border-bottom-width: 2px; padding: 0 4px; border-radius: 3px; font-family: var(--mono); font-size: 11px; color: var(--fg-default); }
-  .composer-foot .composer-actions { display: flex; gap: 8px; }
+  .composer-input::placeholder { color: var(--fg-faint); }
+  .composer-foot {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 14px; border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  .composer-foot .help {
+    font-family: var(--mono); font-size: 10.5px; color: var(--fg-dim); flex: 1;
+  }
+  .composer-foot kbd {
+    font-family: var(--mono); font-size: 10px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+    padding: 1px 5px; border-radius: 3px; color: var(--fg);
+  }
+  .composer-foot strong { color: var(--fg); font-weight: 500; }
+  .composer-actions { display: flex; gap: 8px; }
 
-  .name-modal { position: fixed; inset: 0; background: rgba(31,35,40,0.55); display: grid; place-items: center; z-index: 100; }
+  /* Footer status bar */
+  .status-bar {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 14px 28px; border-top: 1px solid var(--border);
+    background: var(--bg);
+    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
+  }
+  .status-bar .stat b { color: var(--fg); font-weight: 500; margin-right: 4px; }
+  .status-bar .grow { flex: 1; }
+  .status-bar .room-url { color: var(--fg-muted); border-bottom: 1px dashed var(--border-strong); }
+  .status-bar .room-url:hover { color: var(--fg); border-bottom-color: var(--fg-muted); }
+
+  /* Name modal */
+  .name-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: grid; place-items: center; z-index: 200; backdrop-filter: blur(8px); }
   .name-modal[hidden] { display: none; }
-  .name-modal-card { background: var(--bg-default); border-radius: var(--radius); padding: 28px 28px 22px; width: 380px; max-width: calc(100vw - 32px); box-shadow: 0 16px 48px rgba(0,0,0,0.18); border: 1px solid var(--border-default); }
-  .name-modal-card h2 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
-  .name-modal-card p { margin: 0 0 16px; color: var(--fg-muted); font-size: 13.5px; }
-  .name-modal-card input { width: 100%; padding: 8px 10px; font-size: 14px; border: 1px solid var(--border-default); border-radius: var(--radius); margin-bottom: 12px; font-family: inherit; }
-  .name-modal-card input:focus { outline: 2px solid var(--accent-fg); outline-offset: -1px; border-color: var(--accent-fg); }
+  .name-modal-card {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 32px; min-width: 360px; max-width: 92vw;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .name-modal-card h2 { font-size: 22px; font-weight: 500; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .name-modal-card p { color: var(--fg-muted); font-size: 13.5px; margin-bottom: 16px; line-height: 1.5; }
+  .name-modal-card input {
+    width: 100%; padding: 10px 14px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--fg); font-family: var(--sans); font-size: 14px;
+    border-radius: 999px; outline: none; transition: border-color 0.25s;
+    margin-bottom: 16px;
+  }
+  .name-modal-card input:focus { border-color: var(--accent-warm); }
   .name-modal-card .actions { display: flex; justify-content: flex-end; gap: 8px; }
-  .name-modal-card small { display: block; color: var(--fg-subtle); font-size: 12px; margin-top: 12px; }
+  .name-modal-card small { display: block; color: var(--fg-faint); font-size: 11.5px; margin-top: 12px; font-family: var(--mono); }
 
-  .closed-overlay { position: fixed; inset: 0; background: rgba(31,35,40,0.85); display: grid; place-items: center; z-index: 200; color: #fff; }
+  /* Closed overlay */
+  .closed-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: grid; place-items: center; z-index: 200; backdrop-filter: blur(8px); }
   .closed-overlay[hidden] { display: none; }
-  .closed-overlay .closed-card { text-align: center; padding: 40px; }
-  .closed-overlay h2 { margin: 0 0 8px; font-size: 24px; font-weight: 600; }
-  .closed-overlay p { margin: 0; color: #d1d7e0; font-size: 14px; }
+  .closed-overlay .closed-card { text-align: center; padding: 40px; max-width: 420px; }
+  .closed-overlay h2 { margin: 0 0 8px; font-size: 26px; font-weight: 500; letter-spacing: -0.02em; color: var(--fg); }
+  .closed-overlay p { margin: 0; color: var(--fg-muted); font-size: 14px; line-height: 1.5; }
+
+  @media (max-width: 760px) {
+    .topbar { padding: 12px 18px; }
+    .presence-bar, .view-mode-bar { padding: 10px 18px; }
+    .layout { grid-template-columns: 1fr; }
+    .layout::before, .layout::after { display: none; }
+    .row > .spine-cell { padding: 0 18px; }
+    .row > .sticky-cell { padding: 0 18px; }
+    .note::before { display: none; }
+    .note { max-width: 100%; }
+    .status-bar { padding: 12px 18px; }
+  }
 </style>
 </head>
 <body>
@@ -463,119 +551,104 @@
 <header class="topbar">
   <div class="mark" title="Better Together">
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <!-- Left cupped hand: hook curving up-and-right -->
       <path fill="currentColor" d="M3 9c0-1.1.9-2 2-2h3v2H5v7c0 1.1.9 2 2 2h3v2H7c-2.2 0-4-1.8-4-4z"/>
-      <!-- Right cupped hand: mirror -->
       <path fill="currentColor" d="M21 9c0-1.1-.9-2-2-2h-3v2h3v7c0 1.1-.9 2-2 2h-3v2h3c2.2 0 4-1.8 4-4z"/>
-      <!-- Heart cradled between the hands -->
       <path fill="#ff5d6c" d="M12 17.5c-2.5-2-5-3.5-5-6 0-1.5 1-2.5 2.5-2.5 1 0 1.8.5 2.5 1.5.7-1 1.5-1.5 2.5-1.5 1.5 0 2.5 1 2.5 2.5 0 2.5-2.5 4-5 6z"/>
     </svg>
   </div>
   <nav class="crumbs">
-    <a href="#">better-together</a>
+    <span class="brand">better-together</span>
     <span class="sep">/</span>
-    <span style="color:#8b949e" id="crumb-room">live session</span>
+    <span id="crumb-room">live session</span>
   </nav>
   <div class="grow"></div>
+  <button class="btn" id="copy-url-btn" title="Copy room URL">Copy URL</button>
   <button class="btn btn-danger" id="end-room-btn" hidden title="Tear down the room (server, tunnel, tailer)">End room</button>
   <span class="host-pill" id="host-pill" hidden title="You're the host on this tab">HOST</span>
   <span class="conn-pill" id="conn-pill"><span class="dot"></span><span id="conn-text">connecting</span></span>
   <div class="avatar-me" id="me-avatar" title="you">·</div>
 </header>
 
-<section class="subhead">
-  <div class="repo-line">
-    <svg class="repo-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5v-9Zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 0 1 1-1h8Z"/>
-    </svg>
-    <span class="repo">Better Together</span>
-    <span class="visibility" id="vis-tag">Live</span>
-  </div>
+<div class="presence-bar">
+  <span class="room" id="presence-room-name">…</span>
+  <span>·</span>
+  <span><span id="presence-count">0</span> in the room</span>
+  <span class="pavi-row" id="presence-list">
+    <span class="pavi-empty">no one yet</span>
+  </span>
+  <span class="grow"></span>
+  <span id="presence-meta-line"></span>
+</div>
 
-  <div class="pr-title-row">
-    <div class="pr-title">
-      Session: <em style="font-style:normal" id="session-title">live witnessable session</em>
-    </div>
-    <div class="pr-actions">
-      <button class="btn" id="copy-url-btn" title="Copy room URL">Copy URL</button>
-    </div>
-  </div>
+<div class="view-mode-bar" id="view-mode-bar" role="tablist">
+  <span class="vm-label">View</span>
+  <button class="vm-btn" data-mode="full" role="tab" aria-selected="true">Full <span class="vm-count" id="vm-count-full">0</span></button>
+  <button class="vm-btn" data-mode="conv" role="tab" aria-selected="false">Conversation <span class="vm-count" id="vm-count-conv">0</span></button>
+  <button class="vm-btn" data-mode="compact" role="tab" aria-selected="false">Compact</button>
+  <button class="vm-btn" data-mode="tools" role="tab" aria-selected="false">Tool calls <span class="vm-count" id="vm-count-tools">0</span></button>
+</div>
 
-  <div class="pr-meta-row">
-    <span class="state-pill" id="state-pill"><span class="live-dot"></span> Live</span>
-    <span class="meta-text">opened <strong id="started-rel">just now</strong> ·</span>
-    <span class="meta-text"><span id="watcher-count-meta">0</span> watchers · <span id="comment-count-meta">0</span> comments ·</span>
-    <a class="room-url" id="room-url" href="#"></a>
-  </div>
+<main class="layout" id="timeline" data-mode="full">
 
-  <ul class="tabs" role="tablist">
-    <li class="tab active">Conversation <span class="count" id="tab-conv">0</span></li>
-    <li class="tab">Tool calls <span class="count" id="tab-tools">0</span></li>
-    <li class="tab">Watchers <span class="count" id="tab-watchers">0</span></li>
-  </ul>
-</section>
-
-<main class="layout">
-  <section class="timeline" id="timeline" data-mode="full">
-    <div class="view-mode-bar" id="view-mode-bar" role="tablist">
-      <span class="vm-label">View</span>
-      <button class="vm-btn" data-mode="full" role="tab" aria-selected="true">Full <span class="vm-count" id="vm-count-full">0</span></button>
-      <button class="vm-btn" data-mode="conv" role="tab" aria-selected="false">Conversation <span class="vm-count" id="vm-count-conv">0</span></button>
-      <button class="vm-btn" data-mode="compact" role="tab" aria-selected="false">Compact</button>
-      <button class="vm-btn" data-mode="tools" role="tab" aria-selected="false">Tool calls <span class="vm-count" id="vm-count-tools">0</span></button>
-    </div>
-    <div class="empty-state" id="empty-state">
-      <strong>Waiting for the host…</strong>
-      Nothing has happened yet. New prompts, tool calls, and assistant responses will appear here in real time.
-    </div>
-
-    <div class="composer-wrap" id="composer">
-      <div class="composer-anchor no-anchor" id="composer-anchor">
-        <span>Comment on the room</span>
-        <span class="anchor-id" id="composer-anchor-id">— none —</span>
-        <span class="anchor-preview" id="composer-anchor-preview">click any turn to anchor your comment</span>
-        <button class="change-anchor" id="clear-anchor-btn" hidden>change anchor</button>
+  <div class="row row-empty" id="empty-row">
+    <div class="spine-cell">
+      <div class="empty-state" id="empty-state">
+        <strong>Waiting for the host…</strong>
+        Nothing has happened yet. New prompts, tool calls, and assistant responses will appear here in real time.
       </div>
-      <div class="composer">
-        <textarea class="composer-input" id="composer-input"
-          placeholder="Leave a comment. Comments persist in transcript history — don't paste secrets."></textarea>
-        <div class="composer-foot">
-          <div class="help">
-            <kbd>⌘</kbd> + <kbd>Enter</kbd> to post · attached to <strong id="composer-foot-anchor">(no anchor)</strong>
-          </div>
-          <div class="composer-actions">
-            <button class="btn" id="cancel-btn">Clear</button>
-            <button class="btn btn-primary" id="post-btn" disabled>Comment</button>
+    </div>
+    <div class="sticky-cell"></div>
+  </div>
+
+  <!-- transcript rows are inserted before the composer row via JS -->
+
+  <div class="row row-composer" id="composer-row">
+    <div class="spine-cell">
+      <div class="composer-wrap" id="composer">
+        <div class="composer-anchor no-anchor" id="composer-anchor">
+          <span>Comment on the room</span>
+          <span class="anchor-id" id="composer-anchor-id">— none —</span>
+          <span class="anchor-preview" id="composer-anchor-preview">click any turn to anchor your comment</span>
+          <button class="change-anchor" id="clear-anchor-btn" hidden>change anchor</button>
+        </div>
+        <div class="composer">
+          <textarea class="composer-input" id="composer-input"
+            placeholder="Drop a sticky note. Comments persist in transcript history — don't paste secrets."></textarea>
+          <div class="composer-foot">
+            <div class="help">
+              <kbd>⌘</kbd> + <kbd>Enter</kbd> to post · attached to <strong id="composer-foot-anchor">(no anchor)</strong>
+            </div>
+            <div class="composer-actions">
+              <button class="btn" id="cancel-btn">Clear</button>
+              <button class="btn btn-primary" id="post-btn" disabled>Post note</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+    <div class="sticky-cell"></div>
+  </div>
 
-  <aside class="sidebar">
-    <div class="side-group">
-      <h3>Watchers <span style="color:var(--fg-muted);font-weight:400" id="presence-count">0</span></h3>
-      <div id="presence-list">
-        <div style="color:var(--fg-muted);font-size:12.5px;padding:6px 0">No one is here yet.</div>
-      </div>
-    </div>
-
-    <div class="side-group">
-      <h3>Session</h3>
-      <div class="side-meta">
-        <div class="row"><span class="k">Status</span><span class="v" id="meta-status" style="color:var(--success-fg)">● Live</span></div>
-        <div class="row"><span class="k">Started</span><span class="v" id="meta-started">just now</span></div>
-        <div class="row"><span class="k">Turns</span><span class="v" id="meta-turns">0</span></div>
-        <div class="row"><span class="k">Tool calls</span><span class="v" id="meta-tools">0</span></div>
-        <div class="row"><span class="k">Comments</span><span class="v" id="meta-comments">0</span></div>
-        <div class="row"><span class="k">Permission gates</span><span class="v" id="meta-perms">0</span></div>
-        <div class="url-row" id="meta-url"></div>
-      </div>
-    </div>
-  </aside>
 </main>
 
-<div class="name-modal" id="name-modal">
+<footer class="status-bar">
+  <span class="stat"><b id="meta-turns">0</b>turns</span>
+  <span class="stat"><b id="meta-tools">0</b>tool calls</span>
+  <span class="stat"><b id="meta-comments">0</b>notes</span>
+  <span class="stat"><b id="meta-perms">0</b>perms</span>
+  <span class="stat">started <b id="meta-started">just now</b></span>
+  <span class="grow"></span>
+  <span class="stat" id="watcher-count-meta-wrap" hidden>
+    <b id="watcher-count-meta">0</b>watchers
+  </span>
+  <span class="stat" id="comment-count-meta-wrap" hidden>
+    <b id="comment-count-meta">0</b>comments
+  </span>
+  <span class="stat" id="started-rel-wrap" hidden><b id="started-rel"></b></span>
+  <a class="room-url" id="room-url" href="#"></a>
+</footer>
+
+<div class="name-modal" id="name-modal" hidden>
   <div class="name-modal-card">
     <h2>Join the room</h2>
     <p>Pick a display name. Other watchers will see this. The host can disconnect you.</p>
@@ -609,6 +682,15 @@ let heartbeatTimer = null;
 let kicked = false;
 let sseWorkingTimer = null;
 let pollingInterval = null;
+
+const TINTS = ["jabree", "kavi", "mira", "alex"];
+function tintForName(name, isHostAuthor) {
+  if (isHostAuthor) return "jabree";
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return TINTS[h % TINTS.length];
+}
+function colorVarFor(tint) { return "var(--w-" + tint + ")"; }
 
 function el(tag, attrs, ...children) {
   const e = document.createElement(tag);
@@ -648,25 +730,14 @@ function el(tag, attrs, ...children) {
   return e;
 }
 
-function caretSvg() {
-  const NS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(NS, "svg");
-  svg.setAttribute("class", "caret");
-  svg.setAttribute("width", "12");
-  svg.setAttribute("height", "12");
-  svg.setAttribute("viewBox", "0 0 16 16");
-  svg.setAttribute("fill", "currentColor");
-  const path = document.createElementNS(NS, "path");
-  path.setAttribute("d", "M12.78 6.22a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L8 9.94l3.72-3.72a.75.75 0 0 1 1.06 0Z");
-  svg.appendChild(path);
-  return svg;
-}
+function setText(id, text) { const n = document.getElementById(id); if (n) n.textContent = String(text); }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  document.getElementById("room-url").textContent = location.origin;
-  document.getElementById("room-url").href = location.origin;
-  document.getElementById("meta-url").textContent = location.origin;
-  document.getElementById("crumb-room").textContent = location.host;
+  const roomUrl = location.origin;
+  setText("crumb-room", location.host);
+  const ru = document.getElementById("room-url");
+  if (ru) { ru.textContent = roomUrl; ru.href = roomUrl; }
+  setText("presence-room-name", location.host.split(".")[0] || "room");
 
   displayName = localStorage.getItem("bt-display-name") || "";
   clientId = localStorage.getItem("bt-client-id") || "";
@@ -675,8 +746,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.setItem("bt-client-id", clientId);
   }
 
-  // Fetch identity early so we can autofill the host's remembered name
-  // before deciding whether to show the name modal.
   try {
     const r = await fetch("/me");
     if (r.ok) meInfo = await r.json();
@@ -781,6 +850,9 @@ async function onIdentityReady() {
   me.title = displayName + " (you)";
 
   await detectHostMode();
+  // Tint own avatar by host status
+  if (me) me.style.background = isHost ? "var(--w-jabree)" : colorVarFor(tintForName(displayName, false));
+
   await loadSnapshot();
   renderAll();
   startSSE();
@@ -816,8 +888,6 @@ async function loadSnapshot() {
 }
 
 function markSseWorking() {
-  // Real data arrived over SSE — cancel the polling-fallback timer
-  // and stop any active polling we kicked off earlier.
   if (sseWorkingTimer) { clearTimeout(sseWorkingTimer); sseWorkingTimer = null; }
   stopPolling();
 }
@@ -831,9 +901,6 @@ function startSSE() {
   sse = es;
   setConn("connecting");
 
-  // Cloudflare quick-tunnels buffer SSE responses to zero-bytes-through.
-  // If no SSE event reaches us within 3s, fall back to polling /snapshot.json
-  // so watchers behind the tunnel still get live-ish updates.
   if (sseWorkingTimer) clearTimeout(sseWorkingTimer);
   sseWorkingTimer = setTimeout(() => {
     if (!pollingInterval && !kicked) startPolling();
@@ -860,13 +927,14 @@ function startSSE() {
     const evt = JSON.parse(event.data);
     snapshot.transcript.push(evt);
     appendTurn(evt);
+    flushPendingComments();
     updateCounts();
   });
   es.addEventListener("comment", (event) => {
     markSseWorking();
     const c = JSON.parse(event.data);
     snapshot.comments.push(c);
-    appendComment(c);
+    placeComment(c);
     updateCounts();
   });
   es.addEventListener("presence", (event) => {
@@ -890,7 +958,6 @@ function startSSE() {
   });
   es.addEventListener("room_closed", () => {
     setConn("disconnected");
-    document.getElementById("state-pill").classList.add("closed");
     document.getElementById("closed-overlay").hidden = false;
   });
 }
@@ -898,6 +965,7 @@ function startSSE() {
 function setConn(state) {
   const pill = document.getElementById("conn-pill");
   const txt = document.getElementById("conn-text");
+  if (!pill || !txt) return;
   pill.classList.toggle("disconnected", state === "disconnected");
   txt.textContent = state === "connected" ? "connected"
                    : state === "connecting" ? "connecting…"
@@ -906,8 +974,8 @@ function setConn(state) {
 
 function startPolling() {
   if (pollingInterval || kicked) return;
-  console.warn("SSE not delivering events (likely tunneled through buffered proxy) — falling back to /snapshot.json polling.");
-  setConn("connected"); // we're "connected" via polling, not stalled
+  console.warn("SSE not delivering events — falling back to /snapshot.json polling.");
+  setConn("connected");
   const tick = async () => {
     try {
       const r = await fetch("/snapshot.json");
@@ -925,7 +993,7 @@ function startPolling() {
       }
       for (const c of newComments) {
         snapshot.comments.push(c);
-        appendComment(c);
+        placeComment(c);
       }
       if (presenceJson !== oldPresenceJson) {
         snapshot.presence = snap.presence || [];
@@ -1128,8 +1196,6 @@ function buildBashTool(p, hasResponse) {
 function buildPermissionBanner(evt) {
   const p = evt.payload || {};
   const article = el("article", { class: "turn", "data-turn": evt.id, "data-kind-class": "perm" });
-  article.append(el("div", { class: "avatar system" }, "!"));
-  const wrap = el("div", { style: "flex:1;min-width:0" });
   const banner = el("div", {
     class: "ci-banner",
     "data-turn-card": evt.id,
@@ -1141,27 +1207,17 @@ function buildPermissionBanner(evt) {
     "Action required — host approval pending ",
     el("small", null, "· halted on permission prompt")
   ));
-  head.append(el("span", { class: "kind kind-perm", style: "margin-left:auto" },
-    el("span", { class: "kdot" }), "blocking"));
   banner.append(head);
 
   const body = el("div", { class: "ci-banner-body" });
-  body.append(el("span", { style: "color:var(--danger-fg);font-weight:600" }, "✕  permission-gate"));
-  body.append(el("span", { style: "color:var(--fg-muted)" }, "— host is being asked to approve"));
+  body.append(el("span", null, "host is being asked to approve"));
   body.append(el("code", null, p.notification_type || p.tool_name || "a tool call"));
   banner.append(body);
 
   const foot = el("div", { class: "ci-banner-foot" });
-  foot.append(el("span", null,
-    el("span", {
-      class: "turn-id",
-      style: "background:var(--neutral-subtle);color:var(--fg-muted);padding:1px 6px;border-radius:4px;font-size:11.5px;font-family:var(--mono)"
-    }, evt.id),
-    " · ephemeral · ", relTime(evt.ts), " · resolves on host decision"
-  ));
+  foot.append(el("span", null, evt.id, " · ephemeral · ", relTime(evt.ts), " · resolves on host decision"));
   banner.append(foot);
-  wrap.append(banner);
-  article.append(wrap);
+  article.append(banner);
 
   banner.addEventListener("click", (ev) => {
     const tag = ev.target.tagName;
@@ -1183,52 +1239,46 @@ function buildTurnEl(evt) {
   if (evt.kind === "permission_prompt") return buildPermissionBanner(evt);
 
   const p = evt.payload || {};
-  let avatarClass = "tool", avatarLabel = "·";
-  let who = "claude-code", verb = evt.kind;
-  let kindClass = "kind-tool-other", kindLabel = evt.kind;
+  let who = "claude";
+  let kindLabel = evt.kind;
   let bodyContent = null;
 
   if (evt.kind === "user_prompt") {
-    avatarClass = "host"; avatarLabel = "H";
-    who = "host"; verb = "submitted a prompt";
-    kindClass = "kind-user"; kindLabel = "user prompt";
+    who = "host";
+    kindLabel = "prompt";
     bodyContent = el("p", { class: "user-quote" }, p.prompt || "");
   } else if (evt.kind === "stop") {
-    avatarClass = "claude"; avatarLabel = "C";
-    who = "claude-code"; verb = "responded";
-    kindClass = "kind-assistant"; kindLabel = "assistant";
+    who = "claude";
+    kindLabel = "response";
     if (p.assistant_text) {
-      bodyContent = buildMarkdown(p.assistant_text);
+      const proseDiv = el("div", { class: "prose" });
+      proseDiv.append(buildMarkdown(p.assistant_text));
+      bodyContent = proseDiv;
     } else {
-      bodyContent = el("p", { style: "color:var(--fg-muted);font-style:italic" }, "(turn complete)");
+      bodyContent = el("p", { class: "prose", style: "color:var(--fg-muted);font-style:italic" }, "(turn complete)");
     }
   } else if (evt.kind === "pre_tool_use" || evt.kind === "post_tool_use") {
     const tn = p.tool_name || "tool";
-    avatarClass = "tool"; avatarLabel = "T";
-    who = "claude-code";
+    who = "claude";
     if (tn === "Read") {
-      verb = "read a file";
-      kindClass = "kind-tool-read"; kindLabel = "tool: Read";
+      kindLabel = "tool: Read";
       bodyContent = buildReadTool(p, evt.kind === "post_tool_use");
     } else if (tn === "Bash") {
-      verb = "ran a bash command";
-      kindClass = "kind-tool-bash"; kindLabel = "tool: Bash";
+      kindLabel = "tool: Bash";
       bodyContent = buildBashTool(p, evt.kind === "post_tool_use");
     } else {
-      verb = "called " + tn;
-      kindClass = "kind-tool-other"; kindLabel = "tool: " + tn;
+      kindLabel = "tool: " + tn;
       const frag = document.createDocumentFragment();
       const pre = el("pre", null, JSON.stringify(p.tool_input || {}, null, 2));
       frag.append(pre);
       if (evt.kind === "post_tool_use" && p.tool_response) {
-        frag.append(el("div", { style: "font-size:12.5px;color:var(--fg-muted);margin-top:8px;font-weight:600" }, "result:"));
+        frag.append(el("div", { style: "font-size:11px;color:var(--fg-faint);padding:6px 14px 0;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em" }, "result"));
         frag.append(el("pre", null, toolResponseText(p.tool_response)));
       }
       bodyContent = frag;
     }
     if (evt.kind === "pre_tool_use") {
       kindLabel = kindLabel + " · pending";
-      kindClass = "kind-pending";
     }
   } else {
     bodyContent = el("pre", null, JSON.stringify(p, null, 2).slice(0, 1200));
@@ -1236,7 +1286,6 @@ function buildTurnEl(evt) {
 
   const kc = kindClassFor(evt);
   const article = el("article", { class: "turn", "data-turn": evt.id, "data-kind-class": kc });
-  article.append(el("div", { class: "avatar " + avatarClass }, avatarLabel));
 
   const card = el("div", {
     class: "card",
@@ -1245,13 +1294,10 @@ function buildTurnEl(evt) {
   });
   const head = el("div", { class: "card-head" });
   head.append(el("span", { class: "who" }, who));
-  head.append(el("span", null, verb));
+  head.append(el("span", { class: "kind" }, kindLabel));
   head.append(el("span", { class: "turn-id" }, evt.id));
   head.append(el("span", null, "·"));
   head.append(el("span", { class: "rel-ts", "data-ts": evt.ts }, relTime(evt.ts)));
-  head.append(el("span", { class: "kind " + kindClass },
-    el("span", { class: "kdot" }), kindLabel
-  ));
   head.append(el("span", { class: "head-spacer" }));
   if (kc === "tool") {
     const caret = el("button", { class: "compact-caret", type: "button", title: "Toggle body" });
@@ -1261,10 +1307,11 @@ function buildTurnEl(evt) {
     });
     head.append(caret);
   }
-  card.append(head);
 
   const bodyDiv = el("div", { class: "card-body" });
   if (bodyContent) bodyDiv.append(bodyContent);
+
+  card.append(head);
   card.append(bodyDiv);
 
   card.addEventListener("click", (ev) => {
@@ -1277,19 +1324,103 @@ function buildTurnEl(evt) {
   return article;
 }
 
+/* The two-column row: spine cell holds the turn, sticky cell holds notes anchored to it.
+   The row uses display:contents so both cells become direct grid children of .layout
+   and CSS auto-rows aligns them at the same vertical position. */
+function buildRow(evt) {
+  const kc = kindClassFor(evt);
+  const row = el("div", { class: "row kind-" + kc, "data-row-for": evt.id });
+  const spineCell = el("div", { class: "spine-cell" });
+  spineCell.append(buildTurnEl(evt));
+  const stickyCell = el("div", { class: "sticky-cell", "data-sticky-for": evt.id });
+  row.append(spineCell);
+  row.append(stickyCell);
+  return row;
+}
+
+function findStickyCell(anchorId) {
+  if (!anchorId) return null;
+  return document.querySelector('.sticky-cell[data-sticky-for="' + cssEscape(anchorId) + '"]');
+}
+
+/* Fallback bucket for unanchored / orphan-anchor comments — appended to the composer's sticky cell. */
+function generalStickyCell() {
+  const composerRow = document.getElementById("composer-row");
+  if (!composerRow) return null;
+  return composerRow.querySelector(".sticky-cell");
+}
+
+function buildNote(c) {
+  const isHostAuthor = c.author_mode === "host";
+  const tint = tintForName(c.author || "?", isHostAuthor);
+  const initial = (c.author || "?")[0].toUpperCase();
+
+  const note = el("div", { class: "note tint-" + tint });
+  const head = el("div", { class: "note-head" });
+  head.append(el("span", { class: "note-avi", style: "background:" + colorVarFor(tint) }, initial));
+  head.append(c.author || "?");
+  head.append(" · ");
+  head.append(el("span", { class: "rel-ts", "data-ts": c.ts }, relTime(c.ts)));
+  if (c.author_mode && c.author_mode !== "browser") {
+    head.append(el("span", { class: "channel-pill" }, c.author_mode));
+  }
+  note.append(head);
+
+  const body = el("div", { class: "note-body" });
+  appendInline(body, c.text || "");
+  note.append(body);
+
+  if (c.anchor) note.append(el("span", { class: "note-anchor" }, "↳ " + c.anchor));
+  return note;
+}
+
+const pendingComments = [];
+
+function placeComment(c) {
+  const cell = findStickyCell(c.anchor);
+  if (cell) {
+    cell.append(buildNote(c));
+    return;
+  }
+  // Unanchored — drop into the composer's sticky cell as "general chat"
+  if (!c.anchor) {
+    const general = generalStickyCell();
+    if (general) { general.append(buildNote(c)); return; }
+  }
+  // Anchor not yet rendered (out-of-order delivery) — stash, attach later
+  pendingComments.push(c);
+}
+
+function flushPendingComments() {
+  if (!pendingComments.length) return;
+  const remaining = [];
+  for (const c of pendingComments) {
+    const cell = findStickyCell(c.anchor);
+    if (cell) cell.append(buildNote(c));
+    else remaining.push(c);
+  }
+  pendingComments.length = 0;
+  Array.prototype.push.apply(pendingComments, remaining);
+}
+
 function renderAll() {
   const tl = document.getElementById("timeline");
-  const composer = document.getElementById("composer");
-  const empty = document.getElementById("empty-state");
-  const modeBar = document.getElementById("view-mode-bar");
-  const keep = new Set([composer, empty, modeBar]);
-  Array.from(tl.children).forEach(child => { if (!keep.has(child)) tl.removeChild(child); });
+  const composerRow = document.getElementById("composer-row");
+  const empty = document.getElementById("empty-row");
+
+  // Drop existing transcript .row entries (keep empty-row and composer-row)
+  document.querySelectorAll(".layout > .row").forEach(r => {
+    if (r === composerRow || r === empty) return;
+    r.remove();
+  });
 
   for (const evt of snapshot.transcript) {
-    const node = buildTurnEl(evt);
-    tl.insertBefore(node, composer);
+    const row = buildRow(evt);
+    tl.insertBefore(row, composerRow);
   }
-  for (const c of snapshot.comments) appendComment(c);
+  pendingComments.length = 0;
+  for (const c of snapshot.comments) placeComment(c);
+
   empty.style.display = snapshot.transcript.length ? "none" : "";
 
   renderPresence();
@@ -1298,72 +1429,13 @@ function renderAll() {
 }
 
 function appendTurn(evt) {
-  document.getElementById("empty-state").style.display = "none";
+  const empty = document.getElementById("empty-row");
+  if (empty) empty.style.display = "none";
   const tl = document.getElementById("timeline");
-  const composer = document.getElementById("composer");
-  tl.insertBefore(buildTurnEl(evt), composer);
-}
-
-function findThreadFor(anchor) {
-  const all = document.querySelectorAll(".thread");
-  for (const t of all) {
-    if (t.dataset.threadFor === anchor) return t;
-  }
-  return null;
-}
-
-function appendComment(c) {
-  const anchor = c.anchor || "(unanchored)";
-  let thread = findThreadFor(anchor);
-  if (!thread) {
-    thread = el("div", { class: "thread", dataset: { threadFor: anchor } });
-    const head = el("div", { class: "thread-head" });
-    head.append(caretSvg());
-    const label = el("span", { class: "thread-head-label" });
-    label.append("0 comments on ");
-    label.append(el("span", { class: "anchor-tag" }, anchor));
-    head.append(label);
-    head.append(el("span", { class: "count-pill" }, "0"));
-    head.addEventListener("click", () => thread.classList.toggle("collapsed"));
-    thread.append(head);
-    thread.append(el("div", { class: "thread-list" }));
-
-    const tl = document.getElementById("timeline");
-    const composer = document.getElementById("composer");
-    const targetTurn = document.querySelector('.turn[data-turn="' + cssEscape(anchor) + '"]');
-    if (targetTurn && targetTurn.nextSibling) {
-      tl.insertBefore(thread, targetTurn.nextSibling);
-    } else if (targetTurn) {
-      tl.insertBefore(thread, composer);
-    } else {
-      tl.insertBefore(thread, composer);
-    }
-  }
-
-  const list = thread.querySelector(".thread-list");
-  const initial = (c.author || "?")[0].toUpperCase();
-  const channelClass = c.author_mode === "plugin" ? "plugin" : c.author_mode === "host" ? "host" : "browser";
-
-  const commentEl = el("div", { class: "comment" });
-  commentEl.append(el("div", { class: "c-avatar " + channelClass }, initial));
-  const wrap = el("div");
-  const meta = el("div", { class: "c-meta" });
-  meta.append(el("span", { class: "name" }, c.author || "?"));
-  meta.append(" commented ");
-  meta.append(el("span", { class: "rel-ts", "data-ts": c.ts }, relTime(c.ts)));
-  meta.append(" ");
-  meta.append(el("span", { class: "channel-pill" }, c.author_mode || "browser"));
-  wrap.append(meta);
-  wrap.append(el("div", { class: "c-text" }, c.text || ""));
-  commentEl.append(wrap);
-  list.append(commentEl);
-
-  const items = list.querySelectorAll(".comment").length;
-  const label = thread.querySelector(".thread-head-label");
-  label.textContent = "";
-  label.append(items + " comment" + (items === 1 ? "" : "s") + " on ");
-  label.append(el("span", { class: "anchor-tag" }, anchor));
-  thread.querySelector(".count-pill").textContent = String(items);
+  const composerRow = document.getElementById("composer-row");
+  const row = buildRow(evt);
+  tl.insertBefore(row, composerRow);
+  flushPendingComments();
 }
 
 function cssEscape(s) {
@@ -1374,43 +1446,24 @@ function renderPresence() {
   const list = document.getElementById("presence-list");
   list.replaceChildren();
   if (!snapshot.presence.length) {
-    list.append(el("div", {
-      style: "color:var(--fg-muted);font-size:12.5px;padding:6px 0",
-    }, "No one is here yet."));
+    list.append(el("span", { class: "pavi-empty" }, "no one yet"));
   } else {
     for (const p of snapshot.presence) {
       const isMe = p.client_id === clientId;
-      const avatarMode = p.mode === "host" ? "host" : p.mode === "plugin" ? "plugin" : "";
       const initial = (p.display_name || "?")[0].toUpperCase();
-      const status = p.mode === "host" ? "driving"
-                  : p.mode === "plugin" ? "attached"
-                  : "viewing";
-      const sub = p.mode === "host" ? "driving · host process"
-                : p.mode === "plugin" ? "analyst Claude attached"
-                : "watching";
-
-      const row = el("div", { class: "reviewer-row" + (isMe ? " is-self" : "") });
-      row.append(el("span", { class: "status-icon " + status, title: status }));
-      row.append(el("div", { class: "r-avatar " + avatarMode }, initial));
-      const nameLine = el("div", { class: "name-line" });
-      const name = el("span", { class: "name" }, p.display_name || "anonymous");
-      if (isMe) name.append(el("span", { class: "you-tag" }, "(you)"));
-      nameLine.append(name);
-      nameLine.append(el("span", { class: "sub" }, sub + " · joined " + relTime(p.joined_at)));
-      row.append(nameLine);
-      row.append(el("span", { class: "channel-tag " + (p.mode || "browser") }, p.mode || "browser"));
-      if (!isMe) {
-        const kickBtn = el("button", {
-          class: "kick-btn", type: "button",
-          title: "Remove " + (p.display_name || "this watcher") + " from the room",
-        }, "Kick");
-        kickBtn.addEventListener("click", () => kickWatcher(p.display_name));
-        row.append(kickBtn);
+      const tint = tintForName(p.display_name || "anonymous", p.mode === "host");
+      const cls = "pavi" + (isMe ? " is-self" : "");
+      const subtitle = (p.mode === "host" ? "host · driving" : (p.mode === "plugin" ? "analyst · plugin watcher" : "watching")) + " · " + (p.display_name || "anonymous");
+      const av = el("span", { class: cls, title: subtitle, style: "background:" + colorVarFor(tint) }, initial);
+      if (!isMe && isHost) {
+        av.style.cursor = "pointer";
+        av.title = subtitle + " · click to kick";
+        av.addEventListener("click", () => kickWatcher(p.display_name));
       }
-      list.append(row);
+      list.append(av);
     }
   }
-  document.getElementById("presence-count").textContent = String(snapshot.presence.length);
+  setText("presence-count", String(snapshot.presence.length));
 }
 
 function updateCounts() {
@@ -1420,31 +1473,28 @@ function updateCounts() {
   const comments = snapshot.comments.length;
   const perms = snapshot.transcript.filter(t => t.kind === "permission_prompt").length;
 
-  document.getElementById("tab-conv").textContent = turns;
-  document.getElementById("tab-tools").textContent = tools;
-  document.getElementById("tab-watchers").textContent = snapshot.presence.length;
-  const fullCount = document.getElementById("vm-count-full");
-  const convCount = document.getElementById("vm-count-conv");
-  const toolsCount = document.getElementById("vm-count-tools");
-  if (fullCount) fullCount.textContent = String(turns);
-  if (convCount) convCount.textContent = String(conv);
-  if (toolsCount) toolsCount.textContent = String(tools);
-  document.getElementById("watcher-count-meta").textContent = snapshot.presence.length;
-  document.getElementById("comment-count-meta").textContent = comments;
+  setText("vm-count-full", String(turns));
+  setText("vm-count-conv", String(conv));
+  setText("vm-count-tools", String(tools));
 
-  document.getElementById("meta-turns").textContent = turns;
-  document.getElementById("meta-tools").textContent = tools;
-  document.getElementById("meta-comments").textContent = comments;
+  setText("meta-turns", String(turns));
+  setText("meta-tools", String(tools));
+  setText("meta-comments", String(comments));
+  setText("watcher-count-meta", String(snapshot.presence.length));
+  setText("comment-count-meta", String(comments));
 
   const permsEl = document.getElementById("meta-perms");
-  permsEl.textContent = perms ? (perms + " pending") : "0";
-  permsEl.style.color = perms ? "var(--danger-fg)" : "var(--fg-default)";
+  if (permsEl) {
+    permsEl.textContent = String(perms);
+    permsEl.style.color = perms ? "var(--accent-danger)" : "";
+  }
 }
 
 function updateStarted() {
   const start = snapshot.started_at;
-  document.getElementById("started-rel").textContent = start ? relTime(start) : "just now";
-  document.getElementById("meta-started").textContent = start ? relTime(start) : "just now";
+  const text = start ? relTime(start) : "just now";
+  setText("started-rel", text);
+  setText("meta-started", text);
 }
 
 setInterval(() => {
@@ -1458,24 +1508,26 @@ setInterval(() => {
 function selectAnchor(turnId, preview) {
   selectedAnchor = turnId;
   document.querySelectorAll(".card.selected").forEach(node => node.classList.remove("selected"));
+  document.querySelectorAll(".ci-banner.selected").forEach(node => node.classList.remove("selected"));
   const target = document.querySelector('[data-turn-card="' + cssEscape(turnId) + '"]');
   if (target) target.classList.add("selected");
   const anchorBar = document.getElementById("composer-anchor");
   anchorBar.classList.remove("no-anchor");
-  document.getElementById("composer-anchor-id").textContent = turnId;
-  document.getElementById("composer-anchor-preview").textContent = preview || "";
-  document.getElementById("composer-foot-anchor").textContent = turnId;
+  setText("composer-anchor-id", turnId);
+  setText("composer-anchor-preview", preview || "");
+  setText("composer-foot-anchor", turnId);
   document.getElementById("clear-anchor-btn").hidden = false;
 }
 
 function clearAnchorSelection() {
   selectedAnchor = null;
   document.querySelectorAll(".card.selected").forEach(node => node.classList.remove("selected"));
+  document.querySelectorAll(".ci-banner.selected").forEach(node => node.classList.remove("selected"));
   const anchorBar = document.getElementById("composer-anchor");
   anchorBar.classList.add("no-anchor");
-  document.getElementById("composer-anchor-id").textContent = "— none —";
-  document.getElementById("composer-anchor-preview").textContent = "click any turn to anchor your comment";
-  document.getElementById("composer-foot-anchor").textContent = "(no anchor)";
+  setText("composer-anchor-id", "— none —");
+  setText("composer-anchor-preview", "click any turn to anchor your comment");
+  setText("composer-foot-anchor", "(no anchor)");
   document.getElementById("clear-anchor-btn").hidden = true;
 }
 

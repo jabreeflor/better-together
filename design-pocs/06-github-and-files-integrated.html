@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Better Together — GitHub + Shared Files (3 integrated designs)</title>
+<style>
+  :root {
+    --doc-bg: #f7f7f4;
+    --doc-fg: #1f2024;
+    --doc-muted: #6b6f78;
+    --doc-rule: #d9d6cd;
+    --doc-accent: #b15a2c;
+    --doc-link: #0969da;
+    --doc-card: #ffffff;
+    --doc-card-rule: #e6e2d4;
+    --doc-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --doc-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --doc-serif: "Iowan Old Style", "Iowan", Palatino, Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--doc-bg);
+    color: var(--doc-fg);
+    font-family: var(--doc-serif);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .doc-shell { max-width: 1180px; margin: 0 auto; padding: 56px 32px 96px; }
+
+  .doc-eyebrow {
+    font-family: var(--doc-mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--doc-accent); margin: 0 0 8px;
+  }
+  h1.doc-title {
+    font-size: 44px; line-height: 1.08; font-weight: 500;
+    letter-spacing: -0.5px; margin: 0 0 12px;
+  }
+  .doc-deck {
+    font-size: 19px; color: var(--doc-muted); font-style: italic;
+    max-width: 760px; margin: 0 0 28px;
+  }
+  .doc-meta {
+    font-family: var(--doc-mono); font-size: 12px; color: var(--doc-muted);
+    border-top: 1px solid var(--doc-rule); border-bottom: 1px solid var(--doc-rule);
+    padding: 10px 0; margin: 0 0 36px;
+    display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+  }
+  .doc-meta b { color: var(--doc-fg); font-weight: 600; }
+
+  .doc-toc {
+    background: var(--doc-card);
+    border: 1px solid var(--doc-card-rule);
+    border-left: 3px solid var(--doc-accent);
+    padding: 16px 22px;
+    font-family: var(--doc-sans); font-size: 14px;
+    margin: 0 0 40px;
+  }
+  .doc-toc strong {
+    display: block; font-family: var(--doc-mono); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--doc-muted); margin-bottom: 8px;
+  }
+  .doc-toc ol { margin: 0; padding-left: 22px; }
+  .doc-toc li { padding: 3px 0; }
+  .doc-toc a { color: var(--doc-fg); text-decoration: none; border-bottom: 1px solid transparent; }
+  .doc-toc a:hover { border-bottom-color: var(--doc-accent); }
+  .doc-toc .doc-toc-tier { color: var(--doc-muted); font-family: var(--doc-mono); font-size: 12px; margin-left: 6px; }
+
+  .doc-section { margin: 0 0 56px; }
+  h2.doc-h2 {
+    font-size: 30px; font-weight: 500; letter-spacing: -0.3px;
+    margin: 0 0 6px; padding-top: 24px;
+    border-top: 1px solid var(--doc-rule);
+  }
+  h2.doc-h2 .doc-num {
+    font-family: var(--doc-mono); font-size: 14px;
+    color: var(--doc-accent); margin-right: 12px; vertical-align: 2px;
+  }
+  .doc-h2-deck { font-size: 17px; color: var(--doc-muted); font-style: italic; margin: 0 0 18px; max-width: 820px; }
+
+  .doc-prose p { margin: 0 0 14px; max-width: 760px; }
+  .doc-prose code {
+    font-family: var(--doc-mono); font-size: 0.86em;
+    background: #efece1; padding: 1px 6px; border-radius: 3px;
+  }
+  .doc-prose a { color: var(--doc-link); }
+
+  .doc-tags {
+    font-family: var(--doc-mono); font-size: 11px;
+    display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 18px;
+  }
+  .doc-tag {
+    background: #efece1; color: #4a4842;
+    padding: 3px 9px; border-radius: 2em;
+    border: 1px solid var(--doc-card-rule);
+  }
+  .doc-tag.complexity-low    { background: #ecf5e7; color: #3f6b2c; border-color: #cfe6c4; }
+  .doc-tag.complexity-medium { background: #fff7e6; color: #8c6a14; border-color: #f0dfa8; }
+  .doc-tag.complexity-high   { background: #fdecea; color: #a13325; border-color: #f1c2bc; }
+
+  .doc-grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    margin: 18px 0 24px;
+  }
+  .doc-pillar {
+    background: var(--doc-card); border: 1px solid var(--doc-card-rule);
+    border-radius: 6px; padding: 18px 20px; font-family: var(--doc-sans); font-size: 14px;
+  }
+  .doc-pillar h4 {
+    margin: 0 0 8px; font-family: var(--doc-mono); font-size: 11px;
+    color: var(--doc-accent); text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .doc-pillar ul { margin: 0; padding-left: 18px; }
+  .doc-pillar ul li { padding: 2px 0; }
+
+  .doc-mockup-frame {
+    background: var(--doc-card); border: 1px solid var(--doc-card-rule);
+    border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(31,35,40,0.06);
+    margin: 20px 0 12px;
+  }
+  .doc-mockup-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-bottom: 1px solid var(--doc-card-rule);
+    background: linear-gradient(#fafaf6,#f1ede1);
+    font-family: var(--doc-mono); font-size: 11px; color: var(--doc-muted);
+  }
+  .doc-mockup-chrome .dots { display: flex; gap: 6px; margin-right: 6px; }
+  .doc-mockup-chrome .dots i {
+    width: 11px; height: 11px; border-radius: 50%; background: #e0d6c2; display: inline-block;
+  }
+  .doc-mockup-chrome .url {
+    flex: 1; background: #fff; border: 1px solid var(--doc-card-rule);
+    padding: 3px 12px; border-radius: 3px; color: #4a4842;
+  }
+  .doc-mockup-caption {
+    font-family: var(--doc-sans); font-size: 13px; color: var(--doc-muted);
+    margin: 4px 0 0; padding-left: 4px;
+  }
+
+  .doc-callout {
+    background: #fff7e6; border: 1px solid #f0dfa8;
+    border-left: 3px solid var(--doc-accent);
+    padding: 14px 18px; margin: 18px 0;
+    font-family: var(--doc-sans); font-size: 14px;
+  }
+  .doc-callout b { color: #8c6a14; }
+
+  .doc-tradeoffs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    background: #faf8f1; border: 1px solid var(--doc-card-rule);
+    padding: 16px 20px; margin: 18px 0; border-radius: 6px;
+    font-family: var(--doc-sans); font-size: 14px;
+  }
+  .doc-tradeoffs .col h5 {
+    margin: 0 0 6px; font-family: var(--doc-mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .doc-tradeoffs .pros h5 { color: #3f6b2c; }
+  .doc-tradeoffs .cons h5 { color: #a13325; }
+  .doc-tradeoffs ul { margin: 0; padding-left: 18px; }
+  .doc-tradeoffs li { padding: 2px 0; }
+
+  table.doc-matrix {
+    width: 100%; border-collapse: collapse; margin: 14px 0 28px;
+    font-family: var(--doc-sans); font-size: 13.5px;
+    background: var(--doc-card);
+  }
+  table.doc-matrix th, table.doc-matrix td {
+    border: 1px solid var(--doc-card-rule); padding: 9px 12px; text-align: left; vertical-align: top;
+  }
+  table.doc-matrix th {
+    background: #f1ede1; font-family: var(--doc-mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--doc-muted);
+    font-weight: 600;
+  }
+  table.doc-matrix td.tier { font-weight: 600; color: var(--doc-fg); white-space: nowrap; }
+  table.doc-matrix td code {
+    font-family: var(--doc-mono); font-size: 12px;
+    background: #efece1; padding: 1px 5px; border-radius: 3px;
+  }
+
+  .doc-footer {
+    font-family: var(--doc-mono); font-size: 12px; color: var(--doc-muted);
+    border-top: 1px solid var(--doc-rule); padding-top: 14px; margin-top: 56px;
+  }
+
+  /* Hard reset inside mockup frames so agent snippets don't inherit doc serif. */
+  .doc-mockup-body { font-family: var(--doc-sans); font-size: 14px; line-height: 1.45; color: #1f2024; }
+  .doc-mockup-body * { box-sizing: border-box; }
+
+  @media (max-width: 760px) {
+    .doc-shell { padding: 36px 18px 60px; }
+    h1.doc-title { font-size: 32px; }
+    .doc-grid-2, .doc-tradeoffs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="doc-shell">
+
+  <p class="doc-eyebrow">Design exploration · 2026-05-07</p>
+  <h1 class="doc-title">Connecting Better Together to GitHub &amp; surfacing shared files</h1>
+  <p class="doc-deck">
+    Three paired designs &mdash; minimum-viable to ambitious &mdash; for wiring full GitHub context into a room and giving lobby viewers
+    files they can actually look at, not just events that say a file changed.
+  </p>
+  <div class="doc-meta">
+    <span><b>Scope:</b> two related features explored together</span>
+    <span><b>Constraint:</b> host-machine-only, no central service</span>
+    <span><b>Aesthetic anchor:</b> <code>design-pocs/05-pr-review.html</code></span>
+    <span><b>Companion to:</b> <code>PRD.md</code></span>
+  </div>
+
+  <nav class="doc-toc">
+    <strong>The three designs</strong>
+    <ol>
+      <li><a href="#design-1">Repo sidecar + auto-touched files</a><span class="doc-toc-tier">tier 1 &middot; ~3 days</span></li>
+      <li><a href="#design-2">PR-anchored room + pinned files pane</a><span class="doc-toc-tier">tier 2 &middot; ~1&ndash;2 weeks</span></li>
+      <li><a href="#design-3">Workflow hub + time-travel file browser</a><span class="doc-toc-tier">tier 3 &middot; ~1 month</span></li>
+    </ol>
+  </nav>
+
+  <section class="doc-section doc-prose">
+    <h2 class="doc-h2"><span class="doc-num">00</span>Why these two features pair naturally</h2>
+    <p class="doc-h2-deck">A room without GitHub context floats; a room without file content is opaque. They&rsquo;re the same problem &mdash; making the host&rsquo;s session legible &mdash; from two sides.</p>
+    <p>
+      Today the lobby renders prompts, responses, and tool-call <em>events</em>. A watcher learns that <code>server.js</code> was edited at turn t14, but cannot see what changed. They learn the host is working on something, but not what repo, what branch, what PR, whether CI is green.
+    </p>
+    <p>
+      Both gaps point at the same thing: <strong>the lobby needs to be a review surface, not a livestream caption</strong>. The three designs below walk a single ladder from "passive metadata" to "the room is a workflow hub and a time-travel inspector." Each tier picks a matching pair from the GitHub side and the files side, so commitments stay coherent &mdash; you don't end up with a workflow-hub GitHub integration sitting on top of an opaque transcript.
+    </p>
+    <div class="doc-grid-2">
+      <div class="doc-pillar">
+        <h4>What "GitHub context" means here</h4>
+        <ul>
+          <li>Repo + branch + working-tree status</li>
+          <li>PR for current branch (number, title, state, draft)</li>
+          <li>PR diff (files changed + hunks)</li>
+          <li>CI / check-runs status</li>
+          <li>Linked issues for the PR or branch</li>
+          <li>Recent commits, reviewers, labels</li>
+        </ul>
+      </div>
+      <div class="doc-pillar">
+        <h4>What "shared files" means here</h4>
+        <ul>
+          <li>Touched files (auto-discovered from tool calls)</li>
+          <li>Diff snapshots (per-edit before/after, plus rolling diff vs git HEAD)</li>
+          <li>Pinned files (host-curated, always live)</li>
+          <li>Repo browser (full read of CWD, allowlisted)</li>
+          <li>Time-travel snapshots anchored to specific turns</li>
+        </ul>
+      </div>
+    </div>
+    <p>
+      <strong>Mechanism, in one sentence:</strong> the host&rsquo;s server gets a small <code>github.js</code> adapter (wraps <code>gh</code> CLI, no new deps) and the existing <code>transcript-tailer.js</code> grows a sibling step that captures file contents on every Edit/Write tool result. Both feed the same in-memory store and the same SSE bus, plus targeted on-demand HTTP endpoints for fat payloads. No central service. No <code>npm install</code>. The host&rsquo;s <code>gh auth token</code> is the single credential surface.
+    </p>
+  </section>
+
+  <!-- ============================================================
+       DESIGN 1 — minimal: Repo Sidecar + Auto-Touched Files
+       ============================================================ -->
+  <section class="doc-section doc-prose" id="design-1">
+    <h2 class="doc-h2"><span class="doc-num">01</span>Repo sidecar + auto-touched files</h2>
+    <p class="doc-h2-deck">The cheapest version of both ideas, glued onto today&rsquo;s lobby with no schema changes and no new host commands. Auto-detected, read-only, ~3 days end to end.</p>
+
+    <div class="doc-tags">
+      <span class="doc-tag complexity-low">Complexity: low</span>
+      <span class="doc-tag">~3 days</span>
+      <span class="doc-tag">No new commands</span>
+      <span class="doc-tag">Read-only</span>
+      <span class="doc-tag">Zero new deps</span>
+    </div>
+
+    <div class="doc-grid-2">
+      <div class="doc-pillar">
+        <h4>GitHub side &mdash; passive sidecar</h4>
+        <ul>
+          <li>On host start: <code>git remote get-url origin</code> + <code>gh pr view --json</code> (auto-link)</li>
+          <li>Poll: PR header every 30s, CI checks every 15s</li>
+          <li>Render: a <code>repo / branch / PR pill / CI lights</code> strip just under the room URL</li>
+          <li>Click PR &rarr; opens GitHub in a new tab. Read-only, no mutation.</li>
+        </ul>
+      </div>
+      <div class="doc-pillar">
+        <h4>Files side &mdash; auto-touched strip</h4>
+        <ul>
+          <li>Extend <code>transcript-tailer.js</code> to capture path + contents on every Edit/Write tool result</li>
+          <li>In-memory ring buffer, LRU-evicted at 50 distinct files</li>
+          <li>Render: horizontal pill strip; click &rarr; modal diff view (vs HEAD)</li>
+          <li>Fully automatic &mdash; zero host action required</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="font-size:18px;font-family:var(--doc-mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--doc-muted);margin:28px 0 4px;">Mockup &mdash; the lobby with both surfaces</h3>
+
+    <!-- Mockup A1: GH Variant A strip -->
+    <div class="doc-mockup-frame">
+      <div class="doc-mockup-chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">https://misty-llama-9342.trycloudflare.com/ui</span>
+        <span>Better Together &middot; lobby</span>
+      </div>
+      <div class="doc-mockup-body" style="padding:18px 20px; background:#fff;">
+        <style>
+          .gh-a-strip {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            padding: 10px 16px;
+            background: #ffffff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            box-shadow: 0 1px 0 rgba(31,35,40,0.04);
+            font: 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #1f2328;
+            margin: 0 0 16px;
+          }
+          .gh-a-strip .gh-a-icon { color: #59636e; display: inline-flex; }
+          .gh-a-strip .gh-a-repo { font-weight: 600; color: #0969da; }
+          .gh-a-strip .gh-a-branch {
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 12px;
+            background: #ddf4ff; color: #0969da;
+            padding: 2px 8px; border-radius: 2em;
+          }
+          .gh-a-strip .gh-a-sep { color: #d0d7de; }
+          .gh-a-strip .gh-a-pr {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 3px 10px; border-radius: 2em;
+            background: #dafbe1; color: #1a7f37;
+            font-weight: 500;
+          }
+          .gh-a-strip .gh-a-pr .gh-a-num { font-family: ui-monospace, monospace; opacity: 0.8; }
+          .gh-a-strip .gh-a-pr-title { color: #1f2328; }
+          .gh-a-strip .gh-a-checks { display: inline-flex; gap: 4px; align-items: center; }
+          .gh-a-strip .gh-a-check {
+            width: 14px; height: 14px; border-radius: 50%;
+            display: inline-grid; place-items: center;
+            color: #fff; font-size: 9px; font-weight: 700;
+          }
+          .gh-a-strip .gh-a-check.pass { background: #1f883d; }
+          .gh-a-strip .gh-a-check.pend {
+            background: #bf8700; animation: gh-a-pulse 1.4s ease-in-out infinite;
+          }
+          @keyframes gh-a-pulse { 50% { opacity: 0.45; } }
+          .gh-a-strip .gh-a-checks-label { color: #59636e; font-size: 12px; margin-left: 4px; }
+          .gh-a-strip .gh-a-spacer { flex: 1; }
+          .gh-a-strip .gh-a-pin {
+            font-size: 11px; color: #59636e;
+            background: #f6f8fa; border: 1px solid #d0d7de;
+            padding: 2px 8px; border-radius: 4px;
+          }
+        </style>
+        <div class="gh-a-strip">
+          <span class="gh-a-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          </span>
+          <span class="gh-a-repo">jabreeflor / better-together</span>
+          <span class="gh-a-sep">&middot;</span>
+          <span class="gh-a-branch">main</span>
+          <span class="gh-a-sep">&middot;</span>
+          <span class="gh-a-pr" title="Open PR">
+            <span class="gh-a-num">#142</span>
+            <span class="gh-a-pr-title">lobby: tail transcript JSONL instead of relying on per-event hooks</span>
+          </span>
+          <span class="gh-a-checks" title="2 passing &middot; 1 pending">
+            <span class="gh-a-check pass">&check;</span>
+            <span class="gh-a-check pass">&check;</span>
+            <span class="gh-a-check pend">&bull;</span>
+            <span class="gh-a-checks-label">2/3 checks</span>
+          </span>
+          <span class="gh-a-spacer"></span>
+          <span class="gh-a-pin">auto-linked from <code>git remote</code></span>
+        </div>
+
+        <!-- Files Variant A: auto-touched strip + diff -->
+        <style>
+          .sf-a-wrap { font-family: ui-monospace, "SF Mono", Menlo, monospace; background: #0c0e12; color: #c9d1d9; padding: 14px 18px; border: 1px solid #1f2328; border-radius: 8px; }
+          .sf-a-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 11px; letter-spacing: 0.08em; color: #6e7781; text-transform: uppercase; }
+          .sf-a-head .sf-a-room { color: #ff7a00; font-weight: 600; }
+          .sf-a-strip2 { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+          .sf-a-pill { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #161b22; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 12px; }
+          .sf-a-pill:hover { border-color: #ff7a00; }
+          .sf-a-pill.sf-a-active { border-color: #ff7a00; background: #1c1410; }
+          .sf-a-pill .sf-a-icon { color: #6e7781; font-size: 13px; }
+          .sf-a-pill .sf-a-path { color: #c9d1d9; }
+          .sf-a-pill .sf-a-path b { color: #f0f6fc; font-weight: 600; }
+          .sf-a-pill .sf-a-add { color: #3fb950; }
+          .sf-a-pill .sf-a-del { color: #f85149; }
+          .sf-a-pill .sf-a-turn { color: #6e7781; font-size: 10px; padding-left: 6px; border-left: 1px solid #30363d; }
+          .sf-a-modal { margin-top: 14px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; }
+          .sf-a-mhead { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid #21262d; font-size: 12px; }
+          .sf-a-mhead .sf-a-mpath { color: #f0f6fc; }
+          .sf-a-mhead .sf-a-mmeta { color: #6e7781; font-size: 11px; }
+          .sf-a-mhead .sf-a-mclose { color: #6e7781; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+          .sf-a-diff { font-size: 12px; line-height: 1.5; }
+          .sf-a-diff .sf-a-row { display: grid; grid-template-columns: 44px 44px 1fr; }
+          .sf-a-diff .sf-a-gutter { color: #484f58; text-align: right; padding: 0 8px; user-select: none; }
+          .sf-a-diff .sf-a-line { padding: 0 12px; white-space: pre; }
+          .sf-a-diff .sf-a-row.add { background: #033a16; }
+          .sf-a-diff .sf-a-row.add .sf-a-line { color: #aff5b4; }
+          .sf-a-diff .sf-a-row.add .sf-a-gutter { background: #0a4922; color: #56d364; }
+          .sf-a-diff .sf-a-row.del { background: #67060c; }
+          .sf-a-diff .sf-a-row.del .sf-a-line { color: #ffa198; }
+          .sf-a-diff .sf-a-row.del .sf-a-gutter { background: #82071e; color: #ff7b72; }
+          .sf-a-diff .sf-a-hunk { background: #161b22; color: #6e7781; padding: 4px 12px; font-style: italic; border-top: 1px solid #21262d; border-bottom: 1px solid #21262d; }
+        </style>
+        <div class="sf-a-wrap">
+          <div class="sf-a-head">
+            <span><span class="sf-a-room">misty-llama-9342</span> &middot; files touched this session</span>
+            <span>9 files &middot; auto-discovered from transcript</span>
+          </div>
+          <div class="sf-a-strip2">
+            <div class="sf-a-pill sf-a-active">
+              <span class="sf-a-icon">JS</span><span class="sf-a-path">plugin/server/<b>server.js</b></span>
+              <span class="sf-a-add">+47</span><span class="sf-a-del">-2</span><span class="sf-a-turn">t34</span>
+            </div>
+            <div class="sf-a-pill">
+              <span class="sf-a-icon">JS</span><span class="sf-a-path">plugin/server/<b>transcript-tailer.js</b></span>
+              <span class="sf-a-add">+12</span><span class="sf-a-del">-4</span><span class="sf-a-turn">t31</span>
+            </div>
+            <div class="sf-a-pill">
+              <span class="sf-a-icon">MD</span><span class="sf-a-path"><b>PRD.md</b></span>
+              <span class="sf-a-add">+0</span><span class="sf-a-del">-0</span><span class="sf-a-turn">t27 &middot; read</span>
+            </div>
+            <div class="sf-a-pill">
+              <span class="sf-a-icon">HT</span><span class="sf-a-path">plugin/server/<b>lobby.html</b></span>
+              <span class="sf-a-add">+86</span><span class="sf-a-del">-11</span><span class="sf-a-turn">t24</span>
+            </div>
+            <div class="sf-a-pill">
+              <span class="sf-a-icon">JS</span><span class="sf-a-path">plugin/server/<b>state.js</b></span>
+              <span class="sf-a-add">+3</span><span class="sf-a-del">-0</span><span class="sf-a-turn">t19</span>
+            </div>
+            <div class="sf-a-pill">
+              <span class="sf-a-icon">JN</span><span class="sf-a-path">plugin/hooks/<b>hooks.json</b></span>
+              <span class="sf-a-add">+5</span><span class="sf-a-del">-1</span><span class="sf-a-turn">t12</span>
+            </div>
+          </div>
+          <div class="sf-a-modal">
+            <div class="sf-a-mhead">
+              <span class="sf-a-mpath">plugin/server/server.js</span>
+              <span class="sf-a-mmeta">snapshot @ t34 &middot; 4s ago &middot; 47 additions, 2 deletions &middot; vs HEAD</span>
+              <span class="sf-a-mclose">close</span>
+            </div>
+            <div class="sf-a-diff">
+              <div class="sf-a-hunk">@@ -141,6 +141,53 @@ const server = http.createServer</div>
+              <div class="sf-a-row"><div class="sf-a-gutter">141</div><div class="sf-a-gutter">141</div><div class="sf-a-line">  if (req.method === 'GET' &amp;&amp; url.pathname === '/snapshot.json') {</div></div>
+              <div class="sf-a-row"><div class="sf-a-gutter">142</div><div class="sf-a-gutter">142</div><div class="sf-a-line">    return send(res, 200, snapshot());</div></div>
+              <div class="sf-a-row"><div class="sf-a-gutter">143</div><div class="sf-a-gutter">143</div><div class="sf-a-line">  }</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">144</div><div class="sf-a-line">  if (req.method === 'GET' &amp;&amp; url.pathname === '/files/list') {</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">145</div><div class="sf-a-line">    return send(res, 200, listFiles());</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">146</div><div class="sf-a-line">  }</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">147</div><div class="sf-a-line">  if (req.method === 'GET' &amp;&amp; url.pathname === '/files/get') {</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">148</div><div class="sf-a-line">    const p = url.searchParams.get('path');</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">149</div><div class="sf-a-line">    const turn = url.searchParams.get('turn') || 'live';</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">150</div><div class="sf-a-line">    if (!isPathAllowed(p)) return send(res, 403, { error: 'denied' });</div></div>
+              <div class="sf-a-row del"><div class="sf-a-gutter">147</div><div class="sf-a-gutter">-</div><div class="sf-a-line">    return send(res, 200, snapshot());</div></div>
+              <div class="sf-a-row add"><div class="sf-a-gutter">+</div><div class="sf-a-gutter">151</div><div class="sf-a-line">    return send(res, 200, getFile(p, turn));</div></div>
+              <div class="sf-a-row"><div class="sf-a-gutter">148</div><div class="sf-a-gutter">152</div><div class="sf-a-line">  }</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="doc-mockup-caption">A new GitHub strip sits where the room URL used to be. Below the transcript (not shown), an auto-populated dark file strip lists every file Claude touched; clicking a pill opens the diff modal under it.</p>
+
+    <div class="doc-tradeoffs">
+      <div class="col pros">
+        <h5>Earns its keep</h5>
+        <ul>
+          <li>Watcher orientation in the first 2 seconds &mdash; "this is PR #142, 2 of 3 checks green, here are the touched files"</li>
+          <li>Reuses what <code>transcript-tailer.js</code> already extracts (<code>tool_input.file_path</code>)</li>
+          <li>No host commands, no MCP, no schema changes</li>
+          <li>SSE-friendly: file metadata fits in the stream; bodies are on-demand HTTP</li>
+        </ul>
+      </div>
+      <div class="col cons">
+        <h5>What it doesn&rsquo;t do</h5>
+        <ul>
+          <li>No way to view a file Claude hasn&rsquo;t touched yet</li>
+          <li>No comment-anchoring to file lines (still turn-level)</li>
+          <li>No CI history, no review workflow, no issue context beyond the PR title</li>
+          <li>Polling-fallback viewers see file metadata 2.5s late &mdash; usually fine</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="doc-callout">
+      <b>Why ship this first.</b> It&rsquo;s the smallest change that makes the lobby legibly more useful for review. Everything in tier 2 and tier 3 is a strict superset that reuses the same <code>github.js</code> adapter and the same <code>fileStore</code>.
+    </div>
+  </section>
+
+  <!-- ============================================================
+       DESIGN 2 — PR-anchored: GH Variant B + Files Variant B
+       ============================================================ -->
+  <section class="doc-section doc-prose" id="design-2">
+    <h2 class="doc-h2"><span class="doc-num">02</span>PR-anchored room + pinned files pane</h2>
+    <p class="doc-h2-deck">The room <em>is</em> a PR. Tabs replicate GitHub&rsquo;s review surface; comments can mirror to PR review-comments; the host curates a pinned-files side rail with always-live contents.</p>
+
+    <div class="doc-tags">
+      <span class="doc-tag complexity-medium">Complexity: medium</span>
+      <span class="doc-tag">~1&ndash;2 weeks</span>
+      <span class="doc-tag">New host commands</span>
+      <span class="doc-tag">Optional bidirectional comments</span>
+      <span class="doc-tag">MCP tools for plugin watchers</span>
+    </div>
+
+    <div class="doc-grid-2">
+      <div class="doc-pillar">
+        <h4>GitHub side &mdash; PR-anchored room</h4>
+        <ul>
+          <li>Full PR header (state-pill, title, branch &rarr; into, draft, reviewers)</li>
+          <li>Tabs: Conversation / Commits / Files changed / Checks / Issues</li>
+          <li>CI banner with per-check expandable details, live spinner</li>
+          <li>Lobby comments can opt-in mirror to PR review-comments (anchored by tool-call file:line)</li>
+          <li>Host commands: <code>/better-together:gh-pr</code>, <code>gh-mirror on|off</code>, <code>gh-checks</code></li>
+          <li>MCP tools: <code>gh_pr_files</code>, <code>gh_pr_diff</code>, <code>gh_pr_checks</code>, <code>gh_post_pr_comment</code> (host-gated)</li>
+        </ul>
+      </div>
+      <div class="doc-pillar">
+        <h4>Files side &mdash; pinned pane</h4>
+        <ul>
+          <li>Host explicitly pins via <code>/better-together:share &lt;path&gt;</code></li>
+          <li>Each pinned file becomes a tab in a left-side rail; <code>fs.watch</code> + 200ms debounce keeps it live</li>
+          <li>Live edits show a "live" pulse; lines edited this session glow with a turn-id gutter</li>
+          <li>Both Claude edits and direct editor edits land &mdash; the rail is "what should I keep an eye on"</li>
+          <li>Per-pin allowlist + redaction pass; <code>share .env</code> is rejected with a host-visible reason</li>
+          <li>Audit log to <code>${CLAUDE_PLUGIN_DATA}/file-access.log</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="font-size:18px;font-family:var(--doc-mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--doc-muted);margin:28px 0 4px;">Mockup &mdash; PR shell wrapping a pinned-file pane</h3>
+
+    <div class="doc-mockup-frame">
+      <div class="doc-mockup-chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">https://misty-llama-9342.trycloudflare.com/ui#files</span>
+        <span>jabreeflor/better-together &middot; PR #142</span>
+      </div>
+      <div class="doc-mockup-body" style="padding:0; background:#fff;">
+        <!-- GH Variant B: PR header + tabs + CI banner + files-changed list -->
+        <style>
+          .gh-b-wrap { font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1f2328; }
+          .gh-b-subhead {
+            background: #ffffff;
+            border-bottom: 1px solid #d0d7de;
+            padding: 16px 24px 0;
+          }
+          .gh-b-repo { color: #0969da; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+          .gh-b-repo .gh-b-vis {
+            border: 1px solid #d0d7de; border-radius: 2em; padding: 0 7px;
+            font-size: 11px; color: #59636e; line-height: 18px; margin-left: 4px; font-weight: 400;
+          }
+          .gh-b-title { font-size: 24px; font-weight: 400; line-height: 1.25; letter-spacing: -0.2px; }
+          .gh-b-title .gh-b-num { color: #59636e; font-weight: 300; }
+          .gh-b-meta { display: flex; align-items: center; gap: 10px; padding: 10px 0 14px; flex-wrap: wrap; color: #59636e; font-size: 13px; }
+          .gh-b-state {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #1f883d; color: #fff;
+            padding: 5px 12px; border-radius: 2em; font-weight: 500; font-size: 13px;
+          }
+          .gh-b-state .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff;
+            box-shadow: 0 0 0 0 rgba(255,255,255,0.7); animation: gh-b-pulse 2s infinite; }
+          @keyframes gh-b-pulse { 70% { box-shadow: 0 0 0 6px rgba(255,255,255,0); } }
+          .gh-b-meta strong { color: #1f2328; font-weight: 600; }
+          .gh-b-mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+            background: #ddf4ff; color: #0969da; padding: 2px 6px; border-radius: 4px; }
+          .gh-b-tabs { display: flex; gap: 0; align-items: center; }
+          .gh-b-tab {
+            padding: 8px 14px; margin-bottom: -1px;
+            border: 1px solid transparent; border-radius: 6px 6px 0 0;
+            color: #1f2328; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent;
+            display: inline-flex; gap: 6px; align-items: center;
+          }
+          .gh-b-tab.active { background: #ffffff; border: 1px solid #d0d7de; border-bottom-color: #ffffff; font-weight: 600; }
+          .gh-b-tab .gh-b-count { background: #eaeef2; color: #1f2328; font-size: 11px; padding: 0 6px; border-radius: 2em; min-width: 20px; text-align: center; line-height: 18px; }
+          .gh-b-tab.active .gh-b-count { background: #d0d7de; }
+          .gh-b-ci {
+            display: flex; align-items: center; gap: 12px;
+            background: #fff8c5; border: 1px solid #d4a72c; border-bottom: 0;
+            padding: 8px 24px; margin-top: 0;
+            color: #4a3000; font-size: 13px;
+          }
+          .gh-b-ci .gh-b-spinner {
+            width: 12px; height: 12px; border-radius: 50%;
+            border: 2px solid #d4a72c; border-top-color: transparent;
+            animation: gh-b-spin 0.9s linear infinite;
+          }
+          @keyframes gh-b-spin { to { transform: rotate(360deg); } }
+          .gh-b-ci-list { display: inline-flex; gap: 14px; align-items: center; }
+          .gh-b-ci-item { display: inline-flex; gap: 5px; align-items: center; font-family: ui-monospace, monospace; font-size: 12px; }
+          .gh-b-ci-item.pass { color: #1a7f37; }
+          .gh-b-ci-item.pend { color: #9a6700; }
+          .gh-b-ci-spacer { flex: 1; }
+          .gh-b-ci-link { color: #4a3000; text-decoration: underline; font-size: 12px; }
+        </style>
+        <div class="gh-b-wrap">
+          <div class="gh-b-subhead">
+            <div class="gh-b-repo">
+              jabreeflor / better-together
+              <span class="gh-b-vis">Public</span>
+            </div>
+            <div class="gh-b-title">
+              lobby: tail transcript JSONL instead of relying on per-event hooks
+              <span class="gh-b-num">#142</span>
+            </div>
+            <div class="gh-b-meta">
+              <span class="gh-b-state"><span class="dot"></span>Open</span>
+              <span><strong>jabreeflor</strong> wants to merge <strong>4 commits</strong> into
+                <span class="gh-b-mono">main</span> from <span class="gh-b-mono">feat/transcript-tailer</span>
+              </span>
+            </div>
+            <div class="gh-b-tabs">
+              <div class="gh-b-tab">Conversation <span class="gh-b-count">23</span></div>
+              <div class="gh-b-tab">Commits <span class="gh-b-count">4</span></div>
+              <div class="gh-b-tab active">Files <span class="gh-b-count">7</span></div>
+              <div class="gh-b-tab">Checks <span class="gh-b-count">2/3</span></div>
+              <div class="gh-b-tab">Issues <span class="gh-b-count">2</span></div>
+            </div>
+          </div>
+          <div class="gh-b-ci">
+            <span class="gh-b-spinner" aria-hidden="true"></span>
+            <span><strong>1 check pending</strong> &middot; 2 successful</span>
+            <span class="gh-b-ci-list">
+              <span class="gh-b-ci-item pass">&check; lint</span>
+              <span class="gh-b-ci-item pass">&check; unit</span>
+              <span class="gh-b-ci-item pend">&bull; e2e (4m12s)</span>
+            </span>
+            <span class="gh-b-ci-spacer"></span>
+            <a class="gh-b-ci-link" href="#">View workflow on GitHub &rarr;</a>
+          </div>
+        </div>
+
+        <!-- Files Variant B: pinned pane (rail + code pane) embedded under the PR shell -->
+        <style>
+          .sf-b-wrap { font-family: ui-monospace, "SF Mono", Menlo, monospace; display: grid; grid-template-columns: 280px 1fr; gap: 0; background: #0d1117; color: #c9d1d9; min-height: 460px; }
+          .sf-b-rail { border-right: 1px solid #21262d; background: #010409; padding: 14px 0; }
+          .sf-b-rail-head { padding: 0 16px 10px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #6e7781; display: flex; justify-content: space-between; align-items: center; }
+          .sf-b-rail-head .sf-b-add { color: #58a6ff; cursor: pointer; font-size: 14px; }
+          .sf-b-tab { display: block; padding: 9px 16px; border-left: 2px solid transparent; cursor: pointer; font-size: 12px; }
+          .sf-b-tab:hover { background: #161b22; }
+          .sf-b-tab.sf-b-active { background: #161b22; border-left-color: #ff7a00; }
+          .sf-b-tab .sf-b-name { color: #f0f6fc; font-weight: 500; }
+          .sf-b-tab .sf-b-dir { color: #6e7781; font-size: 10px; display: block; margin-top: 2px; }
+          .sf-b-tab .sf-b-edited { color: #56d364; font-size: 10px; display: block; margin-top: 2px; }
+          .sf-b-tab .sf-b-edited.sf-b-stale { color: #6e7781; }
+          .sf-b-pane { display: flex; flex-direction: column; }
+          .sf-b-bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #21262d; font-size: 12px; background: #0d1117; }
+          .sf-b-bar .sf-b-path { color: #f0f6fc; }
+          .sf-b-bar .sf-b-meta { color: #6e7781; font-size: 11px; margin-left: auto; }
+          .sf-b-bar .sf-b-live { display: inline-flex; align-items: center; gap: 6px; color: #56d364; font-size: 11px; }
+          .sf-b-bar .sf-b-live .sf-b-dot { width: 6px; height: 6px; border-radius: 50%; background: #56d364; box-shadow: 0 0 8px #56d364; }
+          .sf-b-code { flex: 1; padding: 12px 0; font-size: 12px; line-height: 1.55; overflow: auto; }
+          .sf-b-code .sf-b-row { display: grid; grid-template-columns: 50px 1fr; }
+          .sf-b-code .sf-b-num { color: #484f58; text-align: right; padding: 0 12px; user-select: none; }
+          .sf-b-code .sf-b-line { padding: 0 14px; white-space: pre; color: #c9d1d9; }
+          .sf-b-code .sf-b-row.sf-b-touched { background: #1c1f24; }
+          .sf-b-code .sf-b-row.sf-b-touched .sf-b-num { color: #ff7a00; }
+          .sf-b-kw { color: #ff7b72; }
+          .sf-b-st { color: #a5d6ff; }
+          .sf-b-fn { color: #d2a8ff; }
+          .sf-b-cm { color: #6e7781; font-style: italic; }
+          .sf-b-foot { padding: 8px 16px; border-top: 1px solid #21262d; font-size: 10px; color: #6e7781; display: flex; justify-content: space-between; }
+        </style>
+        <div class="sf-b-wrap">
+          <aside class="sf-b-rail">
+            <div class="sf-b-rail-head"><span>Pinned files (3)</span><span class="sf-b-add">+</span></div>
+            <div class="sf-b-tab sf-b-active">
+              <span class="sf-b-name">server.js</span>
+              <span class="sf-b-dir">plugin/server/</span>
+              <span class="sf-b-edited">edited 4s ago &middot; t34</span>
+            </div>
+            <div class="sf-b-tab">
+              <span class="sf-b-name">PRD.md</span>
+              <span class="sf-b-dir">/</span>
+              <span class="sf-b-edited sf-b-stale">read at t27</span>
+            </div>
+            <div class="sf-b-tab">
+              <span class="sf-b-name">lobby.html</span>
+              <span class="sf-b-dir">plugin/server/</span>
+              <span class="sf-b-edited">edited 38s ago &middot; t24</span>
+            </div>
+          </aside>
+          <section class="sf-b-pane">
+            <div class="sf-b-bar">
+              <span class="sf-b-path">plugin/server/server.js</span>
+              <span class="sf-b-live"><span class="sf-b-dot"></span>live</span>
+              <span class="sf-b-meta">320 lines &middot; 9.4 KB &middot; pinned by jabree at t08</span>
+            </div>
+            <div class="sf-b-code">
+              <div class="sf-b-row"><div class="sf-b-num">141</div><div class="sf-b-line">  <span class="sf-b-kw">if</span> (req.method === <span class="sf-b-st">'GET'</span> &amp;&amp; url.pathname === <span class="sf-b-st">'/snapshot.json'</span>) {</div></div>
+              <div class="sf-b-row"><div class="sf-b-num">142</div><div class="sf-b-line">    <span class="sf-b-kw">return</span> <span class="sf-b-fn">send</span>(res, 200, <span class="sf-b-fn">snapshot</span>());</div></div>
+              <div class="sf-b-row"><div class="sf-b-num">143</div><div class="sf-b-line">  }</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">144</div><div class="sf-b-line"><span class="sf-b-cm">  // /files/* — added during this room (t34)</span></div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">145</div><div class="sf-b-line">  <span class="sf-b-kw">if</span> (req.method === <span class="sf-b-st">'GET'</span> &amp;&amp; url.pathname === <span class="sf-b-st">'/files/list'</span>) {</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">146</div><div class="sf-b-line">    <span class="sf-b-kw">return</span> <span class="sf-b-fn">send</span>(res, 200, <span class="sf-b-fn">listFiles</span>());</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">147</div><div class="sf-b-line">  }</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">148</div><div class="sf-b-line">  <span class="sf-b-kw">if</span> (req.method === <span class="sf-b-st">'GET'</span> &amp;&amp; url.pathname === <span class="sf-b-st">'/files/get'</span>) {</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">149</div><div class="sf-b-line">    <span class="sf-b-kw">const</span> p = url.searchParams.<span class="sf-b-fn">get</span>(<span class="sf-b-st">'path'</span>);</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">150</div><div class="sf-b-line">    <span class="sf-b-kw">if</span> (!<span class="sf-b-fn">isPathAllowed</span>(p)) <span class="sf-b-kw">return</span> <span class="sf-b-fn">send</span>(res, 403, { error: <span class="sf-b-st">'denied'</span> });</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">151</div><div class="sf-b-line">    <span class="sf-b-kw">return</span> <span class="sf-b-fn">send</span>(res, 200, <span class="sf-b-fn">getFile</span>(p, url.searchParams.<span class="sf-b-fn">get</span>(<span class="sf-b-st">'turn'</span>)));</div></div>
+              <div class="sf-b-row sf-b-touched"><div class="sf-b-num">152</div><div class="sf-b-line">  }</div></div>
+              <div class="sf-b-row"><div class="sf-b-num">153</div><div class="sf-b-line"></div></div>
+            </div>
+            <div class="sf-b-foot">
+              <span>4 watchers viewing &middot; last redaction pass: 0 hits</span>
+              <span>auto-refresh on edit &middot; /better-together:share to add</span>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+    <p class="doc-mockup-caption">PR shell up top (header, state pill, tabs, CI banner) wraps a pinned-files surface. The "Files" tab is selected; the pinned rail on the left is the host&rsquo;s curated working set. Lines touched in this session glow orange with the turn id in the gutter.</p>
+
+    <div class="doc-tradeoffs">
+      <div class="col pros">
+        <h5>Earns its keep</h5>
+        <ul>
+          <li>Reviewers recognize the surface instantly &mdash; tabs match GitHub</li>
+          <li>Pinned files mean the host curates exactly what watchers should focus on</li>
+          <li>Optional comment-mirroring lets a room produce a real PR review without context-switching</li>
+          <li>MCP tools give plugin-watcher Claudes repo-aware context without giving them a token</li>
+        </ul>
+      </div>
+      <div class="col cons">
+        <h5>Watch out for</h5>
+        <ul>
+          <li>Diff payloads bloat <code>snapshot.json</code> &mdash; serve diffs at <code>/github/diff</code> lazily</li>
+          <li>macOS <code>fs.watch</code> is flaky on swap-rename saves; need <code>fs.watchFile</code> fallback</li>
+          <li>PR-comment mirroring needs idempotency keys to survive reconnects</li>
+          <li>Private repos &mdash; auto-link should be opt-in, not default</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       DESIGN 3 — workflow hub: GH Variant C + Files Variant C
+       ============================================================ -->
+  <section class="doc-section doc-prose" id="design-3">
+    <h2 class="doc-h2"><span class="doc-num">03</span>Workflow hub + time-travel file browser</h2>
+    <p class="doc-h2-deck">The room becomes a two-way GitHub workspace and a recording. Webhooks land in the timeline, watchers can act on the PR from inside the lobby, and every transcript turn snapshots the file tree so picking turn t27 rewinds the file pane to that moment.</p>
+
+    <div class="doc-tags">
+      <span class="doc-tag complexity-high">Complexity: high</span>
+      <span class="doc-tag">~1 month</span>
+      <span class="doc-tag">Bidirectional</span>
+      <span class="doc-tag">Audit log non-optional</span>
+      <span class="doc-tag">Disk-backed snapshot store</span>
+      <span class="doc-tag">Per-action ACL</span>
+    </div>
+
+    <div class="doc-grid-2">
+      <div class="doc-pillar">
+        <h4>GitHub side &mdash; bidirectional hub</h4>
+        <ul>
+          <li>Webhooks (push, PR review, issue_comment, workflow_run) land in the room timeline</li>
+          <li>Color-coded card kinds: host turns / webhooks / watcher actions</li>
+          <li>Watchers can file issues, request review, label, approve PRs &mdash; gated by host-approval-in-terminal</li>
+          <li>Live workflow-log streaming (<code>gh run watch</code>) into the lobby</li>
+          <li>Full MCP tool surface: <code>gh_create_issue</code>, <code>gh_request_review</code>, <code>gh_approve_pr</code>, <code>gh_label_set</code>, <code>gh_workflow_rerun</code></li>
+          <li>Webhook reachability solved by <code>gh webhook forward</code> subprocess, not by registering the ephemeral tunnel URL</li>
+        </ul>
+      </div>
+      <div class="doc-pillar">
+        <h4>Files side &mdash; time-travel browser</h4>
+        <ul>
+          <li>Full repo tree (filtered by allowlist + <code>.gitignore</code>) seeded from <code>git ls-files</code></li>
+          <li>Every transcript turn captures a snapshot of every file it touched, content-addressed by sha</li>
+          <li>Scrubber rewinds the file pane to "as-of turn t27"</li>
+          <li>Disk-backed store (<code>${CLAUDE_PLUGIN_DATA}/snapshots/&lt;sha&gt;.txt</code>) keeps RAM bounded</li>
+          <li>Per-room byte cap (<code>max_session_bytes</code>, default 50 MB), audit log per file access</li>
+          <li>Comment anchoring graduates from turn-level to file:line at a specific turn</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 style="font-size:18px;font-family:var(--doc-mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--doc-muted);margin:28px 0 4px;">Mockup &mdash; mixed timeline + workflow rail</h3>
+
+    <div class="doc-mockup-frame">
+      <div class="doc-mockup-chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">https://misty-llama-9342.trycloudflare.com/ui#timeline</span>
+        <span>Workflow hub &middot; #142</span>
+      </div>
+      <div class="doc-mockup-body" style="padding:0; background:#fff;">
+        <!-- GH Variant C: timeline of mixed cards + workflow rail -->
+        <style>
+          .gh-c-grid {
+            display: grid; grid-template-columns: minmax(0,1fr) 296px; gap: 20px;
+            font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #1f2328; padding: 16px 24px;
+          }
+          .gh-c-feed { display: flex; flex-direction: column; gap: 10px; }
+          .gh-c-card {
+            background: #fff; border: 1px solid #d0d7de; border-radius: 6px;
+            padding: 12px 14px; box-shadow: 0 1px 0 rgba(31,35,40,0.04);
+            display: flex; gap: 10px; align-items: flex-start;
+          }
+          .gh-c-card.host    { border-left: 3px solid #0969da; }
+          .gh-c-card.webhook { border-left: 3px solid #8250df; background: #fbefff; }
+          .gh-c-card.action  { border-left: 3px solid #1a7f37; }
+          .gh-c-pill {
+            font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 2em;
+            text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0;
+          }
+          .gh-c-pill.host    { background: #ddf4ff; color: #0969da; }
+          .gh-c-pill.webhook { background: #fbefff; color: #8250df; }
+          .gh-c-pill.action  { background: #dafbe1; color: #1a7f37; }
+          .gh-c-card .gh-c-body { flex: 1; min-width: 0; }
+          .gh-c-card .gh-c-body .meta { color: #59636e; font-size: 12px; }
+          .gh-c-card .gh-c-body .text { margin-top: 2px; }
+          .gh-c-card .gh-c-body .text code,
+          .gh-c-card .gh-c-body .text .mono {
+            font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+            background: #f6f8fa; padding: 1px 5px; border-radius: 3px;
+          }
+          .gh-c-card .gh-c-actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+          .gh-c-btn {
+            background: #f6f8fa; border: 1px solid rgba(31,35,40,0.15); color: #1f2328;
+            padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+          }
+          .gh-c-btn:hover { background: #eaeef2; }
+          .gh-c-btn.primary { background: #1f883d; color: #fff; border-color: rgba(31,35,40,0.15); }
+
+          .gh-c-rail {
+            background: #fff; border: 1px solid #d0d7de; border-radius: 6px;
+            padding: 14px 14px 6px; align-self: flex-start;
+          }
+          .gh-c-rail h4 {
+            margin: 0 0 6px; font-size: 12px; font-weight: 600; color: #59636e;
+            text-transform: uppercase; letter-spacing: 0.04em;
+          }
+          .gh-c-rail .row { padding: 8px 0; border-bottom: 1px solid #eaeef2; font-size: 13px; }
+          .gh-c-rail .row:last-child { border-bottom: 0; }
+          .gh-c-rail .reviewers, .gh-c-rail .labels { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+          .gh-c-rail .avatar {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: linear-gradient(135deg,#ff7a00,#cf222e);
+            color: #fff; display: inline-grid; place-items: center;
+            font-size: 10px; font-weight: 600;
+          }
+          .gh-c-rail .label {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; padding: 2px 8px; border-radius: 2em;
+            background: #ddf4ff; color: #0969da; font-weight: 500;
+          }
+          .gh-c-rail .label.area { background: #fff8c5; color: #4a3000; }
+          .gh-c-rail .label.kind { background: #fbefff; color: #8250df; }
+          .gh-c-rail .gh-c-input {
+            width: 100%; padding: 5px 8px; border: 1px solid #d0d7de; border-radius: 6px;
+            font: inherit; font-size: 13px; margin-top: 4px;
+          }
+          .gh-c-rail .gh-c-quick {
+            margin-top: 10px; display: flex; flex-direction: column; gap: 6px;
+          }
+          .gh-c-rail .gh-c-quick .gh-c-btn { text-align: left; }
+        </style>
+        <div class="gh-c-grid">
+          <div class="gh-c-feed">
+            <div class="gh-c-card host">
+              <span class="gh-c-pill host">Host &middot; t27</span>
+              <div class="gh-c-body">
+                <div class="meta">11:42:18 &mdash; assistant edited <code>plugin/server/transcript-tailer.js</code></div>
+                <div class="text">Added rotation-aware tail so <span class="mono">/resume</span> into a different jsonl is picked up within 5s.</div>
+                <div class="gh-c-actions">
+                  <button class="gh-c-btn">Quote into prompt</button>
+                  <button class="gh-c-btn">Comment on PR line</button>
+                  <button class="gh-c-btn">Open file at HEAD</button>
+                </div>
+              </div>
+            </div>
+            <div class="gh-c-card webhook">
+              <span class="gh-c-pill webhook">Webhook &middot; check_run</span>
+              <div class="gh-c-body">
+                <div class="meta">11:42:51 &mdash; workflow <code>e2e</code> started &middot; run #1148</div>
+                <div class="text">Triggered by push <span class="mono">d2f1c08</span> on <span class="mono">feat/transcript-tailer</span></div>
+                <div class="gh-c-actions">
+                  <button class="gh-c-btn">Tail logs</button>
+                  <button class="gh-c-btn">Cancel run</button>
+                </div>
+              </div>
+            </div>
+            <div class="gh-c-card action">
+              <span class="gh-c-pill action">Mira &rarr; PR</span>
+              <div class="gh-c-body">
+                <div class="meta">11:43:09 &mdash; posted PR review comment from the room</div>
+                <div class="text">On <code>plugin/server/transcript-tailer.js:217</code> &mdash; "rotate detection runs every 5s; consider 2s under heavy churn."</div>
+                <div class="gh-c-actions">
+                  <button class="gh-c-btn">View on GitHub</button>
+                  <button class="gh-c-btn">Resolve thread</button>
+                </div>
+              </div>
+            </div>
+            <div class="gh-c-card webhook">
+              <span class="gh-c-pill webhook">Webhook &middot; pull_request_review</span>
+              <div class="gh-c-body">
+                <div class="meta">11:43:42 &mdash; <strong>kavi</strong> approved <strong>#142</strong></div>
+                <div class="text">"LGTM, waiting on e2e."</div>
+                <div class="gh-c-actions">
+                  <button class="gh-c-btn primary">Merge when green</button>
+                  <button class="gh-c-btn">Re-request review</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="gh-c-rail">
+            <h4>Workflow</h4>
+            <div class="row">
+              <div>Reviewers</div>
+              <div class="reviewers">
+                <span class="avatar" title="kavi &middot; approved" style="background:linear-gradient(135deg,#1a7f37,#0969da)">k</span>
+                <span class="avatar" title="mira &middot; pending">m</span>
+                <span class="avatar" title="alex &middot; requested" style="background:#eaeef2;color:#59636e">a</span>
+              </div>
+            </div>
+            <div class="row">
+              <div>Labels</div>
+              <div class="labels">
+                <span class="label area">area: lobby</span>
+                <span class="label kind">kind: refactor</span>
+                <span class="label">good-first-review</span>
+              </div>
+            </div>
+            <div class="row">
+              <div>Linked issues</div>
+              <div class="labels">
+                <span class="label">#118 streaming reliability</span>
+                <span class="label">#129 hook brittleness</span>
+              </div>
+            </div>
+            <div class="row">
+              <div>Request review</div>
+              <input class="gh-c-input" placeholder="@username&hellip;" />
+            </div>
+            <div class="row" style="border-bottom:0">
+              <div>Quick actions</div>
+              <div class="gh-c-quick">
+                <button class="gh-c-btn">Open issue from selection</button>
+                <button class="gh-c-btn">Re-run failed checks</button>
+                <button class="gh-c-btn">Convert PR to draft</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <p class="doc-mockup-caption">Timeline mixes host turns (blue), webhook events (purple), and watcher actions back to GitHub (green). Right rail is a workflow panel: reviewers, labels, linked issues, "request review" autocomplete, quick actions.</p>
+
+    <h3 style="font-size:18px;font-family:var(--doc-mono);text-transform:uppercase;letter-spacing:0.08em;color:var(--doc-muted);margin:28px 0 4px;">Mockup &mdash; time-travel file inspector</h3>
+
+    <div class="doc-mockup-frame">
+      <div class="doc-mockup-chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">https://misty-llama-9342.trycloudflare.com/ui#files/server.js@t27</span>
+        <span>file inspector</span>
+      </div>
+      <div class="doc-mockup-body" style="padding:0; background:#fafaf7;">
+        <!-- Files Variant C: tree + doc + scrubber -->
+        <style>
+          .sf-c-wrap { font-family: "Iowan Old Style", Palatino, Georgia, serif; background: #fafaf7; color: #1d1c19; display: grid; grid-template-columns: 220px 1fr 240px; min-height: 520px; }
+          .sf-c-tree { border-right: 1px solid #e6e2d4; background: #f4f1e8; padding: 18px 14px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+          .sf-c-tree-h { font-family: "Iowan Old Style", Georgia, serif; font-style: italic; color: #8a8678; font-size: 13px; margin-bottom: 12px; border-bottom: 1px solid #e6e2d4; padding-bottom: 8px; }
+          .sf-c-node { padding: 3px 6px; border-radius: 3px; cursor: pointer; color: #4a4842; }
+          .sf-c-node:hover { background: #ebe6d4; }
+          .sf-c-node.sf-c-folder { color: #1d1c19; font-weight: 600; }
+          .sf-c-node.sf-c-current { background: #fff7e6; color: #b15a2c; }
+          .sf-c-node .sf-c-touched { color: #b15a2c; font-size: 10px; padding-left: 4px; }
+          .sf-c-doc { padding: 28px 36px 20px; overflow: auto; }
+          .sf-c-bc { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #8a8678; letter-spacing: 0.04em; margin-bottom: 6px; }
+          .sf-c-doc h1 { font-size: 22px; font-weight: 500; letter-spacing: -0.2px; margin: 0 0 4px; }
+          .sf-c-doc .sf-c-sub { color: #8a8678; font-size: 13px; margin-bottom: 18px; font-style: italic; }
+          .sf-c-doc .sf-c-asof { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border: 1px solid #e6c98a; background: #fff7e6; border-radius: 3px; color: #8c6a14; font-family: ui-monospace, Menlo, monospace; font-size: 11px; font-style: normal; }
+          .sf-c-source { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; line-height: 1.7; background: #fffdf5; border: 1px solid #ece6d2; border-radius: 3px; padding: 14px 0; margin-top: 18px; }
+          .sf-c-source .sf-c-line { display: grid; grid-template-columns: 48px 1fr; }
+          .sf-c-source .sf-c-num { color: #c9bfa1; text-align: right; padding: 0 14px; user-select: none; }
+          .sf-c-source .sf-c-text { padding: 0 14px; white-space: pre; color: #1d1c19; }
+          .sf-c-source .sf-c-line.sf-c-changed { background: #fbf6df; }
+          .sf-c-source .sf-c-line.sf-c-changed .sf-c-num { color: #b15a2c; font-weight: 600; }
+          .sf-c-source .sf-c-line.sf-c-added { background: #ecf5e7; }
+          .sf-c-source .sf-c-line.sf-c-added .sf-c-num { color: #4f7d3a; }
+          .sf-c-rail { border-left: 1px solid #e6e2d4; background: #f4f1e8; padding: 18px 14px; }
+          .sf-c-rail-h { font-style: italic; color: #8a8678; font-size: 12px; border-bottom: 1px solid #e6e2d4; padding-bottom: 6px; margin-bottom: 10px; letter-spacing: 0.02em; }
+          .sf-c-turn { padding: 6px 8px; border-radius: 3px; cursor: pointer; font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #4a4842; display: flex; justify-content: space-between; align-items: center; }
+          .sf-c-turn:hover { background: #ebe6d4; }
+          .sf-c-turn.sf-c-here { background: #fff7e6; border: 1px solid #e6c98a; color: #b15a2c; }
+          .sf-c-turn .sf-c-tn { font-weight: 600; }
+          .sf-c-turn .sf-c-td { color: #8a8678; font-size: 10px; }
+          .sf-c-scrubber { margin-top: 14px; padding: 10px; background: #fffdf5; border: 1px solid #e6e2d4; border-radius: 3px; font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: #4a4842; }
+          .sf-c-scrubber .sf-c-track { height: 4px; background: #e6e2d4; border-radius: 2px; position: relative; margin: 8px 0 6px; }
+          .sf-c-scrubber .sf-c-fill { height: 100%; width: 64%; background: #b15a2c; border-radius: 2px; }
+          .sf-c-scrubber .sf-c-thumb { position: absolute; top: -4px; left: 64%; width: 12px; height: 12px; border-radius: 50%; background: #b15a2c; border: 2px solid #fffdf5; box-shadow: 0 0 0 1px #b15a2c; }
+          .sf-c-scrubber .sf-c-times { display: flex; justify-content: space-between; color: #8a8678; }
+        </style>
+        <div class="sf-c-wrap">
+          <aside class="sf-c-tree">
+            <div class="sf-c-tree-h">Repo &middot; 47 files</div>
+            <div class="sf-c-node sf-c-folder">&#9662; plugin/</div>
+            <div class="sf-c-node sf-c-folder" style="padding-left:14px;">&#9662; server/</div>
+            <div class="sf-c-node sf-c-current" style="padding-left:24px;">server.js<span class="sf-c-touched">&bull;&bull;&bull;&bull;</span></div>
+            <div class="sf-c-node" style="padding-left:24px;">transcript-tailer.js<span class="sf-c-touched">&bull;&bull;</span></div>
+            <div class="sf-c-node" style="padding-left:24px;">state.js<span class="sf-c-touched">&bull;</span></div>
+            <div class="sf-c-node" style="padding-left:24px;">lobby.html<span class="sf-c-touched">&bull;&bull;</span></div>
+            <div class="sf-c-node sf-c-folder" style="padding-left:14px;">&#9656; hooks/</div>
+            <div class="sf-c-node sf-c-folder" style="padding-left:14px;">&#9656; bin/</div>
+            <div class="sf-c-node sf-c-folder">&#9662; design-pocs/</div>
+            <div class="sf-c-node" style="padding-left:14px;">04-document-margin.html</div>
+            <div class="sf-c-node" style="padding-left:14px;">05-pr-review.html</div>
+            <div class="sf-c-node">PRD.md<span class="sf-c-touched">&bull;</span></div>
+            <div class="sf-c-node">README.md</div>
+          </aside>
+          <main class="sf-c-doc">
+            <div class="sf-c-bc">plugin / server / server.js</div>
+            <h1>server.js</h1>
+            <div class="sf-c-sub">320 lines &middot; last touched at t34 &middot; <span class="sf-c-asof">as of t27 &middot; 7 turns ago</span></div>
+            <div class="sf-c-source">
+              <div class="sf-c-line"><div class="sf-c-num">138</div><div class="sf-c-text">  if (req.method === 'GET' &amp;&amp; url.pathname === '/snapshot.json') {</div></div>
+              <div class="sf-c-line"><div class="sf-c-num">139</div><div class="sf-c-text">    return send(res, 200, snapshot());</div></div>
+              <div class="sf-c-line"><div class="sf-c-num">140</div><div class="sf-c-text">  }</div></div>
+              <div class="sf-c-line sf-c-changed"><div class="sf-c-num">141</div><div class="sf-c-text">  // SSE stream</div></div>
+              <div class="sf-c-line sf-c-changed"><div class="sf-c-num">142</div><div class="sf-c-text">  if (req.method === 'GET' &amp;&amp; url.pathname === '/events') {</div></div>
+              <div class="sf-c-line"><div class="sf-c-num">143</div><div class="sf-c-text">    res.writeHead(200, {</div></div>
+              <div class="sf-c-line sf-c-added"><div class="sf-c-num">144</div><div class="sf-c-text">      'content-type': 'text/event-stream',</div></div>
+              <div class="sf-c-line sf-c-added"><div class="sf-c-num">145</div><div class="sf-c-text">      'cache-control': 'no-cache, no-transform',</div></div>
+              <div class="sf-c-line sf-c-added"><div class="sf-c-num">146</div><div class="sf-c-text">      'content-encoding': 'identity',</div></div>
+              <div class="sf-c-line"><div class="sf-c-num">147</div><div class="sf-c-text">    });</div></div>
+              <div class="sf-c-line"><div class="sf-c-num">148</div><div class="sf-c-text">    sseClients.add(res);</div></div>
+            </div>
+          </main>
+          <aside class="sf-c-rail">
+            <div class="sf-c-rail-h">touched at</div>
+            <div class="sf-c-turn"><span class="sf-c-tn">t34</span><span class="sf-c-td">Edit &middot; 47s ago</span></div>
+            <div class="sf-c-turn"><span class="sf-c-tn">t31</span><span class="sf-c-td">Edit &middot; 2m ago</span></div>
+            <div class="sf-c-turn sf-c-here"><span class="sf-c-tn">t27 &#9656;</span><span class="sf-c-td">Read &middot; 4m ago</span></div>
+            <div class="sf-c-turn"><span class="sf-c-tn">t12</span><span class="sf-c-td">Edit &middot; 11m ago</span></div>
+            <div class="sf-c-turn"><span class="sf-c-tn">t04</span><span class="sf-c-td">Read &middot; 17m ago</span></div>
+            <div class="sf-c-scrubber">
+              <div>session timeline</div>
+              <div class="sf-c-track"><div class="sf-c-fill"></div><div class="sf-c-thumb"></div></div>
+              <div class="sf-c-times"><span>t01</span><span>now (t34)</span></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <p class="doc-mockup-caption">Lighter, document-y aesthetic for the file inspector to set it apart from the timeline. Tree on the left (touched-count dots per file), file shown "as of t27" not at HEAD, right rail lists every turn that touched this file plus a scrubber that rewinds the whole pane.</p>
+
+    <div class="doc-tradeoffs">
+      <div class="col pros">
+        <h5>Earns its keep</h5>
+        <ul>
+          <li>Comments graduate from turn-level to <code>file:line@turn</code> &mdash; the unblocker for serious review</li>
+          <li>Scrubbing is the most-asked feature in any "watch a recording" tool, including the PRD&rsquo;s own §Problem section</li>
+          <li>Watchers stop having to context-switch to GitHub to act on the work they&rsquo;re watching</li>
+          <li>Auto-published "host edited X" PR comments give async observers a natural breadcrumb</li>
+        </ul>
+      </div>
+      <div class="col cons">
+        <h5>Real work to make this safe</h5>
+        <ul>
+          <li>"You have the URL" is no longer enough authority &mdash; mutations need per-action ACL</li>
+          <li>Webhook reachability under quick-tunnel is the single biggest unknown; <code>gh webhook forward</code> is the workaround</li>
+          <li>Disk-backed snapshot store + byte cap or RAM blows up on long sessions</li>
+          <li>Audit log non-optional &mdash; surfaced in <code>/better-together:files-log</code></li>
+          <li>Plugin watchers&rsquo; local Claudes could mass-fetch every file via watch-context; default to metadata-only-to-plugin-watchers</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Comparison + risks
+       ============================================================ -->
+  <section class="doc-section doc-prose">
+    <h2 class="doc-h2"><span class="doc-num">04</span>Side by side</h2>
+    <table class="doc-matrix">
+      <thead>
+        <tr>
+          <th></th>
+          <th>01 &middot; Sidecar + auto-touched</th>
+          <th>02 &middot; PR-anchored + pinned</th>
+          <th>03 &middot; Workflow hub + time-travel</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="tier">Effort</td>
+          <td>~3 days</td>
+          <td>~1&ndash;2 weeks</td>
+          <td>~1 month</td>
+        </tr>
+        <tr>
+          <td class="tier">GitHub direction</td>
+          <td>read-only metadata</td>
+          <td>read PR + opt-in mirror comments</td>
+          <td>full bidirectional, host-gated</td>
+        </tr>
+        <tr>
+          <td class="tier">Files surfaced</td>
+          <td>auto-touched only</td>
+          <td>auto-touched + host-pinned, fs.watch</td>
+          <td>full repo tree + per-turn snapshots</td>
+        </tr>
+        <tr>
+          <td class="tier">Storage</td>
+          <td>in-memory ring buffer, LRU 50</td>
+          <td>in-memory + per-pin watchers</td>
+          <td>disk-backed content-addressed (<code>${CLAUDE_PLUGIN_DATA}/snapshots/&lt;sha&gt;.txt</code>)</td>
+        </tr>
+        <tr>
+          <td class="tier">Auth surface</td>
+          <td><code>gh auth token</code> read-only</td>
+          <td>+ host opt-in for PR-comment mirroring</td>
+          <td>+ per-action ACL for mutations, audit log non-optional</td>
+        </tr>
+        <tr>
+          <td class="tier">New host commands</td>
+          <td>none</td>
+          <td><code>share</code>, <code>unshare</code>, <code>gh-mirror</code>, <code>gh-pr</code>, <code>gh-checks</code></td>
+          <td>+ <code>gh-publish</code>, <code>gh-webhooks</code>, <code>gh-as</code>, <code>files-log</code></td>
+        </tr>
+        <tr>
+          <td class="tier">MCP tools</td>
+          <td>optional <code>gh_room_context</code></td>
+          <td><code>gh_pr_files</code>, <code>gh_pr_diff</code>, <code>gh_pr_checks</code>, <code>gh_post_pr_comment</code></td>
+          <td>+ <code>gh_create_issue</code>, <code>gh_request_review</code>, <code>gh_approve_pr</code>, <code>gh_workflow_rerun</code></td>
+        </tr>
+        <tr>
+          <td class="tier">Comment anchoring</td>
+          <td>turn-level (today)</td>
+          <td>turn-level + optional file:line for PR mirror</td>
+          <td>file:line@turn natively</td>
+        </tr>
+        <tr>
+          <td class="tier">Biggest risk</td>
+          <td>none material</td>
+          <td>diff payload bloat in <code>snapshot.json</code>; macOS fs.watch flakiness</td>
+          <td>webhook reachability under ephemeral tunnel; disk-backed store complexity; ACL design</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="doc-section doc-prose">
+    <h2 class="doc-h2"><span class="doc-num">05</span>Risks &amp; open questions</h2>
+    <p class="doc-h2-deck">Things that are real concerns regardless of tier &mdash; worth resolving before commitment, not after.</p>
+    <ul style="max-width:780px;">
+      <li><strong>Cloudflare buffers SSE.</strong> The README already documents the polling fallback for transcripts. File-snapshot SSE events must be metadata-only; bodies are one-shot HTTP at <code>/files/get</code> so they bypass the buffer.</li>
+      <li><strong>Auto-link false positives.</strong> A repo with <code>git remote = github.com:org/repo</code> but no PR yet means <code>gh pr view</code> errors. Distinguish "no PR for this branch" (silent) from "auth failed" (surfaced).</li>
+      <li><strong>Private-repo leak via the public tunnel URL.</strong> Default the GitHub integration to "off for private repos" with explicit opt-in (<code>/better-together:gh-bind</code> confirmation).</li>
+      <li><strong>Webhook reachability under quick-tunnel.</strong> Ephemeral URLs make repo-level webhook installs untenable. Use <code>gh webhook forward</code> subprocess instead &mdash; per-host, no admin scope on the repo, dies cleanly with the room.</li>
+      <li><strong>Path safety beyond the obvious.</strong> CWD allowlist, symlink resolution via <code>fs.realpathSync.native</code>, default-deny on <code>.env*</code>, <code>.ssh</code>, <code>.aws</code>, <code>*.pem</code>, <code>id_rsa*</code>, plus <code>.gitignore</code> matching. 50-line minimal-ignore matcher to stay zero-deps.</li>
+      <li><strong>Plugin-watcher analyst Claudes are scarier than browser watchers.</strong> Their local Claudes can ingest file contents and exfiltrate via tool calls. Default <code>files_to_plugin_watchers = "metadata"</code>; bodies require explicit per-room flip.</li>
+      <li><strong>PR-comment mirroring needs idempotency.</strong> Reconnects mustn&rsquo;t double-post. Use a stable <code>(room_id, turn_id, comment_id)</code> key as the GH comment&rsquo;s identifier.</li>
+      <li><strong>Snapshot eviction policy.</strong> LRU is right for tier 1 but breaks tier 3&rsquo;s "every turn forever" semantics. Disk-backed store with sha-content addressing dedupes most of the cost; a per-room <code>max_session_bytes</code> cap is the floor.</li>
+      <li><strong>Race on file capture.</strong> If the host&rsquo;s editor saves over Claude&rsquo;s edit between <code>tool_use</code> and <code>tool_result</code>, we&rsquo;d capture the editor&rsquo;s content tagged with Claude&rsquo;s turn id. Mitigation: when an Edit tool has <code>tool_input.new_string</code>, prefer that over disk read.</li>
+      <li><strong>"You have the URL" stops being enough authority at tier 3.</strong> Mutating GH state on the host&rsquo;s behalf needs at minimum per-action approval in the host&rsquo;s terminal &mdash; same shape as the existing comment notification, but with an explicit allow/deny prompt.</li>
+    </ul>
+  </section>
+
+  <p class="doc-footer">
+    Generated 2026-05-07 &middot; <code>design-pocs/06-github-and-files-integrated.html</code> &middot;
+    Companion to <code>PRD.md</code> &middot; aesthetic anchored to <code>05-pr-review.html</code> &middot;
+    All mockups static; class names prefixed <code>gh-*</code> and <code>sf-*</code> for collision-safe lift into <code>plugin/server/lobby.html</code>.
+  </p>
+
+</div>
+</body>
+</html>
