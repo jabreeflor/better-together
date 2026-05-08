@@ -8,7 +8,12 @@
   "plugins": [
     {
       "name": "better-together",
-      "source": ".",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/jabreeflor/better-together.git",
+        "path": "plugin",
+        "ref": "main"
+      },
       "description": "Share your Claude Code session as a live, witnessable room. One host drives, teammates watch via browser or their own Claude Code.",
       "version": "0.1.0",
       "author": {
