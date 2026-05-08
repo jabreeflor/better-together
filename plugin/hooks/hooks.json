@@ -7,35 +7,6 @@
         ]
       }
     ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/bin/bt-relay pre_tool_use" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/bin/bt-relay post_tool_use" }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/bin/bt-relay stop" }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "permission_prompt",
-        "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/bin/bt-relay permission_prompt" }
-        ]
-      }
-    ],
     "SessionEnd": [
       {
         "hooks": [

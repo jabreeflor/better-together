@@ -12,6 +12,7 @@ const state = require(path.join(__dirname, '..', 'server', 'state.js'));
 const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
 const SERVER_JS = path.join(PLUGIN_ROOT, 'server', 'server.js');
 const WATCH_DAEMON_JS = path.join(PLUGIN_ROOT, 'server', 'watch-daemon.js');
+const TRANSCRIPT_TAILER_JS = path.join(PLUGIN_ROOT, 'server', 'transcript-tailer.js');
 
 const DISCLOSURE_TEXT = `Better Together — first-time disclosure
 
@@ -279,9 +280,36 @@ async function cmdHost(args) {
     }
   }
 
+  // Transcript tailer — reads the active session's JSONL and POSTs each
+  // turn to the server. This is how the room gets its data; it does not
+  // depend on plugin hooks being registered with the running session.
+  let tailer_pid = null;
+  try {
+    const projectDir = path.join(os.homedir(), '.claude/projects',
+      process.cwd().replace(/\//g, '-'));
+    const tailerLog = path.join(state.dataDir(), 'transcript-tailer.log');
+    fs.writeFileSync(tailerLog, '');
+    const tlogFd = fs.openSync(tailerLog, 'a');
+    const tailer = spawn(process.execPath, [TRANSCRIPT_TAILER_JS], {
+      detached: true,
+      stdio: ['ignore', tlogFd, tlogFd],
+      env: {
+        ...process.env,
+        BT_PORT: String(port),
+        BT_PROJECT_DIR: projectDir,
+        CLAUDE_PLUGIN_DATA: state.dataDir(),
+      },
+    });
+    tailer.unref();
+    tailer_pid = tailer.pid;
+  } catch (e) {
+    console.error(`  ⚠ transcript tailer failed to spawn: ${e.message}`);
+  }
+
   state.setHost({
     server_pid: child.pid,
     tunnel_pid,
+    tailer_pid,
     port,
     tunnel_url,
     started_at: new Date().toISOString(),
@@ -312,7 +340,7 @@ async function cmdHost(args) {
 async function cmdEnd() {
   const s = state.read();
   if (!s.host) { console.log('Not hosting.'); return; }
-  const pids = [s.host.tunnel_pid, s.host.server_pid].filter(Boolean);
+  const pids = [s.host.tunnel_pid, s.host.tailer_pid, s.host.server_pid].filter(Boolean);
   for (const pid of pids) {
     if (isAlive(pid)) { try { process.kill(pid, 'SIGTERM'); } catch (e) {} }
   }
