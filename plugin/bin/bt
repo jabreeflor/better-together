@@ -74,6 +74,15 @@ function isAlive(pid) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Translate the cwd into Claude Code's `~/.claude/projects/<name>/` directory
+// name. Empirically, Claude Code replaces /, _, and . in the absolute path
+// with `-` (e.g. `/Users/me/repo_name/.claude` → `-Users-me-repo-name--claude`),
+// preserving existing hyphens. Existing code only replaced `/`, so worktrees
+// with underscores or dotfiles wound up pointing at a non-existent dir.
+function dasherizeCwd(cwd) {
+  return cwd.replace(/[^A-Za-z0-9-]/g, '-');
+}
+
 async function poll(fn, { tries = 50, interval = 100 } = {}) {
   for (let i = 0; i < tries; i++) {
     try {
@@ -300,7 +309,7 @@ async function cmdHost(args) {
   let tailer_pid = null;
   try {
     const projectDir = path.join(os.homedir(), '.claude/projects',
-      process.cwd().replace(/\//g, '-'));
+      dasherizeCwd(process.cwd()));
     const tailerLog = path.join(state.dataDir(), 'transcript-tailer.log');
     fs.writeFileSync(tailerLog, '');
     const tlogFd = fs.openSync(tailerLog, 'a');

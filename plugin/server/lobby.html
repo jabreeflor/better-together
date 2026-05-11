@@ -391,11 +391,6 @@
     max-width: 1400px;
     margin: 0 auto;
   }
-  .layout::before {
-    content: ''; position: absolute;
-    left: 60.78%; top: 0; bottom: 0; width: 1px;
-    background: var(--border);
-  }
   .row { display: contents; }
   .row > .spine-cell { padding: 0 24px; min-width: 0; }
   .row > .sticky-cell { padding: 0 24px; min-height: 24px; min-width: 0; }
@@ -1288,7 +1283,6 @@
     .view-mode-bar .vm-label { margin: 0 4px 0 0; padding: 0; }
     .view-mode-bar .vm-divider { display: none; }
     .layout { grid-template-columns: 1fr; }
-    .layout::before { display: none; }
     .row > .spine-cell, .row > .sticky-cell { padding: 0 16px; }
     .note { max-width: 100%; }
     .note::before { display: none; }
