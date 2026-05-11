@@ -105,12 +105,22 @@ const server = http.createServer(async (req, res) => {
 
   // Identity — tells the lobby whether it should claim host privileges,
   // and (for the host) returns a remembered display name so they don't have
-  // to retype it across rooms with different cloudflared subdomains.
+  // to retype it across rooms with different cloudflared subdomains. For a
+  // first-time host with no remembered name we fall back to the OS username
+  // so the lobby can skip the join modal entirely — the host is already
+  // authenticated by being on loopback.
   if (req.method === 'GET' && url.pathname === '/me') {
     const host = isHostRequest(req);
+    let defaultName = '';
+    if (host) {
+      defaultName = readHostName();
+      if (!defaultName) {
+        try { defaultName = (os.userInfo().username || '').slice(0, 32); } catch (e) {}
+      }
+    }
     return send(res, 200, {
       is_host: host,
-      default_name: host ? readHostName() : '',
+      default_name: defaultName,
     });
   }
 

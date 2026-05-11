@@ -277,6 +277,20 @@ async function cmdHost(args) {
 
     if (!tunnel_url) {
       console.error('  ⚠ cloudflared started but no URL appeared in 20s. Local URL only.');
+    } else {
+      // cloudflared prints the URL several seconds before the edge actually
+      // routes to it ("it may take some time to be reachable"). Probe the
+      // public URL so we don't hand watchers a dead link.
+      const tunnel_reachable = await poll(async () => {
+        try {
+          const r = await fetchUrl(`${tunnel_url}/health`, { timeout: 4000 });
+          return r.status === 200;
+        } catch (e) { return false; }
+      }, { tries: 20, interval: 1000 });
+      if (!tunnel_reachable) {
+        console.error('  ⚠ tunnel URL didn’t respond in 20s. Cloudflare may still be');
+        console.error('    warming up — share it anyway and give watchers ~30s.');
+      }
     }
   }
 
