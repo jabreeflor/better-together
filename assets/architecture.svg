@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" role="img" aria-label="Architecture: host Claude Code, relay, Node server, Cloudflare tunnel, browser and watcher clients">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8EFD8"/>
+      <stop offset="1" stop-color="#F1E4C3"/>
+    </linearGradient>
+    <pattern id="dots2" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.0" fill="#D8C79B" opacity="0.5"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8C6F46"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="560" fill="url(#bg2)"/>
+  <rect width="1000" height="560" fill="url(#dots2)" opacity="0.6"/>
+  <rect x="12" y="12" width="976" height="536" fill="none" stroke="#C9B47E" stroke-width="1.5" stroke-dasharray="2 6" rx="14"/>
+
+  <text x="500" y="44" text-anchor="middle" font-family="ui-serif, Georgia, serif" font-size="22" font-weight="700" fill="#2D2A26">How a room works</text>
+  <text x="500" y="68" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" fill="#7A6A4F">Local Node server, Cloudflare quick-tunnel, browser + plugin watchers</text>
+
+  <!-- Host card -->
+  <g transform="translate(60,100)">
+    <rect width="280" height="150" rx="12" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <text x="20" y="28" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#2D2A26">Claude Code · host</text>
+    <text x="20" y="48" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#5B5147">hooks: UserPromptSubmit,</text>
+    <text x="20" y="62" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#5B5147">PostToolUse, Stop, …</text>
+    <rect x="20" y="88" width="240" height="44" rx="8" fill="#2D2A26"/>
+    <text x="32" y="106" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#E6D9BD">bin/bt-relay</text>
+    <text x="32" y="122" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#A89B82">JSON via stdin → POST</text>
+  </g>
+
+  <!-- Server card -->
+  <g transform="translate(420,100)">
+    <rect width="280" height="150" rx="12" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <text x="20" y="28" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#2D2A26">server/server.js · Node http</text>
+    <rect x="20" y="44" width="240" height="36" rx="6" fill="#F5EBD6" stroke="#D8C79B"/>
+    <text x="140" y="66" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#5B5147">in-memory transcript</text>
+    <g font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#2D2A26">
+      <rect x="20" y="94" width="72" height="40" rx="6" fill="#EADFC2"/>
+      <text x="56" y="112" text-anchor="middle">GET</text>
+      <text x="56" y="126" text-anchor="middle" fill="#C77B58">/events</text>
+      <rect x="104" y="94" width="72" height="40" rx="6" fill="#EADFC2"/>
+      <text x="140" y="112" text-anchor="middle">GET</text>
+      <text x="140" y="126" text-anchor="middle" fill="#C77B58">/ui</text>
+      <rect x="188" y="94" width="72" height="40" rx="6" fill="#EADFC2"/>
+      <text x="224" y="112" text-anchor="middle">GET</text>
+      <text x="224" y="126" text-anchor="middle" fill="#C77B58">/ws</text>
+    </g>
+  </g>
+
+  <!-- Cloudflared cloud -->
+  <g transform="translate(420,300)">
+    <ellipse cx="140" cy="44" rx="140" ry="44" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <ellipse cx="92" cy="34" rx="46" ry="24" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <ellipse cx="188" cy="30" rx="54" ry="28" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <text x="140" y="48" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#2D2A26">cloudflared</text>
+    <text x="140" y="66" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#5B5147">https://x.trycloudflare.com</text>
+  </g>
+
+  <!-- Browser watcher -->
+  <g transform="translate(60,440)">
+    <rect width="280" height="90" rx="12" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <text x="20" y="28" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#2D2A26">browser · lobby</text>
+    <text x="20" y="48" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#5B5147">EventSource (SSE)</text>
+    <text x="20" y="64" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#5B5147">fallback: /snapshot.json poll</text>
+  </g>
+
+  <!-- Plugin watcher -->
+  <g transform="translate(660,440)">
+    <rect width="280" height="90" rx="12" fill="#2D2A26"/>
+    <text x="20" y="28" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#E6D9BD">plugin watcher</text>
+    <text x="20" y="48" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#A89B82">bt watch → watch-daemon</text>
+    <text x="20" y="64" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#A89B82">→ watch-context.md</text>
+    <text x="20" y="80" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#C77B58">UserPromptSubmit hook injects additionalContext</text>
+  </g>
+
+  <!-- Arrows -->
+  <g stroke="#8C6F46" stroke-width="1.8" fill="none">
+    <line x1="340" y1="175" x2="420" y2="175" marker-end="url(#arrow)"/>
+    <line x1="560" y1="250" x2="560" y2="300" marker-end="url(#arrow)"/>
+    <path d="M 480 388 C 360 410, 280 420, 200 440" marker-end="url(#arrow)"/>
+    <path d="M 640 388 C 720 410, 760 420, 800 440" marker-end="url(#arrow)"/>
+  </g>
+</svg>

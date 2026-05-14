@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-label="Better Together — share your Claude Code session">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8EFD8"/>
+      <stop offset="1" stop-color="#F1E4C3"/>
+    </linearGradient>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.1" fill="#D8C79B" opacity="0.55"/>
+    </pattern>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+    <linearGradient id="window" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2D2A26"/>
+      <stop offset="1" stop-color="#1F1C18"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#bg)"/>
+  <rect width="1200" height="400" fill="url(#dots)" opacity="0.55"/>
+  <rect x="14" y="14" width="1172" height="372" fill="none" stroke="#C9B47E" stroke-width="1.5" stroke-dasharray="2 6" rx="14"/>
+
+  <!-- Title -->
+  <g transform="translate(80,96)">
+    <text font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="64" font-weight="700" fill="#2D2A26" letter-spacing="-1.5">
+      Better Together
+    </text>
+    <text y="42" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="20" fill="#5B5147">
+      Turn one Claude Code session into a shareable, witnessable room.
+    </text>
+    <g transform="translate(0,72)" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="14" fill="#7A6A4F">
+      <rect x="-2" y="-16" width="14" height="22" fill="#C77B58" rx="2"/>
+      <text x="22" y="0">/better-together:host</text>
+      <text x="22" y="22" fill="#9A8967">→ a quick-tunnel URL your teammates can join</text>
+    </g>
+  </g>
+
+  <!-- Host terminal window -->
+  <g transform="translate(70,250)">
+    <rect width="280" height="110" rx="10" fill="url(#window)" filter="url(#soft)" opacity="0.35"/>
+  </g>
+  <g transform="translate(70,240)">
+    <rect width="280" height="110" rx="10" fill="url(#window)"/>
+    <circle cx="18" cy="18" r="5" fill="#E26D5C"/>
+    <circle cx="34" cy="18" r="5" fill="#E6B453"/>
+    <circle cx="50" cy="18" r="5" fill="#7FB069"/>
+    <text x="140" y="22" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#A89B82">host · claude code</text>
+    <g font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#E6D9BD">
+      <text x="16" y="46">$ /better-together:host</text>
+      <text x="16" y="64" fill="#7FB069">▸ room ready</text>
+      <text x="16" y="82" fill="#A89B82">https://x.trycloudflare.com</text>
+      <rect x="16" y="92" width="6" height="10" fill="#E6D9BD">
+        <animate attributeName="opacity" values="1;0;1" dur="1.1s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+  </g>
+
+  <!-- Connection cloud + lines -->
+  <g stroke="#C77B58" stroke-width="2" fill="none" stroke-linecap="round">
+    <path d="M360 286 C 480 286, 520 200, 640 200" stroke-dasharray="4 6"/>
+    <path d="M760 200 C 880 200, 920 286, 1040 286" stroke-dasharray="4 6"/>
+    <path d="M760 200 C 880 200, 920 320, 1040 320" stroke-dasharray="4 6"/>
+  </g>
+
+  <g transform="translate(640,168)">
+    <ellipse cx="60" cy="32" rx="60" ry="22" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <ellipse cx="36" cy="26" rx="22" ry="16" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <ellipse cx="86" cy="22" rx="26" ry="18" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <text x="60" y="36" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#7A6A4F">cloudflared</text>
+  </g>
+
+  <!-- Watcher browser -->
+  <g transform="translate(1010,232)">
+    <rect width="150" height="60" rx="8" fill="#FFFFFF" stroke="#C9B47E" stroke-width="1.5"/>
+    <rect x="0" y="0" width="150" height="14" rx="8" fill="#EADFC2"/>
+    <circle cx="9" cy="7" r="2.2" fill="#E26D5C"/>
+    <circle cx="17" cy="7" r="2.2" fill="#E6B453"/>
+    <circle cx="25" cy="7" r="2.2" fill="#7FB069"/>
+    <rect x="14" y="24" width="122" height="6" rx="2" fill="#D8C79B"/>
+    <rect x="14" y="36" width="90" height="6" rx="2" fill="#D8C79B"/>
+    <rect x="14" y="48" width="60" height="6" rx="2" fill="#D8C79B"/>
+    <text x="-8" y="34" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#7A6A4F">browser</text>
+  </g>
+
+  <!-- Watcher claude -->
+  <g transform="translate(1010,310)">
+    <rect width="150" height="50" rx="8" fill="#2D2A26"/>
+    <circle cx="10" cy="10" r="3" fill="#C77B58"/>
+    <text x="22" y="14" font-family="ui-monospace, Menlo, monospace" font-size="10" fill="#A89B82">watcher · claude</text>
+    <rect x="10" y="24" width="120" height="4" rx="2" fill="#5B5147"/>
+    <rect x="10" y="32" width="80" height="4" rx="2" fill="#5B5147"/>
+    <text x="-8" y="32" text-anchor="end" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#7A6A4F">plugin watcher</text>
+  </g>
+</svg>
