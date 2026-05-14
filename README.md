@@ -1,10 +1,25 @@
-# Better Together
+<p align="center">
+  <img src="./assets/hero.svg" alt="Better Together — turn one Claude Code session into a shareable, witnessable room" width="100%"/>
+</p>
 
-A Claude Code plugin that turns one developer's Claude Code session into a shareable, witnessable room. The host drives; teammates join by URL — either in a browser or in their own Claude Code with a private analyst Claude alongside the host's stream.
+<h1 align="center">Better Together</h1>
+
+<p align="center">
+  <em>A Claude Code plugin that turns one developer's session into a shareable, witnessable room.</em>
+</p>
+
+<p align="center">
+  <a href="./PRD.md">Product spec</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#limitations-v1">Limitations</a>
+</p>
+
+---
+
+The host drives; teammates join by URL — either in a browser or in their own Claude Code with a private analyst Claude alongside the host's stream.
 
 Hosting is ephemeral and zero-config: a Cloudflare quick-tunnel exposes the host's local server on a randomly assigned `*.trycloudflare.com` URL. No accounts, no infra, no central service. The product targets small trusted groups doing pairing, mentoring, code review, or async "show me what you tried" workflows.
-
-See [`PRD.md`](./PRD.md) for the full product spec.
 
 ## Prerequisites
 
@@ -89,34 +104,9 @@ A redaction filter for outbound transcript events is planned for v1.5; until the
 
 ## Architecture
 
-```
-┌─ Claude Code (host) ──────────────────────────────────┐
-│   hooks: UserPromptSubmit, PostToolUse, Stop, ...      │
-│        │                                               │
-│        ▼  (JSON via stdin)                             │
-│   bin/bt-relay  ──POST──► server/server.js  (Node http)│
-│                                │                       │
-│                                ▼                       │
-│                            in-memory transcript        │
-│                                │                       │
-│             ┌──────────────────┼──────────────────┐    │
-│             ▼                  ▼                  ▼    │
-│          GET /events       GET /ui            GET /ws  │
-│          (SSE fanout)      (lobby HTML)       (snapshot)│
-└──────────┬──────────────────────────────────────────┬──┘
-           │                                          │
-       cloudflared                                    │
-   (quick-tunnel proxy)                               │
-           │                                          │
-   https://x.trycloudflare.com                        │
-           │                                          │
-     ┌─────┴──────┐                                  │
-     │            │                                  │
- browser     plugin-watcher's bt watch ──► watch-daemon ──► watch-context.md
-                                                          │
-                                            UserPromptSubmit hook reads it
-                                            and emits additionalContext
-```
+<p align="center">
+  <img src="./assets/architecture.svg" alt="Architecture: host Claude Code → bt-relay → Node server → cloudflared → browser and plugin watchers" width="100%"/>
+</p>
 
 State lives at `${CLAUDE_PLUGIN_DATA}/state.json` (resolves to `~/.claude/plugins/data/better-together-*/`). The detached server and tunnel processes survive plugin updates and Claude Code restarts; `SessionEnd` hook does best-effort teardown.
 
